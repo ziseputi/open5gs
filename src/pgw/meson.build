@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-subdir('ipfw')
-
 pgw_conf = configuration_data()
 
 pgw_headers = ('''
@@ -69,12 +67,12 @@ libpgw_sources = files('''
 libpgw = static_library('pgw',
     sources : libpgw_sources,
     link_with : libipfw,
-    dependencies : [libapp_dep, libdiameter_gx_dep, libgtp_dep],
+    dependencies : [libapp_dep, libdiameter_gx_dep, libgtp_dep, libipfw_dep],
     install : false)
 
 libpgw_dep = declare_dependency(
     link_with : libpgw,
-    dependencies : [libapp_dep, libdiameter_gx_dep, libgtp_dep])
+    dependencies : [libapp_dep, libdiameter_gx_dep, libgtp_dep, libipfw_dep])
 
 pgw_sources = files('''
     app-init.c

@@ -42,7 +42,7 @@ libipfw_sources = files('''
     glue.c
 '''.split())
 
-ipfwinc = include_directories('objs/include_e')
+libipfw_inc = include_directories('objs/include_e')
 
 ipfw_cc_flags = ['-D_DEFAULT_SOURCE', '-D_BSD_SOURCE', '-DUSERSPACE',
                  '-D__BSD_VISIBLE', '-DNEED_STRTONUM', '-DNEED_ROUNDUP2' ]
@@ -70,8 +70,13 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     ])
 endif
 
-libipfw = static_library('ipfw',
-    sources : [libipfw_sources],
+libipfw = library('ogsipfw',
+    sources : libipfw_sources,
+    version : libogslib_version,
     c_args : ['-include', 'glue.h', ipfw_cc_flags],
-    include_directories : [ipfwinc],
-    install : false)
+    include_directories : libipfw_inc,
+    install : true)
+
+libipfw_dep = declare_dependency(
+    link_with : libipfw,
+    include_directories : libinc)

@@ -17,51 +17,51 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OGS_APP_H
-#define OGS_APP_H
+#ifndef SMF_EVENT_H
+#define SMF_EVENT_H
 
 #include "ogs-core.h"
-
-#define OGS_APP_INSIDE
-
-extern int __ogs_app_domain;
-
-#include "app/ogs-yaml.h"
-#include "app/ogs-config.h"
-#include "app/ogs-init.h"
-
-#undef OGS_APP_INSIDE
-
-#undef OGS_LOG_DOMAIN
-#define OGS_LOG_DOMAIN __ogs_app_domain
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int app_initialize(const char *const argv[]);
-void app_terminate(void);
+typedef struct ogs_gtp_node_s ogs_gtp_node_t;
+typedef struct ogs_gtp_xact_s ogs_gtp_xact_t;
+typedef struct smf_sess_s smf_sess_t;
 
-int mme_initialize(void);
-void mme_terminate(void);
+typedef enum {
+    SMF_EVT_BASE = OGS_FSM_USER_SIG,
 
-int hss_initialize(void);
-void hss_terminate(void);
+    SMF_EVT_S5C_MESSAGE,
+    SMF_EVT_GX_MESSAGE,
 
-int sgw_initialize(void);
-void sgw_terminate(void);
+    SMF_EVT_TOP,
 
-int pgw_initialize(void);
-void pgw_terminate(void);
+} smf_event_e;
 
-int pcrf_initialize(void);
-void pcrf_terminate(void);
+typedef struct smf_event_s {
+    int id;
+    ogs_pkbuf_t *gtpbuf;
+    ogs_pkbuf_t *gxbuf;
 
-int smf_initialize(void);
-void smf_terminate(void);
+    ogs_gtp_node_t *gnode;
+    ogs_gtp_xact_t *xact;
+
+    smf_sess_t *sess;
+} smf_event_t;
+
+void smf_event_init(void);
+void smf_event_term(void);
+void smf_event_final(void);
+
+smf_event_t *smf_event_new(smf_event_e id);
+void smf_event_free(smf_event_t *e);
+
+const char *smf_event_get_name(smf_event_t *e);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* OGS_APP_H */
+#endif /* SMF_EVENT_H */

@@ -17,51 +17,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OGS_APP_H
-#define OGS_APP_H
+#ifndef SMF_FD_PATH_H
+#define SMF_FD_PATH_H
 
-#include "ogs-core.h"
-
-#define OGS_APP_INSIDE
-
-extern int __ogs_app_domain;
-
-#include "app/ogs-yaml.h"
-#include "app/ogs-config.h"
-#include "app/ogs-init.h"
-
-#undef OGS_APP_INSIDE
-
-#undef OGS_LOG_DOMAIN
-#define OGS_LOG_DOMAIN __ogs_app_domain
+#include "smf-context.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int app_initialize(const char *const argv[]);
-void app_terminate(void);
+typedef struct gtp_xact_s gtp_xact_t;
 
-int mme_initialize(void);
-void mme_terminate(void);
+int smf_fd_init(void);
+void smf_fd_final(void);
 
-int hss_initialize(void);
-void hss_terminate(void);
-
-int sgw_initialize(void);
-void sgw_terminate(void);
-
-int pgw_initialize(void);
-void pgw_terminate(void);
-
-int pcrf_initialize(void);
-void pcrf_terminate(void);
-
-int smf_initialize(void);
-void smf_terminate(void);
+void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        ogs_pkbuf_t *gtpbuf, uint32_t cc_request_type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* OGS_APP_H */
+#endif /* SMF_FD_PATH_H */
+

@@ -20,33 +20,12 @@
 #include "smf-event.h"
 #include "smf-context.h"
 
-#if defined(HAVE_KQUEUE)
-/*
- * kqueue does not support TUN/TAP character device
- * So, SMF should use select action in I/O multiplexing
- */
-extern const ogs_pollset_actions_t ogs_select_actions;
-
-extern ogs_pollset_actions_t ogs_pollset_actions;
-extern bool ogs_pollset_actions_initialized;
-
-static void pollset_action_setup(void)
-{
-    ogs_pollset_actions = ogs_select_actions;
-    ogs_pollset_actions_initialized = true;
-}
-#endif
-
 #define EVENT_POOL 32 /* FIXME : 32 */
 static OGS_POOL(pool, smf_event_t);
 
 void smf_event_init(void)
 {
     ogs_pool_init(&pool, EVENT_POOL);
-
-#if defined(HAVE_KQUEUE)
-    pollset_action_setup();
-#endif
 
     smf_self()->queue = ogs_queue_create(EVENT_POOL);
     ogs_assert(smf_self()->queue);

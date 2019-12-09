@@ -29,7 +29,7 @@ struct sess_state {
 
 #define MAX_CC_REQUEST_NUMBER 32
     smf_sess_t *sess;
-    ogs_gtp_xact_t *xact[MAX_CC_REQUEST_NUMBER];
+    ogs_gtp_xact_t *gxact[MAX_CC_REQUEST_NUMBER];
     ogs_pkbuf_t *gtpbuf[MAX_CC_REQUEST_NUMBER];
 
     uint32_t cc_request_type;
@@ -61,7 +61,7 @@ static void state_cleanup(struct sess_state *sess_data, os0_t sid, void *opaque)
     ogs_free(sess_data);
 }
 
-void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
+void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *gxact,
         ogs_pkbuf_t *gtpbuf, uint32_t cc_request_type)
 {
     int ret;
@@ -161,7 +161,7 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
 
     /* Update session state */
     sess_data->sess = sess;
-    sess_data->xact[sess_data->cc_request_number] = xact;
+    sess_data->gxact[sess_data->cc_request_number] = gxact;
     sess_data->gtpbuf[sess_data->cc_request_number] = gtpbuf;
 
     /* Set Origin-Host & Origin-Realm */
@@ -468,7 +468,7 @@ static void smf_gx_cca_cb(void *data, struct msg **msg)
     int new;
 
     smf_event_t *e = NULL;
-    ogs_gtp_xact_t *xact = NULL;
+    ogs_gtp_xact_t *gxact = NULL;
     smf_sess_t *sess = NULL;
     ogs_pkbuf_t *gxbuf = NULL, *gtpbuf = NULL;
     ogs_diam_gx_message_t *gx_message = NULL;
@@ -508,8 +508,8 @@ static void smf_gx_cca_cb(void *data, struct msg **msg)
 
     ogs_debug("    CC-Request-Number[%d]", cc_request_number);
 
-    xact = sess_data->xact[cc_request_number];
-    ogs_assert(xact);
+    gxact = sess_data->gxact[cc_request_number];
+    ogs_assert(gxact);
     sess = sess_data->sess;
     ogs_assert(sess);
     gtpbuf = sess_data->gtpbuf[cc_request_number];
@@ -721,7 +721,7 @@ out:
 
         e->sess = sess;
         e->gxbuf = gxbuf;
-        e->xact = xact;
+        e->gxact = gxact;
         e->gtpbuf = gtpbuf;
         rv = ogs_queue_push(smf_self()->queue, e);
         if (rv != OGS_OK) {

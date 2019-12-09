@@ -1,5 +1,5 @@
 logger:
-    file: @localstatedir@/log/open5gs/pgw.log
+    file: @localstatedir@/log/open5gs/smf.log
 
 parameter:
 

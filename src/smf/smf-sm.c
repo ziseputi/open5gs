@@ -48,13 +48,22 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     ogs_pkbuf_t *recvbuf = NULL;
     ogs_pkbuf_t *copybuf = NULL;
     uint16_t copybuf_len = 0;
-    ogs_gtp_xact_t *xact = NULL;
-    ogs_gtp_message_t *message = NULL;
     smf_sess_t *sess = NULL;
-    ogs_pkbuf_t *gxbuf = NULL;
-    ogs_diam_gx_message_t *gx_message = NULL;
+
+    ogs_gtp_message_t *gtp_message = NULL;
     ogs_pkbuf_t *gtpbuf = NULL;
     ogs_gtp_node_t *gnode = NULL;
+    ogs_gtp_xact_t *gxact = NULL;
+
+    ogs_pkbuf_t *gxbuf = NULL;
+    ogs_diam_gx_message_t *gx_message = NULL;
+
+#if 0
+    ogs_pfcp_message_t *pfcp_message = NULL;
+    ogs_pkbuf_t *pfcpbuf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
+    ogs_pfcp_xact_t *pxact = NULL;
+#endif
 
     smf_sm_debug(e);
 
@@ -85,10 +94,10 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         copybuf_len = sizeof(ogs_gtp_message_t);
         copybuf = ogs_pkbuf_alloc(NULL, copybuf_len);
         ogs_pkbuf_put(copybuf, copybuf_len);
-        message = (ogs_gtp_message_t *)copybuf->data;
-        ogs_assert(message);
+        gtp_message = (ogs_gtp_message_t *)copybuf->data;
+        ogs_assert(gtp_message);
 
-        rv = ogs_gtp_parse_msg(message, recvbuf);
+        rv = ogs_gtp_parse_msg(gtp_message, recvbuf);
         ogs_assert(rv == OGS_OK);
 
         /*
@@ -120,9 +129,9 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
          *   However in this case, the cause code shall not be set to
          *   "Context not found".
          */
-        if (message->h.teid != 0) {
+        if (gtp_message->h.teid != 0) {
             /* Cause is not "Context not found" */
-            sess = smf_sess_find_by_teid(message->h.teid);
+            sess = smf_sess_find_by_teid(gtp_message->h.teid);
         }
 
         if (sess) {
@@ -133,45 +142,45 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             ogs_assert(gnode);
         }
 
-        rv = ogs_gtp_xact_receive(gnode, &message->h, &xact);
+        rv = ogs_gtp_xact_receive(gnode, &gtp_message->h, &gxact);
         if (rv != OGS_OK) {
             ogs_pkbuf_free(recvbuf);
             ogs_pkbuf_free(copybuf);
             break;
         }
 
-        switch(message->h.type) {
+        switch(gtp_message->h.type) {
         case OGS_GTP_CREATE_SESSION_REQUEST_TYPE:
-            if (message->h.teid == 0) {
+            if (gtp_message->h.teid == 0) {
                 ogs_assert(!sess);
-                sess = smf_sess_add_by_message(message);
+                sess = smf_sess_add_by_message(gtp_message);
                 if (sess)
                     OGS_SETUP_GTP_NODE(sess, gnode);
             }
             smf_s5c_handle_create_session_request(
-                sess, xact, copybuf, &message->create_session_request);
+                sess, gxact, copybuf, &gtp_message->create_session_request);
             break;
         case OGS_GTP_DELETE_SESSION_REQUEST_TYPE:
             smf_s5c_handle_delete_session_request(
-                sess, xact, copybuf, &message->delete_session_request);
+                sess, gxact, copybuf, &gtp_message->delete_session_request);
             break;
         case OGS_GTP_CREATE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_create_bearer_response(
-                sess, xact, &message->create_bearer_response);
+                sess, gxact, &gtp_message->create_bearer_response);
             ogs_pkbuf_free(copybuf);
             break;
         case OGS_GTP_UPDATE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_update_bearer_response(
-                sess, xact, &message->update_bearer_response);
+                sess, gxact, &gtp_message->update_bearer_response);
             ogs_pkbuf_free(copybuf);
             break;
         case OGS_GTP_DELETE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_delete_bearer_response(
-                sess, xact, &message->delete_bearer_response);
+                sess, gxact, &gtp_message->delete_bearer_response);
             ogs_pkbuf_free(copybuf);
             break;
         default:
-            ogs_warn("Not implmeneted(type:%d)", message->h.type);
+            ogs_warn("Not implmeneted(type:%d)", gtp_message->h.type);
             ogs_pkbuf_free(copybuf);
             break;
         }
@@ -191,24 +200,24 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
         switch(gx_message->cmd_code) {
         case OGS_DIAM_GX_CMD_CODE_CREDIT_CONTROL:
-            xact = e->xact;
-            ogs_assert(xact);
+            gxact = e->gxact;
+            ogs_assert(gxact);
 
             gtpbuf = e->gtpbuf;
             ogs_assert(gtpbuf);
-            message = (ogs_gtp_message_t *)gtpbuf->data;
+            gtp_message = (ogs_gtp_message_t *)gtpbuf->data;
 
             if (gx_message->result_code == ER_DIAMETER_SUCCESS) {
                 switch(gx_message->cc_request_type) {
                 case OGS_DIAM_GX_CC_REQUEST_TYPE_INITIAL_REQUEST:
                     smf_gx_handle_cca_initial_request(
-                            sess, gx_message, xact, 
-                            &message->create_session_request);
+                            sess, gx_message, gxact, 
+                            &gtp_message->create_session_request);
                     break;
                 case OGS_DIAM_GX_CC_REQUEST_TYPE_TERMINATION_REQUEST:
                     smf_gx_handle_cca_termination_request(
-                            sess, gx_message, xact,
-                            &message->delete_session_request);
+                            sess, gx_message, gxact,
+                            &gtp_message->delete_session_request);
                     break;
                 default:
                     ogs_error("Not implemented(%d)",
@@ -235,6 +244,31 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         ogs_assert(e);
         recvbuf = e->pfcpbuf;
         ogs_assert(recvbuf);
+
+#if 0
+        if (pfcp_message.h.seid != 0) {
+            /* Cause is not "Context not found" */
+            sess = sess_find_by_seid(pfcp_message.h.seid);
+        }
+
+        if (sess) {
+            pnode = sess->pnode;
+            ogs_assert(pnode);
+
+        } else {
+            pnode = e->pnode;
+            ogs_assert(pnode);
+        }
+
+        rv = ogs_pfcp_xact_receive(pnode, &pfcp_message.h, &pxact);
+        if (rv != OGS_OK) {
+            ogs_pkbuf_free(recvbuf);
+            break;
+        }
+
+        switch (pfcp_message.h.type) {
+        }
+#endif
 
         ogs_pkbuf_free(recvbuf);
         break;

@@ -48,7 +48,7 @@ typedef struct smf_event_s {
 
     ogs_pkbuf_t *gtpbuf;
     ogs_gtp_node_t *gnode;
-    ogs_gtp_xact_t *xact;
+    ogs_gtp_xact_t *gxact;
 
     ogs_pkbuf_t *gxbuf;
 

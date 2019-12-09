@@ -19,10 +19,6 @@ smf_conf = configuration_data()
 
 smf_headers = ('''
     net/if.h
-    netinet/ip.h
-    netinet/ip6.h
-    netinet/ip_icmp.h
-    netinet/icmp6.h
 '''.split())
 
 foreach h : smf_headers
@@ -31,10 +27,6 @@ foreach h : smf_headers
         smf_conf.set(define, 1)
     endif
 endforeach
-
-if have_func_kqueue
-    smf_conf.set('HAVE_KQUEUE', 1)
-endif
 
 configure_file(output : 'smf-config.h', configuration : smf_conf)
 

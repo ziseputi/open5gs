@@ -28,6 +28,8 @@ extern "C" {
 
 typedef struct ogs_gtp_node_s ogs_gtp_node_t;
 typedef struct ogs_gtp_xact_s ogs_gtp_xact_t;
+typedef struct ogs_pfcp_node_s ogs_pfcp_node_t;
+typedef struct ogs_pfcp_xact_s ogs_pfcp_xact_t;
 typedef struct smf_sess_s smf_sess_t;
 
 typedef enum {
@@ -35,6 +37,7 @@ typedef enum {
 
     SMF_EVT_S5C_MESSAGE,
     SMF_EVT_GX_MESSAGE,
+    SMF_EVT_N4_MESSAGE,
 
     SMF_EVT_TOP,
 
@@ -42,11 +45,16 @@ typedef enum {
 
 typedef struct smf_event_s {
     int id;
-    ogs_pkbuf_t *gtpbuf;
-    ogs_pkbuf_t *gxbuf;
 
+    ogs_pkbuf_t *gtpbuf;
     ogs_gtp_node_t *gnode;
     ogs_gtp_xact_t *xact;
+
+    ogs_pkbuf_t *gxbuf;
+
+    ogs_pkbuf_t *pfcpbuf;;
+    ogs_pfcp_node_t *pnode;
+    ogs_pfcp_xact_t *pxact;
 
     smf_sess_t *sess;
 } smf_event_t;

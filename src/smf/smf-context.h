@@ -28,6 +28,7 @@
 
 #include "ogs-gtp.h"
 #include "ogs-diameter-gx.h"
+#include "ogs-pfcp.h"
 #include "ogs-app.h"
 
 #ifdef __cplusplus
@@ -48,6 +49,7 @@ typedef struct smf_context_s {
 
     uint32_t        gtpc_port;      /* Default: SMF GTP-C local port */
     uint32_t        gtpu_port;      /* Default: SMF GTP-U local port */
+    uint32_t        pfcp_port;      /* Default: SMF GTP-U local port */
     const char      *tun_ifname;    /* Default: ogstun */
 
     ogs_list_t      gtpc_list;      /* SMF GTPC IPv4 Server List */
@@ -63,6 +65,13 @@ typedef struct smf_context_s {
     ogs_sock_t      *gtpu_sock6;    /* SMF GTPU IPv6 Socket */
     ogs_sockaddr_t  *gtpu_addr;     /* SMF GTPU IPv4 Address */
     ogs_sockaddr_t  *gtpu_addr6;    /* SMF GTPU IPv6 Address */
+
+    ogs_list_t      pfcp_list;      /* SMF PFCP IPv4 Server List */
+    ogs_list_t      pfcp_list6;     /* SMF PFCP IPv6 Server List */
+    ogs_sock_t      *pfcp_sock;     /* SMF PFCP IPv4 Socket */
+    ogs_sock_t      *pfcp_sock6;    /* SMF PFCP IPv6 Socket */
+    ogs_sockaddr_t  *pfcp_addr;     /* SMF PFCP IPv4 Address */
+    ogs_sockaddr_t  *pfcp_addr6;    /* SMF PFCP IPv6 Address */
 
     ogs_list_t      dev_list;       /* SMF Tun Device List */
     ogs_list_t      subnet_list;    /* SMF UE Subnet List */
@@ -85,12 +94,22 @@ typedef struct smf_context_s {
 
     ogs_list_t      sgw_s5c_list;   /* SGW GTPC Node List */
     ogs_list_t      sgw_s5u_list;   /* SGW GTPU Node List */
+    ogs_list_t      upf_list;       /* UPF PFCP Node List */
     ogs_list_t      ip_pool_list;
 
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
 
     ogs_list_t      sess_list;
 } smf_context_t;
+
+typedef struct smf_upf_s {
+    ogs_lnode_t     lnode;
+
+    uint16_t        tac[OGS_MAX_NUM_OF_TAI];
+    uint8_t         num_of_tac;
+
+    ogs_pfcp_node_t *pnode;
+} smf_upf_t;
 
 typedef struct smf_subnet_s smf_subnet_t;
 typedef struct smf_ue_ip_s {
@@ -234,6 +253,11 @@ void smf_context_final(void);
 smf_context_t *smf_self(void);
 
 int smf_context_parse_config(void);
+
+smf_upf_t *smf_upf_add(ogs_sockaddr_t *addr);
+void smf_upf_remove(smf_upf_t *upf);
+void smf_upf_remove_all(void);
+smf_upf_t *smf_upf_find_by_addr(ogs_sockaddr_t *addr);
 
 smf_sess_t *smf_sess_add_by_message(ogs_gtp_message_t *message);
 

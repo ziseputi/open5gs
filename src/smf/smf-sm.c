@@ -21,9 +21,10 @@
 #include "smf-context.h"
 #include "smf-event.h"
 #include "smf-gtp-path.h"
+#include "smf-fd-path.h"
+#include "smf-pfcp-path.h"
 #include "smf-s5c-handler.h"
 #include "smf-gx-handler.h"
-#include "smf-fd-path.h"
 
 void smf_state_initial(ogs_fsm_t *s, smf_event_t *e)
 {
@@ -62,11 +63,19 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
         rv = smf_gtp_open();
-        if (rv != OGS_OK)
-            ogs_fatal("Can't establish SMF path");
+        if (rv != OGS_OK) {
+            ogs_fatal("Can't establish S11-GTP path");
+            break;
+        }
+        rv = smf_pfcp_open();
+        if (rv != OGS_OK) {
+            ogs_fatal("Can't establish N4-PFCP path");
+            break;
+        }
         break;
     case OGS_FSM_EXIT_SIG:
         smf_gtp_close();
+        smf_pfcp_close();
         break;
     case SMF_EVT_S5C_MESSAGE:
         ogs_assert(e);
@@ -221,6 +230,13 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
         ogs_diam_gx_message_free(gx_message);
         ogs_pkbuf_free(gxbuf);
+        break;
+    case SMF_EVT_N4_MESSAGE:
+        ogs_assert(e);
+        recvbuf = e->pfcpbuf;
+        ogs_assert(recvbuf);
+
+        ogs_pkbuf_free(recvbuf);
         break;
     default:
         ogs_error("No handler for event %s", smf_event_get_name(e));

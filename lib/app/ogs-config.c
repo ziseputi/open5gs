@@ -156,12 +156,16 @@ static int config_prepare(void)
 #define MAX_NUM_OF_CSMAP            128 /* Num of TAI-LAI MAP per MME */
 #define MAX_NUM_OF_ENB              32  /* Num of eNodeB per MME */
 #define MAX_NUM_OF_UE               128 /* Num of UE per eNodeB */
+#define MAX_NUM_OF_SMF              32  /* Num of SMF per AMF */
+#define MAX_NUM_OF_UPF              32  /* Num of PGW per AMF */
     self.max.sgw = MAX_NUM_OF_SGW;
     self.max.pgw = MAX_NUM_OF_PGW;
     self.max.vlr = MAX_NUM_OF_VLR;
     self.max.csmap = MAX_NUM_OF_CSMAP;
     self.max.enb = MAX_NUM_OF_ENB;
     self.max.ue = MAX_NUM_OF_UE;
+    self.max.smf = MAX_NUM_OF_SMF;
+    self.max.upf = MAX_NUM_OF_UPF;
 
 #define MAX_NUM_OF_PACKET_POOL      65536
     self.pool.packet = MAX_NUM_OF_PACKET_POOL;

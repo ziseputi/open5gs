@@ -48,6 +48,7 @@ libsmf_sources = files('''
     smf-s5c-handler.h
     smf-fd-path.h
     smf-gx-handler.h
+    smf-pfcp-path.h
 
     smf-ipfw.c
     smf-init.c
@@ -59,17 +60,22 @@ libsmf_sources = files('''
     smf-s5c-handler.c 
     smf-fd-path.c
     smf-gx-handler.c 
+    smf-pfcp-path.c
 '''.split())
 
 libsmf = static_library('smf',
     sources : libsmf_sources,
     link_with : libipfw,
-    dependencies : [libapp_dep, libdiameter_gx_dep, libgtp_dep, libipfw_dep],
+    dependencies : [
+        libapp_dep, libdiameter_gx_dep, libgtp_dep, libpfcp_dep, libipfw_dep
+    ],
     install : false)
 
 libsmf_dep = declare_dependency(
     link_with : libsmf,
-    dependencies : [libapp_dep, libdiameter_gx_dep, libgtp_dep, libipfw_dep])
+    dependencies : [
+        libapp_dep, libdiameter_gx_dep, libgtp_dep, libpfcp_dep, libipfw_dep
+    ])
 
 smf_sources = files('''
     app-init.c

@@ -39,9 +39,6 @@ endif
 configure_file(output : 'pgw-config.h', configuration : pgw_conf)
 
 libpgw_sources = files('''
-    ogs-tun.h
-    ogs-tun.c 
-
     pgw-ipfw.h
     pgw-event.h
     pgw-context.h

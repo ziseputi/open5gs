@@ -41,12 +41,8 @@
 
 #define SMF_GTP_HANDLED     1
 
-uint16_t in_cksum(uint16_t *addr, int len);
 static int smf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf);
-static int smf_gtp_handle_slaac(smf_sess_t *sess, ogs_pkbuf_t *recvbuf);
 static int smf_gtp_send_to_bearer(smf_bearer_t *bearer, ogs_pkbuf_t *sendbuf);
-static int smf_gtp_send_router_advertisement(
-        smf_sess_t *sess, uint8_t *ip6_dst);
 
 static void _gtpv1_tun_recv_cb(short when, ogs_socket_t fd, void *data)
 {
@@ -125,88 +121,6 @@ static void _gtpv2_c_recv_cb(short when, ogs_socket_t fd, void *data)
         ogs_pkbuf_free(e->gtpbuf);
         smf_event_free(e);
     }
-}
-
-static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
-{
-    int rv;
-    ssize_t size;
-    ogs_pkbuf_t *pkbuf = NULL;
-    uint32_t len = OGS_GTPV1U_HEADER_LEN;
-    ogs_gtp_header_t *gtp_h = NULL;
-    struct ip *ip_h = NULL;
-
-    uint32_t teid;
-    smf_bearer_t *bearer = NULL;
-    smf_sess_t *sess = NULL;
-    smf_subnet_t *subnet = NULL;
-    smf_dev_t *dev = NULL;
-
-    ogs_assert(fd != INVALID_SOCKET);
-
-    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-    ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
-
-    size = ogs_recv(fd, pkbuf->data, pkbuf->len, 0);
-    if (size <= 0) {
-        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
-                "ogs_recv() failed");
-        goto cleanup;
-    }
-
-    ogs_pkbuf_trim(pkbuf, size);
-
-    ogs_assert(pkbuf);
-    ogs_assert(pkbuf->len);
-
-    gtp_h = (ogs_gtp_header_t *)pkbuf->data;
-    if (gtp_h->flags & OGS_GTPU_FLAGS_S) len += 4;
-    teid = ntohl(gtp_h->teid);
-
-    ogs_debug("[SMF] RECV GPU-U from SGW : TEID[0x%x]", teid);
-
-    /* Remove GTP header and send packets to TUN interface */
-    ogs_assert(ogs_pkbuf_pull(pkbuf, len));
-
-    ip_h = (struct ip *)pkbuf->data;
-    ogs_assert(ip_h);
-
-    bearer = smf_bearer_find_by_smf_s5u_teid(teid);
-    if (!bearer) {
-        ogs_warn("[DROP] Cannot find SMF S5U bearer : TEID[0x%x]", teid);
-        goto cleanup;
-    }
-    sess = bearer->sess;
-    ogs_assert(sess);
-
-    if (ip_h->ip_v == 4 && sess->ipv4)
-        subnet = sess->ipv4->subnet;
-    else if (ip_h->ip_v == 6 && sess->ipv6)
-        subnet = sess->ipv6->subnet;
-
-    if (!subnet) {
-        ogs_log_hexdump(OGS_LOG_TRACE, pkbuf->data, pkbuf->len);
-        ogs_error("[DROP] Cannot find subnet V:%d, IPv4:%p, IPv6:%p",
-                ip_h->ip_v, sess->ipv4, sess->ipv6);
-        goto cleanup;
-    }
-
-    /* Check IPv6 */
-    if (ogs_config()->parameter.no_slaac == 0 && ip_h->ip_v == 6) {
-        rv = smf_gtp_handle_slaac(sess, pkbuf);
-        if (rv == SMF_GTP_HANDLED) {
-            goto cleanup;
-        }
-        ogs_assert(rv == OGS_OK);
-    }
-
-    dev = subnet->dev;
-    ogs_assert(dev);
-    if (ogs_write(dev->fd, pkbuf->data, pkbuf->len) <= 0)
-        ogs_error("ogs_write() failed");
-
-cleanup:
-    ogs_pkbuf_free(pkbuf);
 }
 
 int smf_gtp_open(void)
@@ -346,35 +260,6 @@ static int smf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf)
     return OGS_OK;
 }
 
-static int smf_gtp_handle_slaac(smf_sess_t *sess, ogs_pkbuf_t *recvbuf)
-{
-    int rv;
-    struct ip *ip_h = NULL;
-
-    ogs_assert(sess);
-    ogs_assert(recvbuf);
-    ogs_assert(recvbuf->len);
-    ip_h = (struct ip *)recvbuf->data;
-    if (ip_h->ip_v == 6) {
-        struct ip6_hdr *ip6_h = (struct ip6_hdr *)recvbuf->data;
-        if (ip6_h->ip6_nxt == IPPROTO_ICMPV6) {
-            struct icmp6_hdr *icmp_h =
-                (struct icmp6_hdr *)(recvbuf->data + sizeof(struct ip6_hdr));
-            if (icmp_h->icmp6_type == ND_ROUTER_SOLICIT) {
-                ogs_debug("[SMF]      Router Solict");
-                if (sess->ipv6) {
-                    rv = smf_gtp_send_router_advertisement(
-                            sess, ip6_h->ip6_src.s6_addr);
-                    ogs_assert(rv == OGS_OK);
-                }
-                return SMF_GTP_HANDLED;
-            }
-        }
-    }
-
-    return OGS_OK;
-}
-
 static int smf_gtp_send_to_bearer(smf_bearer_t *bearer, ogs_pkbuf_t *sendbuf)
 {
     char buf[OGS_ADDRSTRLEN];
@@ -406,124 +291,4 @@ static int smf_gtp_send_to_bearer(smf_bearer_t *bearer, ogs_pkbuf_t *sendbuf)
     rv =  ogs_gtp_sendto(bearer->gnode, sendbuf);
 
     return rv;
-}
-
-static int smf_gtp_send_router_advertisement(
-        smf_sess_t *sess, uint8_t *ip6_dst)
-{
-    int rv;
-    ogs_pkbuf_t *pkbuf = NULL;
-
-    smf_bearer_t *bearer = NULL;
-    smf_ue_ip_t *ue_ip = NULL;
-    smf_subnet_t *subnet = NULL;
-    smf_dev_t *dev = NULL;
-
-    ogs_ipsubnet_t src_ipsub;
-    uint16_t plen = 0;
-    uint8_t nxt = 0;
-    uint8_t *p = NULL;
-    struct ip6_hdr *ip6_h =  NULL;
-    struct nd_router_advert *advert_h = NULL;
-    struct nd_opt_prefix_info *prefix = NULL;
-
-    ogs_assert(sess);
-    bearer = smf_default_bearer_in_sess(sess);
-    ogs_assert(bearer);
-    ue_ip = sess->ipv6;
-    ogs_assert(ue_ip);
-    subnet = ue_ip->subnet;
-    ogs_assert(subnet);
-    dev = subnet->dev;
-    ogs_assert(dev);
-
-    pkbuf = ogs_pkbuf_alloc(NULL, OGS_GTPV1U_HEADER_LEN+200);
-    ogs_pkbuf_reserve(pkbuf, OGS_GTPV1U_HEADER_LEN);
-    ogs_pkbuf_put(pkbuf, 200);
-    pkbuf->len = sizeof *ip6_h + sizeof *advert_h + sizeof *prefix;
-    memset(pkbuf->data, 0, pkbuf->len);
-
-    p = (uint8_t *)pkbuf->data;
-    ip6_h = (struct ip6_hdr *)p;
-    advert_h = (struct nd_router_advert *)((uint8_t *)ip6_h + sizeof *ip6_h);
-    prefix = (struct nd_opt_prefix_info *)
-        ((uint8_t*)advert_h + sizeof *advert_h);
-
-    rv = ogs_ipsubnet(&src_ipsub, "fe80::1", NULL);
-    ogs_assert(rv == OGS_OK);
-    if (dev->link_local_addr)
-        memcpy(src_ipsub.sub, dev->link_local_addr->sin6.sin6_addr.s6_addr,
-                sizeof src_ipsub.sub);
-
-    advert_h->nd_ra_type = ND_ROUTER_ADVERT;
-    advert_h->nd_ra_code = 0;
-    advert_h->nd_ra_curhoplimit = 64;
-    advert_h->nd_ra_flags_reserved = 0;
-    advert_h->nd_ra_router_lifetime = htons(64800);  /* 64800s */
-    advert_h->nd_ra_reachable = 0;
-    advert_h->nd_ra_retransmit = 0;
-
-    prefix->nd_opt_pi_type = ND_OPT_PREFIX_INFORMATION;
-    prefix->nd_opt_pi_len = 4; /* 32bytes */
-    prefix->nd_opt_pi_prefix_len = subnet->prefixlen;
-    prefix->nd_opt_pi_flags_reserved =
-        ND_OPT_PI_FLAG_ONLINK|ND_OPT_PI_FLAG_AUTO;
-    prefix->nd_opt_pi_valid_time = htonl(0xffffffff); /* Infinite */
-    prefix->nd_opt_pi_preferred_time = htonl(0xffffffff); /* Infinite */
-    memcpy(prefix->nd_opt_pi_prefix.s6_addr,
-            subnet->sub.sub, sizeof prefix->nd_opt_pi_prefix.s6_addr);
-
-    /* For IPv6 Pseudo-Header */
-    plen = htons(sizeof *advert_h + sizeof *prefix);
-    nxt = IPPROTO_ICMPV6;
-
-    memcpy(p, src_ipsub.sub, sizeof src_ipsub.sub);
-    p += sizeof src_ipsub.sub;
-    memcpy(p, ip6_dst, OGS_IPV6_LEN);
-    p += OGS_IPV6_LEN;
-    p += 2; memcpy(p, &plen, 2); p += 2;
-    p += 3; *p = nxt; p += 1;
-    advert_h->nd_ra_cksum = in_cksum((uint16_t *)pkbuf->data, pkbuf->len);
-
-    ip6_h->ip6_flow = htonl(0x60000001);
-    ip6_h->ip6_plen = plen;
-    ip6_h->ip6_nxt = nxt;  /* ICMPv6 */
-    ip6_h->ip6_hlim = 0xff;
-    memcpy(ip6_h->ip6_src.s6_addr, src_ipsub.sub, sizeof src_ipsub.sub);
-    memcpy(ip6_h->ip6_dst.s6_addr, ip6_dst, OGS_IPV6_LEN);
-    
-    rv = smf_gtp_send_to_bearer(bearer, pkbuf);
-    ogs_assert(rv == OGS_OK);
-
-    ogs_debug("[SMF]      Router Advertisement");
-
-    ogs_pkbuf_free(pkbuf);
-    return rv;
-}
-
-uint16_t in_cksum(uint16_t *addr, int len)
-{
-    int nleft = len;
-    uint32_t sum = 0;
-    uint16_t *w = addr;
-    uint16_t answer = 0;
-
-    // Adding 16 bits sequentially in sum
-    while (nleft > 1) {
-        sum += *w;
-        nleft -= 2;
-        w++;
-    }
-
-    // If an odd byte is left
-    if (nleft == 1) {
-        *(uint8_t *) (&answer) = *(uint8_t *) w;
-        sum += answer;
-    }
-
-    sum = (sum >> 16) + (sum & 0xffff);
-    sum += (sum >> 16);
-    answer = ~sum;
-
-    return answer;
 }

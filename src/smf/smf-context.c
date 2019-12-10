@@ -1104,9 +1104,8 @@ smf_sess_t *smf_sess_add(
     sess->index = ogs_pool_index(&smf_sess_pool, sess);
     ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
 
-    sess->gnode = NULL;
-
-    sess->smf_s5c_teid = sess->index;  /* derived from an index */
+    sess->smf_s5c_teid = sess->index;
+    sess->smf_n4_seid = sess->index;
 
     /* Set IMSI */
     sess->imsi_len = imsi_len;
@@ -1154,6 +1153,13 @@ smf_sess_t *smf_sess_add(
         memcpy(sess->pdn.paa.both.addr6, sess->ipv6->addr, OGS_IPV6_LEN);
     } else
         ogs_assert_if_reached();
+
+    /* Select PFCP Node */
+    if (smf_self()->upf == NULL)
+        smf_self()->upf = ogs_list_first(&smf_self()->upf_list);
+
+    ogs_assert(smf_self()->upf);
+    OGS_SETUP_PFCP_NODE(sess, smf_self()->upf->pnode);
 
     ogs_info("UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
 	    sess->imsi_bcd,
@@ -1212,6 +1218,11 @@ smf_sess_t *smf_sess_find(uint32_t index)
 smf_sess_t *smf_sess_find_by_teid(uint32_t teid)
 {
     return smf_sess_find(teid);
+}
+
+smf_sess_t *smf_sess_find_by_seid(uint64_t seid)
+{
+    return smf_sess_find(seid);
 }
 
 smf_sess_t *smf_sess_find_by_imsi_apn(

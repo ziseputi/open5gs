@@ -120,12 +120,8 @@ typedef struct pgw_subnet_s {
 
 #define MAX_NUM_OF_SUBNET_RANGE         16
     struct {
-#if 0
-        ogs_ipsubnet_t low, high;
-#else
         const char *low;
         const char *high;
-#endif
     } range[MAX_NUM_OF_SUBNET_RANGE];
     int num_of_range;
 

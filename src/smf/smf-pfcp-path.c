@@ -33,6 +33,7 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     ogs_pkbuf_t *pkbuf = NULL;
     ogs_sockaddr_t from;
     smf_upf_t *upf = NULL;
+    ogs_pfcp_header_t *h = NULL;
 
     ogs_assert(fd != INVALID_SOCKET);
 
@@ -48,6 +49,23 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 
     ogs_pkbuf_trim(pkbuf, size);
+
+    h = (ogs_pfcp_header_t *)pkbuf->data;
+    if (h->version > OGS_PFCP_VERSION) {
+        ogs_pfcp_header_t rsp;
+
+        ogs_error("Not supported version[%d]", h->version);
+
+        memset(&rsp, 0, sizeof rsp);
+        rsp.flags = (OGS_PFCP_VERSION << 5);
+        rsp.type = OGS_PFCP_VERSION_NOT_SUPPORTED_RESPONSE_TYPE;
+        rsp.length = htobe16(4);
+        rsp.sqn_only = h->sqn_only;
+        ogs_sendto(fd, &rsp, 8, 0, &from);
+        ogs_pkbuf_free(pkbuf);
+
+        return;
+    }
 
     upf = smf_upf_find_by_addr(&from);
     if (!upf) {

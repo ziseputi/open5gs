@@ -58,12 +58,9 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     ogs_pkbuf_t *gxbuf = NULL;
     ogs_diam_gx_message_t *gx_message = NULL;
 
-#if 0
-    ogs_pfcp_message_t *pfcp_message = NULL;
-    ogs_pkbuf_t *pfcpbuf = NULL;
+    ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_node_t *pnode = NULL;
     ogs_pfcp_xact_t *pxact = NULL;
-#endif
 
     smf_sm_debug(e);
 
@@ -100,37 +97,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         rv = ogs_gtp_parse_msg(gtp_message, recvbuf);
         ogs_assert(rv == OGS_OK);
 
-        /*
-         * 5.5.2 in spec 29.274
-         *
-         * If a peer's TEID is not available, the TEID field still shall be
-         * present in the header and its value shall be set to "0" in the
-         * following messages:
-         *
-         * - Create Session Request message on S2a/S2b/S5/S8
-         *
-         * - Create Session Request message on S4/S11, if for a given UE,
-         *   the SGSN/MME has not yet obtained the Control TEID of the SGW.
-         *
-         * - If a node receives a message and the TEID-C in the GTPv2 header of
-         *   the received message is not known, it shall respond with
-         *   "Context not found" Cause in the corresponding response message
-         *   to the sender, the TEID used in the GTPv2-C header in the response
-         *   message shall be then set to zero.
-         *
-         * - If a node receives a request message containing protocol error,
-         *   e.g. Mandatory IE missing, which requires the receiver to reject
-         *   the message as specified in clause 7.7, it shall reject
-         *   the request message. For the response message, the node should
-         *   look up the remote peer's TEID and accordingly set the GTPv2-C
-         *   header TEID and the message cause code. As an implementation
-         *   option, the node may not look up the remote peer's TEID and
-         *   set the GTPv2-C header TEID to zero in the response message.
-         *   However in this case, the cause code shall not be set to
-         *   "Context not found".
-         */
         if (gtp_message->h.teid != 0) {
-            /* Cause is not "Context not found" */
             sess = smf_sess_find_by_teid(gtp_message->h.teid);
         }
 
@@ -245,10 +212,11 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         recvbuf = e->pfcpbuf;
         ogs_assert(recvbuf);
 
-#if 0
+        rv = ogs_pfcp_parse_msg(&pfcp_message, recvbuf);
+        ogs_assert(rv == OGS_OK);
+
         if (pfcp_message.h.seid != 0) {
-            /* Cause is not "Context not found" */
-            sess = sess_find_by_seid(pfcp_message.h.seid);
+            sess = smf_sess_find_by_seid(pfcp_message.h.seid);
         }
 
         if (sess) {
@@ -267,8 +235,59 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         }
 
         switch (pfcp_message.h.type) {
-        }
+        case OGS_PFCP_HEARTBEAT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_HEARTBEAT_RESPONSE_TYPE:
+            break;
+#if 0
+        case OGS_PFCP_PFD_MANAGEMENT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_PFD_MANAGEMENT_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_UPDATE_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_UPDATE_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_RELEASE_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_RELEASE_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_VERSION_NOT_SUPPORTED_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_NODE_REPORT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_NODE_REPORT_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_SET_DELETION_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_SET_DELETION_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_MODIFICATION_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_MODIFICATION_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_DELETION_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_REPORT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE:
+            break;
 #endif
+        default:
+            ogs_error("Not implemented PFCP message type[%d]",
+                    pfcp_message.h.type);
+            break;
+        }
 
         ogs_pkbuf_free(recvbuf);
         break;

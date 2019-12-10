@@ -43,6 +43,7 @@ extern int __smf_log_domain;
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __smf_log_domain
 
+typedef struct smf_upf_s smf_upf_t;
 typedef struct smf_context_s {
     const char*         diam_conf_path;   /* SMF Diameter conf path */
     ogs_diam_config_t   *diam_config;     /* SMF Diameter config */
@@ -94,8 +95,10 @@ typedef struct smf_context_s {
 
     ogs_list_t      sgw_s5c_list;   /* SGW GTPC Node List */
     ogs_list_t      sgw_s5u_list;   /* SGW GTPU Node List */
-    ogs_list_t      upf_list;       /* UPF PFCP Node List */
     ogs_list_t      ip_pool_list;
+
+    ogs_list_t      upf_list;       /* UPF PFCP Node List */
+    smf_upf_t       *upf;           /* Iterator for UPF round-robin */
 
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
 
@@ -139,12 +142,8 @@ typedef struct smf_subnet_s {
 
 #define MAX_NUM_OF_SUBNET_RANGE         16
     struct {
-#if 0
-        ogs_ipsubnet_t low, high;
-#else
         const char *low;
         const char *high;
-#endif
     } range[MAX_NUM_OF_SUBNET_RANGE];
     int num_of_range;
 
@@ -164,6 +163,9 @@ typedef struct smf_sess_s {
 
     char            *gx_sid;        /* Gx Session ID */
 
+    uint64_t        smf_n4_seid;    /* SMF SEID is dervied from INDEX */
+    uint64_t        upf_n4_seid;    /* UPF SEID is received from UPF */
+
     /* IMSI */
     uint8_t         imsi[OGS_MAX_IMSI_LEN];
     int             imsi_len;
@@ -171,8 +173,8 @@ typedef struct smf_sess_s {
 
     /* APN Configuration */
     ogs_pdn_t       pdn;
-    smf_ue_ip_t*    ipv4;
-    smf_ue_ip_t*    ipv6;
+    smf_ue_ip_t     *ipv4;
+    smf_ue_ip_t     *ipv6;
 
     /* User-Lication-Info */
     ogs_tai_t       tai;
@@ -185,6 +187,7 @@ typedef struct smf_sess_s {
 
     /* Related Context */
     ogs_gtp_node_t  *gnode;
+    ogs_pfcp_node_t *pnode;
 } smf_sess_t;
 
 typedef struct smf_bearer_s {
@@ -269,6 +272,7 @@ int smf_sess_remove(smf_sess_t *sess);
 void smf_sess_remove_all(void);
 smf_sess_t *smf_sess_find(uint32_t index);
 smf_sess_t *smf_sess_find_by_teid(uint32_t teid);
+smf_sess_t *smf_sess_find_by_seid(uint64_t seid);
 smf_sess_t *smf_sess_find_by_imsi_apn(uint8_t *imsi, int imsi_len, char *apn);
 
 smf_bearer_t *smf_bearer_add(smf_sess_t *sess);

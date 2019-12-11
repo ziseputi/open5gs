@@ -41,7 +41,7 @@ typedef struct ogs_pfcp_xact_s {
                                          local or remote */
 
     uint32_t        xid;            /**< Transaction ID */
-    ogs_pfcp_node_t  *pnode;        /**< Relevant PFCP node context */
+    ogs_pfcp_node_t *pnode;         /**< Relevant PFCP node context */
 
     void (*cb)(ogs_pfcp_xact_t *, void *); /**< Local timer expiration handler */
     void            *data;          /**< Transaction Data */

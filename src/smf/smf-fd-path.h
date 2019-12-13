@@ -31,8 +31,8 @@ typedef struct gtp_xact_s gtp_xact_t;
 int smf_fd_init(void);
 void smf_fd_final(void);
 
-void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *gxact,
-        ogs_pkbuf_t *gtpbuf, uint32_t cc_request_type);
+void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        uint32_t cc_request_type);
 
 #ifdef __cplusplus
 }

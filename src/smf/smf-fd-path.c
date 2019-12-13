@@ -30,7 +30,6 @@ struct sess_state {
 #define MAX_CC_REQUEST_NUMBER 32
     smf_sess_t *sess;
     ogs_gtp_xact_t *xact[MAX_CC_REQUEST_NUMBER];
-    ogs_pkbuf_t *gtpbuf[MAX_CC_REQUEST_NUMBER];
 
     uint32_t cc_request_type;
     uint32_t cc_request_number;
@@ -62,7 +61,7 @@ static void state_cleanup(struct sess_state *sess_data, os0_t sid, void *opaque)
 }
 
 void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
-        ogs_pkbuf_t *gtpbuf, uint32_t cc_request_type)
+        uint32_t cc_request_type)
 {
     int ret;
 
@@ -73,14 +72,10 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
     struct sess_state *sess_data = NULL, *svg;
     struct session *session = NULL;
     int new;
-    ogs_gtp_message_t *message = NULL;
     ogs_paa_t paa; /* For changing Framed-IPv6-Prefix Length to 128 */
 
     ogs_assert(sess);
     ogs_assert(sess->ipv4 || sess->ipv6);
-    ogs_assert(gtpbuf);
-    message = (ogs_gtp_message_t *)gtpbuf->data;
-    ogs_assert(message);
 
     ogs_debug("[Credit-Control-Request]");
 
@@ -162,7 +157,6 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
     /* Update session state */
     sess_data->sess = sess;
     sess_data->xact[sess_data->cc_request_number] = xact;
-    sess_data->gtpbuf[sess_data->cc_request_number] = gtpbuf;
 
     /* Set Origin-Host & Origin-Realm */
     ret = fd_msg_add_origin(req, 0);
@@ -410,11 +404,12 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
         }
 
         /* Set 3GPP-MS-Timezone */
-        if (message->create_session_request.ue_time_zone.presence) {
+        ogs_assert(sess->create_session_request);
+        if (sess->create_session_request->ue_time_zone.presence) {
             ret = fd_msg_avp_new(ogs_diam_gx_3gpp_ms_timezone, 0, &avp);
             ogs_assert(ret == 0);
-            val.os.data = message->create_session_request.ue_time_zone.data;
-            val.os.len = message->create_session_request.ue_time_zone.len;
+            val.os.data = sess->create_session_request->ue_time_zone.data;
+            val.os.len = sess->create_session_request->ue_time_zone.len;
             ret = fd_msg_avp_setvalue(avp, &val);
             ogs_assert(ret == 0);
             ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
@@ -470,7 +465,7 @@ static void smf_gx_cca_cb(void *data, struct msg **msg)
     smf_event_t *e = NULL;
     ogs_gtp_xact_t *xact = NULL;
     smf_sess_t *sess = NULL;
-    ogs_pkbuf_t *gxbuf = NULL, *gtpbuf = NULL;
+    ogs_pkbuf_t *gxbuf = NULL;
     ogs_diam_gx_message_t *gx_message = NULL;
     uint16_t gxbuf_len = 0;
     uint32_t cc_request_number = 0;
@@ -512,8 +507,6 @@ static void smf_gx_cca_cb(void *data, struct msg **msg)
     ogs_assert(xact);
     sess = sess_data->sess;
     ogs_assert(sess);
-    gtpbuf = sess_data->gtpbuf[cc_request_number];
-    ogs_assert(gtpbuf);
 
     gxbuf_len = sizeof(ogs_diam_gx_message_t);
     ogs_assert(gxbuf_len < 8192);
@@ -722,13 +715,11 @@ out:
         e->sess = sess;
         e->gxbuf = gxbuf;
         e->gxact = xact;
-        e->gtpbuf = gtpbuf;
         rv = ogs_queue_push(smf_self()->queue, e);
         if (rv != OGS_OK) {
             ogs_error("ogs_queue_push() failed:%d", (int)rv);
             ogs_diam_gx_message_free(gx_message);
             ogs_pkbuf_free(e->gxbuf);
-            ogs_pkbuf_free(e->gtpbuf);
             smf_event_free(e);
         } else {
             ogs_pollset_notify(smf_self()->pollset);
@@ -736,7 +727,6 @@ out:
     } else {
         ogs_diam_gx_message_free(gx_message);
         ogs_pkbuf_free(gxbuf);
-        ogs_pkbuf_free(gtpbuf);
     }
 
     /* Free the message */

@@ -46,11 +46,9 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 {
     int rv;
     ogs_pkbuf_t *recvbuf = NULL;
-    ogs_pkbuf_t *copybuf = NULL;
-    uint16_t copybuf_len = 0;
     smf_sess_t *sess = NULL;
 
-    ogs_gtp_message_t *gtp_message = NULL;
+    ogs_gtp_message_t gtp_message;
     ogs_pkbuf_t *gtpbuf = NULL;
     ogs_gtp_node_t *gnode = NULL;
     ogs_gtp_xact_t *gxact = NULL;
@@ -88,17 +86,11 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         recvbuf = e->gtpbuf;
         ogs_assert(recvbuf);
 
-        copybuf_len = sizeof(ogs_gtp_message_t);
-        copybuf = ogs_pkbuf_alloc(NULL, copybuf_len);
-        ogs_pkbuf_put(copybuf, copybuf_len);
-        gtp_message = (ogs_gtp_message_t *)copybuf->data;
-        ogs_assert(gtp_message);
-
-        rv = ogs_gtp_parse_msg(gtp_message, recvbuf);
+        rv = ogs_gtp_parse_msg(&gtp_message, recvbuf);
         ogs_assert(rv == OGS_OK);
 
-        if (gtp_message->h.teid != 0) {
-            sess = smf_sess_find_by_teid(gtp_message->h.teid);
+        if (gtp_message.h.teid != 0) {
+            sess = smf_sess_find_by_teid(gtp_message.h.teid);
         }
 
         if (sess) {
@@ -109,46 +101,41 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             ogs_assert(gnode);
         }
 
-        rv = ogs_gtp_xact_receive(gnode, &gtp_message->h, &gxact);
+        rv = ogs_gtp_xact_receive(gnode, &gtp_message.h, &gxact);
         if (rv != OGS_OK) {
             ogs_pkbuf_free(recvbuf);
-            ogs_pkbuf_free(copybuf);
             break;
         }
 
-        switch(gtp_message->h.type) {
+        switch(gtp_message.h.type) {
         case OGS_GTP_CREATE_SESSION_REQUEST_TYPE:
-            if (gtp_message->h.teid == 0) {
+            if (gtp_message.h.teid == 0) {
                 ogs_assert(!sess);
-                sess = smf_sess_add_by_message(gtp_message);
+                sess = smf_sess_add_by_message(&gtp_message);
                 if (sess)
                     OGS_SETUP_GTP_NODE(sess, gnode);
             }
             smf_s5c_handle_create_session_request(
-                sess, gxact, copybuf, &gtp_message->create_session_request);
+                sess, gxact, &gtp_message.create_session_request);
             break;
         case OGS_GTP_DELETE_SESSION_REQUEST_TYPE:
             smf_s5c_handle_delete_session_request(
-                sess, gxact, copybuf, &gtp_message->delete_session_request);
+                sess, gxact, &gtp_message.delete_session_request);
             break;
         case OGS_GTP_CREATE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_create_bearer_response(
-                sess, gxact, &gtp_message->create_bearer_response);
-            ogs_pkbuf_free(copybuf);
+                sess, gxact, &gtp_message.create_bearer_response);
             break;
         case OGS_GTP_UPDATE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_update_bearer_response(
-                sess, gxact, &gtp_message->update_bearer_response);
-            ogs_pkbuf_free(copybuf);
+                sess, gxact, &gtp_message.update_bearer_response);
             break;
         case OGS_GTP_DELETE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_delete_bearer_response(
-                sess, gxact, &gtp_message->delete_bearer_response);
-            ogs_pkbuf_free(copybuf);
+                sess, gxact, &gtp_message.delete_bearer_response);
             break;
         default:
-            ogs_warn("Not implmeneted(type:%d)", gtp_message->h.type);
-            ogs_pkbuf_free(copybuf);
+            ogs_warn("Not implmeneted(type:%d)", gtp_message.h.type);
             break;
         }
         ogs_pkbuf_free(recvbuf);
@@ -170,21 +157,15 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             gxact = e->gxact;
             ogs_assert(gxact);
 
-            gtpbuf = e->gtpbuf;
-            ogs_assert(gtpbuf);
-            gtp_message = (ogs_gtp_message_t *)gtpbuf->data;
-
             if (gx_message->result_code == ER_DIAMETER_SUCCESS) {
                 switch(gx_message->cc_request_type) {
                 case OGS_DIAM_GX_CC_REQUEST_TYPE_INITIAL_REQUEST:
                     smf_gx_handle_cca_initial_request(
-                            sess, gx_message, gxact, 
-                            &gtp_message->create_session_request);
+                            sess, gx_message, gxact);
                     break;
                 case OGS_DIAM_GX_CC_REQUEST_TYPE_TERMINATION_REQUEST:
                     smf_gx_handle_cca_termination_request(
-                            sess, gx_message, gxact,
-                            &gtp_message->delete_session_request);
+                            sess, gx_message, gxact);
                     break;
                 default:
                     ogs_error("Not implemented(%d)",

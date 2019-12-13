@@ -1185,6 +1185,9 @@ int smf_sess_remove(smf_sess_t *sess)
 
     ogs_list_remove(&self.sess_list, sess);
 
+    OGS_MEM_CLEAR(sess->create_session_request);
+    OGS_MEM_CLEAR(sess->delete_session_request);
+
     ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, NULL);
 
     if (sess->ipv4)

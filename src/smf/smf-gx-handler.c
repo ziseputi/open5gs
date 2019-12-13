@@ -40,15 +40,17 @@ static void timeout(ogs_gtp_xact_t *xact, void *data)
 
 void smf_gx_handle_cca_initial_request(
         smf_sess_t *sess, ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_xact_t *xact, ogs_gtp_create_session_request_t *req)
+        ogs_gtp_xact_t *xact)
 {
     int rv;
     ogs_gtp_header_t h;
     ogs_pkbuf_t *pkbuf = NULL;
+    ogs_gtp_create_session_request_t *req = NULL;
 
     ogs_assert(sess);
     ogs_assert(gx_message);
     ogs_assert(xact);
+    req = sess->create_session_request;
     ogs_assert(req);
 
     /* Send Create Session Request with Creating Default Bearer */
@@ -71,16 +73,18 @@ void smf_gx_handle_cca_initial_request(
 
 void smf_gx_handle_cca_termination_request(
         smf_sess_t *sess, ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_xact_t *xact, ogs_gtp_delete_session_request_t *req)
+        ogs_gtp_xact_t *xact)
 {
     int rv;
     ogs_gtp_header_t h;
     ogs_pkbuf_t *pkbuf = NULL;
     uint32_t sgw_s5c_teid;
+    ogs_gtp_delete_session_request_t *req = NULL;
 
     ogs_assert(xact);
     ogs_assert(sess);
     ogs_assert(gx_message);
+    req = sess->delete_session_request;
     ogs_assert(req);
 
     /* backup sgw_s5c_teid in session context */

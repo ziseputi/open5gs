@@ -25,7 +25,7 @@
 
 void smf_s5c_handle_create_session_request(
         smf_sess_t *sess, ogs_gtp_xact_t *xact,
-        ogs_pkbuf_t *gtpbuf, ogs_gtp_create_session_request_t *req)
+        ogs_gtp_create_session_request_t *req)
 {
     int rv;
     uint8_t cause_value = 0;
@@ -81,7 +81,6 @@ void smf_s5c_handle_create_session_request(
     if (cause_value != OGS_GTP_CAUSE_REQUEST_ACCEPTED) {
         ogs_gtp_send_error_message(xact, sess ? sess->sgw_s5c_teid : 0,
                 OGS_GTP_CREATE_SESSION_RESPONSE_TYPE, cause_value);
-        ogs_pkbuf_free(gtpbuf);
         return;
     }
     
@@ -147,13 +146,13 @@ void smf_s5c_handle_create_session_request(
     memcpy(&sess->e_cgi.plmn_id, &uli.e_cgi.plmn_id, sizeof(uli.e_cgi.plmn_id));
     sess->e_cgi.cell_id = uli.e_cgi.cell_id;
 
-    smf_gx_send_ccr(sess, xact, gtpbuf,
+    smf_gx_send_ccr(sess, xact,
         OGS_DIAM_GX_CC_REQUEST_TYPE_INITIAL_REQUEST);
 }
 
 void smf_s5c_handle_delete_session_request(
         smf_sess_t *sess, ogs_gtp_xact_t *xact,
-        ogs_pkbuf_t *gtpbuf, ogs_gtp_delete_session_request_t *req)
+        ogs_gtp_delete_session_request_t *req)
 {
     ogs_debug("[SMF] Delete Session Request");
 
@@ -165,14 +164,13 @@ void smf_s5c_handle_delete_session_request(
         ogs_gtp_send_error_message(xact, sess ? sess->sgw_s5c_teid : 0,
                 OGS_GTP_DELETE_SESSION_RESPONSE_TYPE,
                 OGS_GTP_CAUSE_CONTEXT_NOT_FOUND);
-        ogs_pkbuf_free(gtpbuf);
         return;
     }
 
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_S5C_TEID[0x%x]",
             sess->sgw_s5c_teid, sess->smf_s5c_teid);
 
-    smf_gx_send_ccr(sess, xact, gtpbuf,
+    smf_gx_send_ccr(sess, xact,
         OGS_DIAM_GX_CC_REQUEST_TYPE_TERMINATION_REQUEST);
 }
 

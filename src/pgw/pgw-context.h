@@ -158,6 +158,10 @@ typedef struct pgw_sess_s {
     uint8_t         hash_keybuf[OGS_MAX_IMSI_LEN+OGS_MAX_APN_LEN+1];
     int             hash_keylen;
 
+    /* Stored GTP message */
+    ogs_gtp_create_session_request_t *create_session_request;
+    ogs_gtp_delete_session_request_t *delete_session_request;
+
     ogs_list_t      bearer_list;
 
     /* Related Context */

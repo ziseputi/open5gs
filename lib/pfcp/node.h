@@ -36,8 +36,8 @@ extern "C" {
     } while(0)
 
 /**
- * This structure represents the commonalities of PFCP node such as MME, SGW,
- * PGW gateway. Some of members may not be used by the specific type of node */
+ * This structure represents the commonalities of PFCP node such as SMF/UPF.
+ * Some of members may not be used by the specific type of node */
 typedef struct ogs_pfcp_node_s {
     ogs_lnode_t     node;           /* A node of list_t */
 
@@ -50,7 +50,7 @@ typedef struct ogs_pfcp_node_s {
     ogs_list_t      local_list;    
     ogs_list_t      remote_list;   
 
-    ogs_pfcp_node_id_t  node_id;    /* Target Node ID */
+    ogs_pfcp_node_id_t node_id;     /* Target Node ID */
     union {
         uint8_t up_functions_features;
         uint8_t cp_functions_features;

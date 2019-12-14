@@ -22,5 +22,4 @@ smf:
 
 upf:
     pfcp:
-      - addr: 127.0.0.2
-      - addr: ::1
+      addr: 127.0.0.2

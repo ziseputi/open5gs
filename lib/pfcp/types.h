@@ -139,15 +139,12 @@ ED3(uint8_t       spare:6;,
     };
 } __attribute__ ((packed)) ogs_pfcp_f_seid_t;
 
-typedef struct ogs_pfcp_node_id_s {
-ED2(uint8_t spare:4;,
-    uint8_t type:4;)
 #define OGS_PFCP_NODE_ID_IPV4   0
 #define OGS_PFCP_NODE_ID_IPV6   1
 #define OGS_PFCP_NODE_ID_FQDN   2
-#define OGS_PFPC_NODE_ID_LEN(__nid) \
-        (1 + ((__nid.type != PFCP_NODE_ID_IPV4) ? \
-        (__nid.type != PFCP_NODE_ID_IPV6 ? -1 : 16 ) : 4))
+typedef struct ogs_pfcp_node_id_s {
+ED2(uint8_t spare:4;,
+    uint8_t type:4;)
     union {
         uint32_t addr;
         uint8_t addr6[OGS_IPV6_LEN];

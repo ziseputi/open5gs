@@ -23,6 +23,7 @@
 #include "smf-sm.h"
 
 #include "smf-pfcp-path.h"
+#include "smf-n4-build.h"
 
 static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 {
@@ -123,8 +124,14 @@ int smf_pfcp_open(void)
     /* PFCP Client */
     ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
         smf_event_t e;
+        int rv;
+
         e.pnode = pnode;
         e.id = 0;
+
+        rv = ogs_pfcp_connect(
+                smf_self()->pfcp_sock, smf_self()->pfcp_sock6, pnode);
+        ogs_assert(rv == OGS_OK);
 
         ogs_fsm_create(&pnode->sm,
                 smf_pfcp_state_initial, smf_pfcp_state_final);
@@ -150,4 +157,31 @@ void smf_pfcp_close(void)
     /* PFCP Server */
     ogs_socknode_remove_all(&smf_self()->pfcp_list);
     ogs_socknode_remove_all(&smf_self()->pfcp_list6);
+}
+
+static void timeout(ogs_pfcp_xact_t *xact, void *data)
+{
+}
+
+void smf_pfcp_send_association_setup_request(ogs_pfcp_node_t *pnode)
+{
+    int rv;
+    ogs_pkbuf_t *n4buf = NULL;
+    ogs_pfcp_header_t h;
+    ogs_pfcp_xact_t *xact = NULL;
+
+    ogs_assert(pnode);
+
+    memset(&h, 0, sizeof(ogs_pfcp_header_t));
+    h.type = OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE;
+    h.seid = 0;
+
+    n4buf = smf_n4_build_association_setup_request(h.type);
+    ogs_expect_or_return(n4buf);
+
+    xact = ogs_pfcp_xact_local_create(pnode, &h, n4buf, timeout, pnode);
+    ogs_expect_or_return(xact);
+
+    rv = ogs_pfcp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
 }

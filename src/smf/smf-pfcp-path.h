@@ -29,6 +29,8 @@ extern "C" {
 int smf_pfcp_open(void);
 void smf_pfcp_close(void);
 
+void smf_pfcp_send_association_setup_request(ogs_pfcp_node_t *pnode);
+
 #ifdef __cplusplus
 }
 #endif

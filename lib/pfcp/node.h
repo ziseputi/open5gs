@@ -50,20 +50,11 @@ typedef struct ogs_pfcp_node_s {
     ogs_list_t      local_list;    
     ogs_list_t      remote_list;   
 
-    ogs_pfcp_node_id_t node_id;     /* Target Node ID */
-
     ogs_fsm_t       sm;             /* A state machine */
     ogs_timer_t     *t_conn;        /* SMF timer to connect to UPF */
 
     uint16_t        tac[OGS_MAX_NUM_OF_TAI];
     uint8_t         num_of_tac;
-
-    union {
-        uint8_t up_functions_features;
-        uint8_t cp_functions_features;
-    };
-
-    ogs_pfcp_user_plane_ip_resource_information_t user_plane_info;
 } ogs_pfcp_node_t;
 
 int ogs_pfcp_node_init(int size);

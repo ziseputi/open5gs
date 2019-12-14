@@ -38,6 +38,9 @@ int smf_initialize()
     rv = ogs_gtp_xact_init(smf_self()->timer_mgr, 512);
     if (rv != OGS_OK) return rv;
 
+    rv = ogs_pfcp_xact_init(smf_self()->timer_mgr, 512);
+    if (rv != OGS_OK) return rv;
+
     rv = smf_context_parse_config();
     if (rv != OGS_OK) return rv;
 
@@ -70,6 +73,8 @@ void smf_terminate(void)
     smf_fd_final();
 
     smf_context_final();
+
+    ogs_pfcp_xact_final();
 
     ogs_gtp_xact_final();
 

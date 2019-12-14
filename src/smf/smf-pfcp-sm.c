@@ -79,9 +79,9 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
     case OGS_FSM_ENTRY_SIG:
         ogs_timer_start(pnode->t_conn,
                 smf_timer_cfg(SMF_TIMER_CONNECT_TO_UPF)->duration);
-#if 0
-        sgsap_client(pnode);
-#endif
+
+        smf_pfcp_send_association_setup_request(pnode);
+
         break;
     case OGS_FSM_EXIT_SIG:
         ogs_timer_stop(pnode->t_conn);
@@ -101,10 +101,8 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
             ogs_timer_start(pnode->t_conn,
                 smf_timer_cfg(SMF_TIMER_CONNECT_TO_UPF)->duration);
 
-#if 0
-            smf_upf_close(pnode);
-            sgsap_client(pnode);
-#endif
+            smf_pfcp_send_association_setup_request(pnode);
+
             break;
         default:
             ogs_error("Unknown timer[%s:%d]",

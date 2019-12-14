@@ -241,7 +241,7 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
         return OGS_ERROR;
     }
 
-    if (h->type >= OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE)
+    if (hdesc->type >= OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE)
         ogs_pkbuf_push(pkbuf, OGS_PFCP_HEADER_LEN);
     else
         ogs_pkbuf_push(pkbuf, OGS_PFCP_HEADER_LEN - OGS_PFCP_SEID_LEN);

@@ -78,12 +78,12 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     e = smf_event_new(SMF_EVT_N4_MESSAGE);
     ogs_assert(e);
     e->pnode = upf->pnode;
-    e->pfcpbuf = pkbuf;
+    e->pkbuf = pkbuf;
 
     rv = ogs_queue_push(smf_self()->queue, e);
     if (rv != OGS_OK) {
         ogs_error("ogs_queue_push() failed:%d", (int)rv);
-        ogs_pkbuf_free(e->pfcpbuf);
+        ogs_pkbuf_free(e->pkbuf);
         smf_event_free(e);
     }
 }

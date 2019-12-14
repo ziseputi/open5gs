@@ -33,6 +33,7 @@ configure_file(output : 'smf-config.h', configuration : smf_conf)
 libsmf_sources = files('''
     smf-ipfw.h
     smf-event.h
+    smf-timer.h
     smf-context.h
     smf-sm.h
     smf-gtp-path.h
@@ -45,6 +46,7 @@ libsmf_sources = files('''
     smf-ipfw.c
     smf-init.c
     smf-event.c
+    smf-timer.c
     smf-context.c
     smf-sm.c
     smf-gtp-path.c

@@ -83,7 +83,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         break;
     case SMF_EVT_S5C_MESSAGE:
         ogs_assert(e);
-        recvbuf = e->gtpbuf;
+        recvbuf = e->pkbuf;
         ogs_assert(recvbuf);
 
         rv = ogs_gtp_parse_msg(&gtp_message, recvbuf);
@@ -144,7 +144,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_GX_MESSAGE:
         ogs_assert(e);
 
-        gxbuf = e->gxbuf;
+        gxbuf = e->pkbuf;
         ogs_assert(gxbuf);
         gx_message = (ogs_diam_gx_message_t *)gxbuf->data;
         ogs_assert(gx_message);
@@ -190,7 +190,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         break;
     case SMF_EVT_N4_MESSAGE:
         ogs_assert(e);
-        recvbuf = e->pfcpbuf;
+        recvbuf = e->pkbuf;
         ogs_assert(recvbuf);
 
         rv = ogs_pfcp_parse_msg(&pfcp_message, recvbuf);

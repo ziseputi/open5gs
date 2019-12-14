@@ -713,13 +713,13 @@ out:
         ogs_assert(e);
 
         e->sess = sess;
-        e->gxbuf = gxbuf;
+        e->pkbuf = gxbuf;
         e->gxact = xact;
         rv = ogs_queue_push(smf_self()->queue, e);
         if (rv != OGS_OK) {
             ogs_error("ogs_queue_push() failed:%d", (int)rv);
             ogs_diam_gx_message_free(gx_message);
-            ogs_pkbuf_free(e->gxbuf);
+            ogs_pkbuf_free(e->pkbuf);
             smf_event_free(e);
         } else {
             ogs_pollset_notify(smf_self()->pollset);
@@ -938,12 +938,12 @@ static int smf_gx_rar_cb( struct msg **msg, struct avp *avp,
     ogs_assert(e);
 
     e->sess = sess;
-    e->gxbuf = gxbuf;
+    e->pkbuf = gxbuf;
     rv = ogs_queue_push(smf_self()->queue, e);
     if (rv != OGS_OK) {
         ogs_error("ogs_queue_push() failed:%d", (int)rv);
         ogs_diam_gx_message_free(gx_message);
-        ogs_pkbuf_free(e->gxbuf);
+        ogs_pkbuf_free(e->pkbuf);
         smf_event_free(e);
     } else {
         ogs_pollset_notify(smf_self()->pollset);

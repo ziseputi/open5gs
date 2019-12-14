@@ -17,31 +17,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SMF_SM_H
-#define SMF_SM_H
+#ifndef SMF_TIMER_H
+#define SMF_TIMER_H
 
-#include "smf-event.h"
+#include "ogs-core.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void smf_state_initial(ogs_fsm_t *s, smf_event_t *e);
-void smf_state_final(ogs_fsm_t *s, smf_event_t *e);
-void smf_state_operational(ogs_fsm_t *s, smf_event_t *e);
-void smf_state_exception(ogs_fsm_t *s, smf_event_t *e);
+/* forward declaration */
+typedef enum {
+    SMF_TIMER_BASE = 0,
 
-void smf_pfcp_state_initial(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_final(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_exception(ogs_fsm_t *s, smf_event_t *e);
+    SMF_TIMER_CONNECT_TO_UPF,
 
-#define smf_sm_debug(__pe) \
-    ogs_debug("%s(): %s", __func__, smf_event_get_name(__pe))
+    MAX_NUM_OF_SMF_TIMER,
+
+} smf_timer_e;
+
+typedef struct smf_timer_cfg_s {
+    int max_count;
+    ogs_time_t duration;
+} smf_timer_cfg_t;
+
+smf_timer_cfg_t *smf_timer_cfg(smf_timer_e id);
+
+const char *smf_timer_get_name(smf_timer_e id);
+
+void smf_timer_connect_to_upf(void *data);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SMF_SM_H */
+#endif /* SMF_TIMER_H */

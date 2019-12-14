@@ -173,6 +173,7 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
     char buf[OGS_ADDRSTRLEN];
     ogs_pfcp_xact_stage_t stage;
     ogs_pfcp_header_t *h = NULL;
+    int pfcp_hlen = 0;
     
     ogs_assert(xact);
     ogs_assert(xact->pnode);
@@ -241,15 +242,16 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
         return OGS_ERROR;
     }
 
-    if (hdesc->type >= OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE)
-        ogs_pkbuf_push(pkbuf, OGS_PFCP_HEADER_LEN);
-    else
-        ogs_pkbuf_push(pkbuf, OGS_PFCP_HEADER_LEN - OGS_PFCP_SEID_LEN);
+    if (hdesc->type >= OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE) {
+        pfcp_hlen = OGS_PFCP_HEADER_LEN;
+    } else {
+        pfcp_hlen = OGS_PFCP_HEADER_LEN - OGS_PFCP_SEID_LEN;
+    }
 
+    ogs_pkbuf_push(pkbuf, pfcp_hlen);
     h = (ogs_pfcp_header_t *)pkbuf->data;
-    ogs_assert(h);
+    memset(h, 0, pfcp_hlen);
 
-    memset(h, 0, sizeof(ogs_pfcp_header_t));
     h->version = OGS_PFCP_VERSION;
     h->type = hdesc->type;
 

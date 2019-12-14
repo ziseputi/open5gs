@@ -94,7 +94,7 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
             addr = pnode->sa_list;
             ogs_assert(addr);
 
-            ogs_warn("[PFCP] Connect to UPF [%s]:%d failed",
+            ogs_warn("Connect to UPF [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             ogs_assert(pnode->t_conn);

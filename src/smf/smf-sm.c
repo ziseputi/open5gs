@@ -47,13 +47,12 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     int rv;
     ogs_pkbuf_t *recvbuf = NULL;
     smf_sess_t *sess = NULL;
+    smf_upf_t *upf = NULL;
 
     ogs_gtp_message_t gtp_message;
-    ogs_pkbuf_t *gtpbuf = NULL;
     ogs_gtp_node_t *gnode = NULL;
     ogs_gtp_xact_t *gxact = NULL;
 
-    ogs_pkbuf_t *gxbuf = NULL;
     ogs_diam_gx_message_t *gx_message = NULL;
 
     ogs_pfcp_message_t pfcp_message;
@@ -144,9 +143,9 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_GX_MESSAGE:
         ogs_assert(e);
 
-        gxbuf = e->pkbuf;
-        ogs_assert(gxbuf);
-        gx_message = (ogs_diam_gx_message_t *)gxbuf->data;
+        recvbuf = e->pkbuf;
+        ogs_assert(recvbuf);
+        gx_message = (ogs_diam_gx_message_t *)recvbuf->data;
         ogs_assert(gx_message);
 
         sess = e->sess;
@@ -175,7 +174,6 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             } else
                 ogs_error("Diameter Error(%d)", gx_message->result_code);
 
-            ogs_pkbuf_free(gtpbuf);
             break;
         case OGS_DIAM_GX_CMD_RE_AUTH:
             smf_gx_handle_re_auth_request(sess, gx_message);
@@ -186,7 +184,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         }
 
         ogs_diam_gx_message_free(gx_message);
-        ogs_pkbuf_free(gxbuf);
+        ogs_pkbuf_free(recvbuf);
         break;
     case SMF_EVT_N4_MESSAGE:
         ogs_assert(e);
@@ -271,6 +269,13 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         }
 
         ogs_pkbuf_free(recvbuf);
+        break;
+    case SMF_EVT_N4_TIMER:
+        upf = e->upf;
+        ogs_assert(upf);
+        ogs_assert(OGS_FSM_STATE(&upf->sm));
+
+        ogs_fsm_dispatch(&upf->sm, e);
         break;
     default:
         ogs_error("No handler for event %s", smf_event_get_name(e));

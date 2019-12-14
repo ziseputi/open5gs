@@ -54,6 +54,7 @@ libsmf_sources = files('''
     smf-s5c-handler.c 
     smf-fd-path.c
     smf-gx-handler.c 
+    smf-pfcp-sm.c
     smf-pfcp-path.c
 '''.split())
 

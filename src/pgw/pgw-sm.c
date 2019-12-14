@@ -48,7 +48,6 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
     ogs_gtp_xact_t *xact = NULL;
     ogs_gtp_message_t gtp_message;
     pgw_sess_t *sess = NULL;
-    ogs_pkbuf_t *gxbuf = NULL;
     ogs_diam_gx_message_t *gx_message = NULL;
     ogs_gtp_node_t *gnode = NULL;
 
@@ -67,7 +66,7 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
         break;
     case PGW_EVT_S5C_MESSAGE:
         ogs_assert(e);
-        recvbuf = e->gtpbuf;
+        recvbuf = e->pkbuf;
         ogs_assert(recvbuf);
 
         rv = ogs_gtp_parse_msg(&gtp_message, recvbuf);
@@ -162,9 +161,9 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
     case PGW_EVT_GX_MESSAGE:
         ogs_assert(e);
 
-        gxbuf = e->gxbuf;
-        ogs_assert(gxbuf);
-        gx_message = (ogs_diam_gx_message_t *)gxbuf->data;
+        recvbuf = e->pkbuf;
+        ogs_assert(recvbuf);
+        gx_message = (ogs_diam_gx_message_t *)recvbuf->data;
         ogs_assert(gx_message);
 
         sess = e->sess;
@@ -203,7 +202,7 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
         }
 
         ogs_diam_gx_message_free(gx_message);
-        ogs_pkbuf_free(gxbuf);
+        ogs_pkbuf_free(recvbuf);
         break;
     default:
         ogs_error("No handler for event %s", pgw_event_get_name(e));

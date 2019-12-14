@@ -108,6 +108,9 @@ typedef struct smf_context_s {
 typedef struct smf_upf_s {
     ogs_lnode_t     lnode;
 
+    ogs_fsm_t       sm;             /* A state machine */
+    ogs_timer_t     *t_conn;        /* SMF timer to connect to UPF */
+
     uint16_t        tac[OGS_MAX_NUM_OF_TAI];
     uint8_t         num_of_tac;
 

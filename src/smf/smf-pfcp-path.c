@@ -20,8 +20,9 @@
 #include "smf-context.h"
 
 #include "smf-event.h"
+#include "smf-sm.h"
+
 #include "smf-pfcp-path.h"
-#include "smf-ipfw.h"
 
 static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 {
@@ -90,9 +91,11 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 
 int smf_pfcp_open(void)
 {
+    smf_upf_t *upf = NULL;
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
 
+    /* PFCP Server */
     ogs_list_for_each(&smf_self()->pfcp_list, node) {
         sock = ogs_pfcp_server(node);
         ogs_assert(sock);
@@ -118,11 +121,33 @@ int smf_pfcp_open(void)
 
     ogs_assert(smf_self()->pfcp_addr || smf_self()->pfcp_addr6);
 
+    /* PFCP Client */
+    ogs_list_for_each(&smf_self()->upf_list, upf) {
+        smf_event_t e;
+        e.upf = upf;
+        e.id = 0;
+
+        ogs_fsm_create(&upf->sm, smf_pfcp_state_initial, smf_pfcp_state_final);
+        ogs_fsm_init(&upf->sm, &e);
+    }
+
     return OGS_OK;
 }
 
 void smf_pfcp_close(void)
 {
+    smf_upf_t *upf = NULL;
+
+    /* PFCP Client */
+    ogs_list_for_each(&smf_self()->upf_list, upf) {
+        smf_event_t e;
+        e.upf = upf;
+
+        ogs_fsm_fini(&upf->sm, &e);
+        ogs_fsm_delete(&upf->sm);
+    }
+
+    /* PFCP Server */
     ogs_socknode_remove_all(&smf_self()->pfcp_list);
     ogs_socknode_remove_all(&smf_self()->pfcp_list6);
 }

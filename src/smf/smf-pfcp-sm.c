@@ -29,41 +29,40 @@
 
 void smf_pfcp_state_initial(ogs_fsm_t *s, smf_event_t *e)
 {
-    smf_upf_t *upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
     ogs_assert(s);
     ogs_assert(e);
 
     smf_sm_debug(e);
 
-    upf = e->upf;
-    ogs_assert(upf);
+    pnode = e->pnode;
+    ogs_assert(pnode);
 
-    upf->t_conn = ogs_timer_add(smf_self()->timer_mgr,
-            smf_timer_connect_to_upf, upf);
-    ogs_expect_or_return(upf->t_conn);
+    pnode->t_conn = ogs_timer_add(smf_self()->timer_mgr,
+            smf_timer_connect_to_upf, pnode);
+    ogs_expect_or_return(pnode->t_conn);
 
     OGS_FSM_TRAN(s, &smf_pfcp_state_will_connect);
 }
 
 void smf_pfcp_state_final(ogs_fsm_t *s, smf_event_t *e)
 {
-    smf_upf_t *upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
     ogs_assert(s);
     ogs_assert(e);
 
     smf_sm_debug(e);
 
-    upf = e->upf;
-    ogs_assert(upf);
+    pnode = e->pnode;
+    ogs_assert(pnode);
 
-    ogs_timer_delete(upf->t_conn);
+    ogs_timer_delete(pnode->t_conn);
 }
 
 void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
 {
     char buf[OGS_ADDRSTRLEN];
 
-    smf_upf_t *upf = NULL;
     ogs_pfcp_node_t *pnode = NULL;
     ogs_sockaddr_t *addr = NULL;
     ogs_assert(s);
@@ -71,28 +70,26 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    upf = e->upf;
-    ogs_assert(upf);
+    pnode = e->pnode;
+    ogs_assert(pnode);
 
-    ogs_assert(upf->t_conn);
+    ogs_assert(pnode->t_conn);
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
-        ogs_timer_start(upf->t_conn,
+        ogs_timer_start(pnode->t_conn,
                 smf_timer_cfg(SMF_TIMER_CONNECT_TO_UPF)->duration);
 #if 0
-        sgsap_client(upf);
+        sgsap_client(pnode);
 #endif
         break;
     case OGS_FSM_EXIT_SIG:
-        ogs_timer_stop(upf->t_conn);
+        ogs_timer_stop(pnode->t_conn);
         break;
     case SMF_EVT_N4_TIMER:
         switch(e->timer_id) {
         case SMF_TIMER_CONNECT_TO_UPF:
-            upf = e->upf;
-            ogs_assert(upf);
-            pnode = upf->pnode;
+            pnode = e->pnode;
             ogs_assert(pnode);
             addr = pnode->sa_list;
             ogs_assert(addr);
@@ -100,13 +97,13 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
             ogs_warn("[PFCP] Connect to UPF [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
-            ogs_assert(upf->t_conn);
-            ogs_timer_start(upf->t_conn,
+            ogs_assert(pnode->t_conn);
+            ogs_timer_start(pnode->t_conn,
                 smf_timer_cfg(SMF_TIMER_CONNECT_TO_UPF)->duration);
 
 #if 0
-            smf_upf_close(upf);
-            sgsap_client(upf);
+            smf_upf_close(pnode);
+            sgsap_client(pnode);
 #endif
             break;
         default:
@@ -128,7 +125,6 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
 
 void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
 {
-    smf_upf_t *upf = NULL;
     ogs_pfcp_node_t *pnode = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
     uint8_t type;
@@ -137,8 +133,8 @@ void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    upf = e->upf;
-    ogs_assert(upf);
+    pnode = e->pnode;
+    ogs_assert(pnode);
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
@@ -147,7 +143,7 @@ void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
         break;
     case SMF_EVT_N4_TIMER:
 #if 0
-        smf_upf_close(upf);
+        smf_upf_close(pnode);
         OGS_FSM_TRAN(s, smf_pfcp_state_will_connect);
 #endif
         break;
@@ -158,7 +154,7 @@ void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
         switch (type) {
 #if 0
         case N4_LOCATION_UPDATE_ACCEPT:
-            sgsap_handle_location_update_accept(upf, pkbuf);
+            sgsap_handle_location_update_accept(pnode, pkbuf);
             break;
         case N4_LOCATION_UPDATE_REJECT:
             sgsap_handle_location_update_reject(upf, pkbuf);

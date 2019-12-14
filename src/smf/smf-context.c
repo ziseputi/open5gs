@@ -24,8 +24,6 @@ static ogs_diam_config_t g_diam_conf;
 
 int __smf_log_domain;
 
-static OGS_POOL(smf_upf_pool, smf_upf_t);
-
 static OGS_POOL(smf_dev_pool, smf_dev_t);
 static OGS_POOL(smf_subnet_pool, smf_subnet_t);
 
@@ -73,14 +71,13 @@ void smf_context_init(void)
 
     ogs_list_init(&self.sgw_s5c_list);
     ogs_list_init(&self.sgw_s5u_list);
-    ogs_list_init(&self.upf_list);
+    ogs_list_init(&self.upf_n4_list);
 
     ogs_list_init(&self.dev_list);
     ogs_pool_init(&smf_dev_pool, MAX_NUM_OF_DEV);
     ogs_list_init(&self.subnet_list);
     ogs_pool_init(&smf_subnet_pool, MAX_NUM_OF_SUBNET);
 
-    ogs_pool_init(&smf_upf_pool, ogs_config()->max.upf);
     ogs_pool_init(&smf_sess_pool, ogs_config()->pool.sess);
     ogs_pool_init(&smf_bearer_pool, ogs_config()->pool.bearer);
 
@@ -112,8 +109,6 @@ void smf_context_final(void)
 
     ogs_pool_final(&smf_dev_pool);
     ogs_pool_final(&smf_subnet_pool);
-
-    ogs_pool_final(&smf_upf_pool);
 
     ogs_gtp_node_remove_all(&self.sgw_s5c_list);
     ogs_gtp_node_remove_all(&self.sgw_s5u_list);
@@ -164,7 +159,7 @@ static int smf_context_validation(void)
                 ogs_config()->file);
         return OGS_ERROR;
     }
-    if (ogs_list_first(&self.upf_list) == NULL) {
+    if (ogs_list_first(&self.upf_n4_list) == NULL) {
         ogs_error("No upf.pfcp in '%s'", ogs_config()->file);
         return OGS_ERROR;
     }
@@ -899,7 +894,7 @@ int smf_context_parse_config(void)
                     ogs_yaml_iter_t pfcp_array, pfcp_iter;
                     ogs_yaml_iter_recurse(&upf_iter, &pfcp_array);
                     do {
-                        smf_upf_t *upf = NULL;
+                        ogs_pfcp_node_t *pnode = NULL;
                         ogs_sockaddr_t *addr = NULL;
                         int family = AF_UNSPEC;
                         int i, num = 0;
@@ -1002,12 +997,12 @@ int smf_context_parse_config(void)
                                 ogs_config()->parameter.no_ipv6,
                                 ogs_config()->parameter.prefer_ipv4);
 
-                        upf = smf_upf_add(addr);
-                        ogs_assert(upf);
+                        pnode = smf_upf_add(addr);
+                        ogs_assert(pnode);
 
-                        upf->num_of_tac = num_of_tac;
+                        pnode->num_of_tac = num_of_tac;
                         if (num_of_tac != 0)
-                            memcpy(upf->tac, tac, sizeof(upf->tac));
+                            memcpy(pnode->tac, tac, sizeof(pnode->tac));
 
                     } while (ogs_yaml_iter_type(&pfcp_array) ==
                             YAML_SEQUENCE_NODE);
@@ -1022,55 +1017,48 @@ int smf_context_parse_config(void)
     return OGS_OK;
 }
 
-smf_upf_t *smf_upf_add(ogs_sockaddr_t *addr)
+ogs_pfcp_node_t *smf_upf_add(ogs_sockaddr_t *addr)
 {
-    smf_upf_t *upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
 
     ogs_assert(addr);
 
-    ogs_pool_alloc(&smf_upf_pool, &upf);
-    ogs_assert(upf);
-    memset(upf, 0, sizeof *upf);
+    pnode = ogs_pfcp_node_new(addr);
+    ogs_assert(pnode);
 
-    upf->pnode = ogs_pfcp_node_new(addr);
-    ogs_assert(upf->pnode);
+    ogs_list_add(&self.upf_n4_list, pnode);
 
-    ogs_list_add(&self.upf_list, upf);
-
-    return upf;
+    return pnode;
 }
 
-void smf_upf_remove(smf_upf_t *upf)
+void smf_upf_remove(ogs_pfcp_node_t *pnode)
 {
-    ogs_assert(upf);
+    ogs_assert(pnode);
 
-    ogs_list_remove(&self.upf_list, upf);
-
-    ogs_pfcp_node_free(upf->pnode);
-    ogs_pool_free(&smf_upf_pool, upf);
+    ogs_list_remove(&self.upf_n4_list, pnode);
+    ogs_pfcp_node_free(pnode);
 }
 
 void smf_upf_remove_all(void)
 {
-    smf_upf_t *upf = NULL, *next_upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL, *next_pnode = NULL;
 
-    ogs_list_for_each_safe(&self.upf_list, next_upf, upf)
-        smf_upf_remove(upf);
+    ogs_list_for_each_safe(&self.upf_n4_list, next_pnode, pnode)
+        smf_upf_remove(pnode);
 }
 
-smf_upf_t *smf_upf_find_by_addr(ogs_sockaddr_t *addr)
+ogs_pfcp_node_t *smf_upf_find_by_addr(ogs_sockaddr_t *addr)
 {
-    smf_upf_t *upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
 
     ogs_assert(addr);
 
-    ogs_list_for_each(&self.upf_list, upf) {
-        ogs_assert(upf->pnode);
-        if (ogs_sockaddr_is_equal(&upf->pnode->remote_addr, addr) == true)
+    ogs_list_for_each(&self.upf_n4_list, pnode) {
+        if (ogs_sockaddr_is_equal(&pnode->remote_addr, addr) == true)
             break;
     }
 
-    return upf;
+    return pnode;
 }
 
 static void *sess_hash_keygen(uint8_t *out, int *out_len,
@@ -1156,10 +1144,10 @@ smf_sess_t *smf_sess_add(
 
     /* Select PFCP Node */
     if (smf_self()->upf == NULL)
-        smf_self()->upf = ogs_list_first(&smf_self()->upf_list);
+        smf_self()->upf = ogs_list_first(&smf_self()->upf_n4_list);
 
     ogs_assert(smf_self()->upf);
-    OGS_SETUP_PFCP_NODE(sess, smf_self()->upf->pnode);
+    OGS_SETUP_PFCP_NODE(sess, smf_self()->upf);
 
     ogs_info("UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
 	    sess->imsi_bcd,

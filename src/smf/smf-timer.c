@@ -52,7 +52,7 @@ void smf_timer_connect_to_upf(void *data)
 
     e = smf_event_new(SMF_EVT_N4_TIMER);
     e->timer_id = SMF_TIMER_CONNECT_TO_UPF;
-    e->upf = data;
+    e->pnode = data;
 
     rv = ogs_queue_push(smf_self()->queue, e);
     if (rv != OGS_OK) {

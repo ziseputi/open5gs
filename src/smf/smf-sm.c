@@ -47,7 +47,6 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     int rv;
     ogs_pkbuf_t *recvbuf = NULL;
     smf_sess_t *sess = NULL;
-    smf_upf_t *upf = NULL;
 
     ogs_gtp_message_t gtp_message;
     ogs_gtp_node_t *gnode = NULL;
@@ -271,11 +270,11 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         ogs_pkbuf_free(recvbuf);
         break;
     case SMF_EVT_N4_TIMER:
-        upf = e->upf;
-        ogs_assert(upf);
-        ogs_assert(OGS_FSM_STATE(&upf->sm));
+        pnode = e->pnode;
+        ogs_assert(pnode);
+        ogs_assert(OGS_FSM_STATE(&pnode->sm));
 
-        ogs_fsm_dispatch(&upf->sm, e);
+        ogs_fsm_dispatch(&pnode->sm, e);
         break;
     default:
         ogs_error("No handler for event %s", smf_event_get_name(e));

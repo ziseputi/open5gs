@@ -43,7 +43,6 @@ extern int __smf_log_domain;
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __smf_log_domain
 
-typedef struct smf_upf_s smf_upf_t;
 typedef struct smf_context_s {
     const char*         diam_conf_path;   /* SMF Diameter conf path */
     ogs_diam_config_t   *diam_config;     /* SMF Diameter config */
@@ -97,25 +96,13 @@ typedef struct smf_context_s {
     ogs_list_t      sgw_s5u_list;   /* SGW GTPU Node List */
     ogs_list_t      ip_pool_list;
 
-    ogs_list_t      upf_list;       /* UPF PFCP Node List */
-    smf_upf_t       *upf;           /* Iterator for UPF round-robin */
+    ogs_list_t      upf_n4_list;    /* UPF PFCP Node List */
+    ogs_pfcp_node_t *upf;           /* Iterator for UPF round-robin */
 
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
 
     ogs_list_t      sess_list;
 } smf_context_t;
-
-typedef struct smf_upf_s {
-    ogs_lnode_t     lnode;
-
-    ogs_fsm_t       sm;             /* A state machine */
-    ogs_timer_t     *t_conn;        /* SMF timer to connect to UPF */
-
-    uint16_t        tac[OGS_MAX_NUM_OF_TAI];
-    uint8_t         num_of_tac;
-
-    ogs_pfcp_node_t *pnode;
-} smf_upf_t;
 
 typedef struct smf_subnet_s smf_subnet_t;
 typedef struct smf_ue_ip_s {
@@ -264,10 +251,10 @@ smf_context_t *smf_self(void);
 
 int smf_context_parse_config(void);
 
-smf_upf_t *smf_upf_add(ogs_sockaddr_t *addr);
-void smf_upf_remove(smf_upf_t *upf);
+ogs_pfcp_node_t *smf_upf_add(ogs_sockaddr_t *addr);
+void smf_upf_remove(ogs_pfcp_node_t *upf);
 void smf_upf_remove_all(void);
-smf_upf_t *smf_upf_find_by_addr(ogs_sockaddr_t *addr);
+ogs_pfcp_node_t *smf_upf_find_by_addr(ogs_sockaddr_t *addr);
 
 smf_sess_t *smf_sess_add_by_message(ogs_gtp_message_t *message);
 

@@ -33,7 +33,7 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     smf_event_t *e = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
     ogs_sockaddr_t from;
-    smf_upf_t *upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
     ogs_pfcp_header_t *h = NULL;
 
     ogs_assert(fd != INVALID_SOCKET);
@@ -68,17 +68,16 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
         return;
     }
 
-    upf = smf_upf_find_by_addr(&from);
-    if (!upf) {
+    pnode = smf_upf_find_by_addr(&from);
+    if (!pnode) {
         ogs_error("Unknown UPF : %s", OGS_ADDR(&from, buf));
         ogs_pkbuf_free(pkbuf);
         return;
     }
-    ogs_assert(upf->pnode);
 
     e = smf_event_new(SMF_EVT_N4_MESSAGE);
     ogs_assert(e);
-    e->pnode = upf->pnode;
+    e->pnode = pnode;
     e->pkbuf = pkbuf;
 
     rv = ogs_queue_push(smf_self()->queue, e);
@@ -91,7 +90,7 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 
 int smf_pfcp_open(void)
 {
-    smf_upf_t *upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
 
@@ -122,13 +121,14 @@ int smf_pfcp_open(void)
     ogs_assert(smf_self()->pfcp_addr || smf_self()->pfcp_addr6);
 
     /* PFCP Client */
-    ogs_list_for_each(&smf_self()->upf_list, upf) {
+    ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
         smf_event_t e;
-        e.upf = upf;
+        e.pnode = pnode;
         e.id = 0;
 
-        ogs_fsm_create(&upf->sm, smf_pfcp_state_initial, smf_pfcp_state_final);
-        ogs_fsm_init(&upf->sm, &e);
+        ogs_fsm_create(&pnode->sm,
+                smf_pfcp_state_initial, smf_pfcp_state_final);
+        ogs_fsm_init(&pnode->sm, &e);
     }
 
     return OGS_OK;
@@ -136,15 +136,15 @@ int smf_pfcp_open(void)
 
 void smf_pfcp_close(void)
 {
-    smf_upf_t *upf = NULL;
+    ogs_pfcp_node_t *pnode = NULL;
 
     /* PFCP Client */
-    ogs_list_for_each(&smf_self()->upf_list, upf) {
+    ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
         smf_event_t e;
-        e.upf = upf;
+        e.pnode = pnode;
 
-        ogs_fsm_fini(&upf->sm, &e);
-        ogs_fsm_delete(&upf->sm);
+        ogs_fsm_fini(&pnode->sm, &e);
+        ogs_fsm_delete(&pnode->sm);
     }
 
     /* PFCP Server */

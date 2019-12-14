@@ -58,7 +58,6 @@ typedef struct smf_event_s {
     ogs_pfcp_xact_t *pxact;
 
     smf_sess_t *sess;
-    smf_upf_t *upf;
 } smf_event_t;
 
 void smf_event_init(void);

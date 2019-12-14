@@ -23,7 +23,7 @@
 
 static smf_timer_cfg_t g_smf_timer_cfg[MAX_NUM_OF_SMF_TIMER] = {
     [SMF_TIMER_CONNECT_TO_UPF] = 
-        { .duration = ogs_time_from_sec(3) },
+        { .duration = ogs_time_from_sec(12) },
 };
 
 smf_timer_cfg_t *smf_timer_cfg(smf_timer_e id)

@@ -250,7 +250,7 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
     ogs_assert(h);
 
     memset(h, 0, sizeof(ogs_pfcp_header_t));
-    h->version = 1;
+    h->version = OGS_PFCP_VERSION;
     h->type = hdesc->type;
 
     if (h->type >= OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE) {
@@ -258,7 +258,7 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
         h->seid = htobe64(hdesc->seid);
         h->sqn = OGS_PFCP_XID_TO_SQN(xact->xid);
     } else {
-        h->seid_p = 1;
+        h->seid_p = 0;
         h->sqn_only = OGS_PFCP_XID_TO_SQN(xact->xid);
     }
     h->length = htons(pkbuf->len - 4);

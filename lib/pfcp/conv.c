@@ -19,6 +19,10 @@
 
 #include "ogs-pfcp.h"
 
+#define OGS_PFCP_NODE_ID_HDR_LEN    1
+#define OGS_PFCP_NODE_ID_IPV4_LEN   (OGS_IPV4_LEN + OGS_PFCP_NODE_ID_HDR_LEN)
+#define OGS_PFCP_NODE_ID_IPV6_LEN   (OGS_IPV6_LEN + OGS_PFCP_NODE_ID_HDR_LEN)
+
 #define OGS_PFCP_F_TEID_HDR_LEN     5
 #define OGS_PFCP_F_TEID_IPV4_LEN    (OGS_IPV4_LEN + OGS_PFCP_F_TEID_HDR_LEN)
 #define OGS_PFCP_F_TEID_IPV6_LEN    (OGS_IPV6_LEN + OGS_PFCP_F_TEID_HDR_LEN)
@@ -28,6 +32,33 @@
 #define OGS_PFCP_F_SEID_IPV4_LEN    (OGS_IPV4_LEN + OGS_PFCP_F_SEID_HDR_LEN)
 #define OGS_PFCP_F_SEID_IPV6_LEN    (OGS_IPV6_LEN + OGS_PFCP_F_SEID_HDR_LEN)
 #define OGS_PFCP_F_SEID_IPV4V6_LEN  (OGS_IPV4V6_LEN + OGS_PFCP_F_SEID_HDR_LEN)
+
+int ogs_pfcp_sockaddr_to_node_id(
+    ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6, int prefer_ipv4,
+    ogs_pfcp_node_id_t *node_id, int *len)
+{
+    ogs_assert(node_id);
+
+    memset(node_id, 0, sizeof *node_id);
+
+    if (prefer_ipv4 && addr) {
+        node_id->type = OGS_PFCP_NODE_ID_IPV4;
+        node_id->addr = addr->sin.sin_addr.s_addr;
+        *len = OGS_PFCP_NODE_ID_IPV4_LEN;
+    } else if (addr6) {
+        node_id->type = OGS_PFCP_NODE_ID_IPV6;
+        memcpy(node_id->addr6, addr6->sin6.sin6_addr.s6_addr, OGS_IPV6_LEN);
+        *len = OGS_PFCP_NODE_ID_IPV6_LEN;
+    } else if (addr) {
+        node_id->type = OGS_PFCP_NODE_ID_IPV4;
+        node_id->addr = addr->sin.sin_addr.s_addr;
+        *len = OGS_PFCP_NODE_ID_IPV4_LEN;
+    } else {
+        ogs_assert_if_reached();
+    }
+
+    return OGS_OK;
+}
 
 int ogs_pfcp_f_seid_to_sockaddr(
     ogs_pfcp_f_seid_t *f_seid, uint16_t port, ogs_sockaddr_t **list)
@@ -79,6 +110,8 @@ int ogs_pfcp_sockaddr_to_f_seid(
 {
     ogs_assert(f_seid);
 
+    memset(f_seid, 0, sizeof *f_seid);
+
     if (addr && addr6) {
         f_seid->ipv4 = 1;
         f_seid->both.addr = addr->sin.sin_addr.s_addr;
@@ -106,7 +139,7 @@ int ogs_pfcp_f_seid_to_ip(ogs_pfcp_f_seid_t *f_seid, ogs_ip_t *ip)
     ogs_assert(ip);
     ogs_assert(f_seid);
 
-    memset(ip, 0, sizeof(ogs_ip_t));
+    memset(ip, 0, sizeof *ip);
 
     ip->ipv4 = f_seid->ipv4;
     ip->ipv6 = f_seid->ipv6;
@@ -132,6 +165,8 @@ int ogs_pfcp_sockaddr_to_f_teid(
     ogs_pfcp_f_teid_t *f_teid, int *len)
 {
     ogs_assert(f_teid);
+
+    memset(f_teid, 0, sizeof *f_teid);
 
     if (addr && addr6) {
         f_teid->ipv4 = 1;
@@ -160,7 +195,7 @@ int ogs_pfcp_outer_hdr_to_ip(ogs_pfcp_outer_hdr_t *outer_hdr, ogs_ip_t *ip)
     ogs_assert(ip);
     ogs_assert(outer_hdr);
 
-    memset(ip, 0, sizeof(ogs_ip_t));
+    memset(ip, 0, sizeof *ip);
 
     ip->ipv4 = outer_hdr->gtpu_ipv4;
     ip->ipv6 = outer_hdr->gtpu_ipv6;

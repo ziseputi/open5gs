@@ -149,7 +149,6 @@ ogs_pfcp_node_t *ogs_pfcp_node_find_by_addr(
     return node;
 }
 
-#if 0
 ogs_pfcp_node_t *ogs_pfcp_node_find_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid)
 {
@@ -170,4 +169,3 @@ ogs_pfcp_node_t *ogs_pfcp_node_find_by_f_seid(
 
     return node;
 }
-#endif

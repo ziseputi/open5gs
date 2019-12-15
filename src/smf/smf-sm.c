@@ -18,13 +18,13 @@
  */
 
 #include "smf-sm.h"
-#include "smf-context.h"
-#include "smf-event.h"
-#include "smf-gtp-path.h"
-#include "smf-fd-path.h"
-#include "smf-pfcp-path.h"
-#include "smf-s5c-handler.h"
-#include "smf-gx-handler.h"
+#include "context.h"
+#include "event.h"
+#include "gtp-path.h"
+#include "fd-path.h"
+#include "pfcp-path.h"
+#include "s5c-handler.h"
+#include "gx-handler.h"
 
 void smf_state_initial(ogs_fsm_t *s, smf_event_t *e)
 {

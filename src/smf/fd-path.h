@@ -17,22 +17,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SMF_PATH_H
-#define SMF_PATH_H
+#ifndef SMF_FD_PATH_H
+#define SMF_FD_PATH_H
 
-#include "ogs-gtp.h"
+#include "context.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int smf_pfcp_open(void);
-void smf_pfcp_close(void);
+typedef struct gtp_xact_s gtp_xact_t;
 
-void smf_pfcp_send_association_setup_request(ogs_pfcp_node_t *pnode);
+int smf_fd_init(void);
+void smf_fd_final(void);
+
+void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        uint32_t cc_request_type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SMF_PATH_H */
+#endif /* SMF_FD_PATH_H */
+

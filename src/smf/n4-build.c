@@ -17,8 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
-#include "smf-n4-build.h"
+#include "context.h"
+#include "n4-build.h"
 
 ogs_pkbuf_t *smf_n4_build_association_setup_request(uint8_t type)
 {

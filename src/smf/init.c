@@ -17,11 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
-#include "smf-event.h"
+#include "context.h"
+#include "event.h"
 #include "smf-sm.h"
 
-#include "smf-fd-path.h"
+#include "fd-path.h"
 
 static ogs_thread_t *thread;
 static void smf_main(void *data);

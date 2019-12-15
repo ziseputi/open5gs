@@ -31,33 +31,33 @@ endforeach
 configure_file(output : 'smf-config.h', configuration : smf_conf)
 
 libsmf_sources = files('''
-    smf-ipfw.h
-    smf-event.h
-    smf-timer.h
-    smf-context.h
+    ipfw.h
+    event.h
+    timer.h
+    context.h
     smf-sm.h
-    smf-gtp-path.h
-    smf-s5c-build.h
-    smf-s5c-handler.h
-    smf-fd-path.h
-    smf-gx-handler.h
-    smf-pfcp-path.h
-    smf-n4-build.h
+    gtp-path.h
+    s5c-build.h
+    s5c-handler.h
+    fd-path.h
+    gx-handler.h
+    pfcp-path.h
+    n4-build.h
 
-    smf-ipfw.c
-    smf-init.c
-    smf-event.c
-    smf-timer.c
-    smf-context.c
+    ipfw.c
+    init.c
+    event.c
+    timer.c
+    context.c
     smf-sm.c
-    smf-gtp-path.c
-    smf-s5c-build.c
-    smf-s5c-handler.c 
-    smf-fd-path.c
-    smf-gx-handler.c 
-    smf-pfcp-sm.c
-    smf-pfcp-path.c
-    smf-n4-build.c
+    upf-sm.c
+    gtp-path.c
+    s5c-build.c
+    s5c-handler.c 
+    fd-path.c
+    gx-handler.c 
+    pfcp-path.c
+    n4-build.c
 '''.split())
 
 libsmf = static_library('smf',
@@ -75,7 +75,7 @@ libsmf_dep = declare_dependency(
     ])
 
 smf_sources = files('''
-    app-init.c
+    app.c
     ../main.c
 '''.split())
 

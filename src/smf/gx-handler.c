@@ -17,11 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
-#include "smf-gtp-path.h"
-#include "smf-s5c-build.h"
-#include "smf-gx-handler.h"
-#include "smf-ipfw.h"
+#include "context.h"
+#include "gtp-path.h"
+#include "s5c-build.h"
+#include "gx-handler.h"
+#include "ipfw.h"
 
 static void bearer_binding(smf_sess_t *sess, ogs_diam_gx_message_t *gx_message);
 

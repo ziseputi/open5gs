@@ -20,7 +20,7 @@
 #ifndef SMF_IPFW_H
 #define SMF_IPFW_H
 
-#include "smf-context.h"
+#include "context.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -17,8 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-event.h"
-#include "smf-context.h"
+#include "event.h"
+#include "context.h"
 
 #define EVENT_POOL 32 /* FIXME : 32 */
 static OGS_POOL(pool, smf_event_t);

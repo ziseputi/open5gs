@@ -17,8 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
-#include "smf-s5c-build.h"
+#include "context.h"
+#include "s5c-build.h"
 
 #include "ipfw/ipfw2.h"
 

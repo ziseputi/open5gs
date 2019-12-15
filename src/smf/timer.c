@@ -17,9 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-timer.h"
-#include "smf-event.h"
-#include "smf-context.h"
+#include "timer.h"
+#include "event.h"
+#include "context.h"
 
 static smf_timer_cfg_t g_smf_timer_cfg[MAX_NUM_OF_SMF_TIMER] = {
     [SMF_TIMER_CONNECT_TO_UPF] = 

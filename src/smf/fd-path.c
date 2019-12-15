@@ -17,8 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-event.h"
-#include "smf-fd-path.h"
+#include "event.h"
+#include "fd-path.h"
 
 static struct session_handler *smf_gx_reg = NULL;
 static struct disp_hdl *hdl_gx_fb = NULL; 

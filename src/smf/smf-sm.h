@@ -20,7 +20,7 @@
 #ifndef SMF_SM_H
 #define SMF_SM_H
 
-#include "smf-event.h"
+#include "event.h"
 
 #ifdef __cplusplus
 extern "C" {

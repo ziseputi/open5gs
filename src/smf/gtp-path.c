@@ -17,11 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
+#include "context.h"
 
-#include "smf-event.h"
-#include "smf-gtp-path.h"
-#include "smf-ipfw.h"
+#include "event.h"
+#include "gtp-path.h"
+#include "ipfw.h"
 
 #define SMF_GTP_HANDLED     1
 

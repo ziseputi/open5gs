@@ -17,11 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-event.h"
-#include "smf-context.h"
-#include "smf-gtp-path.h"
-#include "smf-fd-path.h"
-#include "smf-s5c-handler.h"
+#include "event.h"
+#include "context.h"
+#include "gtp-path.h"
+#include "fd-path.h"
+#include "s5c-handler.h"
 
 void smf_s5c_handle_create_session_request(
         smf_sess_t *sess, ogs_gtp_xact_t *xact,

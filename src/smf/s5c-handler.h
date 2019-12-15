@@ -17,26 +17,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SMF_GX_HANDLER_H
-#define SMF_GX_HANDLER_H
+#ifndef SMF_S5C_HANDLER_H
+#define SMF_S5C_HANDLER_H
 
-#include "smf-context.h"
+#include "context.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void smf_gx_handle_cca_initial_request(
-        smf_sess_t *sess, ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_xact_t *xact);
-void smf_gx_handle_cca_termination_request(
-        smf_sess_t *sess, ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_xact_t *xact);
-void smf_gx_handle_re_auth_request(
-        smf_sess_t *sess, ogs_diam_gx_message_t *gx_message);
+void smf_s5c_handle_create_session_request(
+        smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        ogs_gtp_create_session_request_t *req);
+void smf_s5c_handle_delete_session_request(
+        smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        ogs_gtp_delete_session_request_t *req);
+void smf_s5c_handle_create_bearer_response(
+        smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        ogs_gtp_create_bearer_response_t *req);
+void smf_s5c_handle_update_bearer_response(
+        smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        ogs_gtp_update_bearer_response_t *req);
+void smf_s5c_handle_delete_bearer_response(
+        smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        ogs_gtp_delete_bearer_response_t *req);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* SMF_GX_HANDLER_H */
+#endif /* SMF_S5C_HANDLER_H */

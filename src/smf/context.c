@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
+#include "context.h"
 
 static smf_context_t self;
 static ogs_diam_config_t g_diam_conf;

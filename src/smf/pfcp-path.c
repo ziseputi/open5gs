@@ -17,13 +17,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
+#include "context.h"
 
-#include "smf-event.h"
+#include "event.h"
 #include "smf-sm.h"
 
-#include "smf-pfcp-path.h"
-#include "smf-n4-build.h"
+#include "pfcp-path.h"
+#include "n4-build.h"
 
 static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 {

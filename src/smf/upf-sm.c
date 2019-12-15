@@ -17,12 +17,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "smf-context.h"
-#include "smf-event.h"
-#include "smf-timer.h"
+#include "context.h"
+#include "event.h"
+#include "timer.h"
 #include "smf-sm.h"
 
-#include "smf-pfcp-path.h"
+#include "pfcp-path.h"
 #if 0
 #include "smf-n4-handler.h"
 #endif

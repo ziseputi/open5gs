@@ -114,8 +114,8 @@ ogs_pfcp_xact_t *ogs_pfcp_xact_local_create(ogs_pfcp_node_t *pnode,
     ogs_debug("[%d] %s Create  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&pnode->remote_addr, buf),
-            OGS_PORT(&pnode->remote_addr));
+            OGS_ADDR(&pnode->addr, buf),
+            OGS_PORT(&pnode->addr));
 
     return xact;
 }
@@ -151,8 +151,8 @@ ogs_pfcp_xact_t *ogs_pfcp_xact_remote_create(
     ogs_debug("[%d] %s Create  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&pnode->remote_addr, buf),
-            OGS_PORT(&pnode->remote_addr));
+            OGS_ADDR(&pnode->addr, buf),
+            OGS_PORT(&pnode->addr));
 
     return xact;
 }
@@ -184,8 +184,8 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             hdesc->type,
-            OGS_ADDR(&xact->pnode->remote_addr, buf),
-            OGS_PORT(&xact->pnode->remote_addr));
+            OGS_ADDR(&xact->pnode->addr, buf),
+            OGS_PORT(&xact->pnode->addr));
 
     stage = ogs_pfcp_xact_get_stage(hdesc->type, xact->xid);
     if (xact->org == OGS_PFCP_LOCAL_ORIGINATOR) {
@@ -285,8 +285,8 @@ int ogs_pfcp_xact_update_rx(ogs_pfcp_xact_t *xact, uint8_t type)
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             type,
-            OGS_ADDR(&xact->pnode->remote_addr, buf),
-            OGS_PORT(&xact->pnode->remote_addr));
+            OGS_ADDR(&xact->pnode->addr, buf),
+            OGS_PORT(&xact->pnode->addr));
 
     stage = ogs_pfcp_xact_get_stage(type, xact->xid);
     if (xact->org == OGS_PFCP_LOCAL_ORIGINATOR) {
@@ -317,9 +317,9 @@ int ogs_pfcp_xact_update_rx(ogs_pfcp_xact_t *xact, uint8_t type)
                             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->pnode->remote_addr,
+                            OGS_ADDR(&xact->pnode->addr,
                                 buf),
-                            OGS_PORT(&xact->pnode->remote_addr));
+                            OGS_PORT(&xact->pnode->addr));
                     rv = ogs_pfcp_sendto(xact->pnode, pkbuf);
                     ogs_expect(rv == OGS_OK);
                 } else {
@@ -329,9 +329,9 @@ int ogs_pfcp_xact_update_rx(ogs_pfcp_xact_t *xact, uint8_t type)
                             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->pnode->remote_addr,
+                            OGS_ADDR(&xact->pnode->addr,
                                 buf),
-                            OGS_PORT(&xact->pnode->remote_addr));
+                            OGS_PORT(&xact->pnode->addr));
                 }
 
                 return OGS_RETRY;
@@ -382,9 +382,9 @@ int ogs_pfcp_xact_update_rx(ogs_pfcp_xact_t *xact, uint8_t type)
                             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->pnode->remote_addr,
+                            OGS_ADDR(&xact->pnode->addr,
                                 buf),
-                            OGS_PORT(&xact->pnode->remote_addr));
+                            OGS_PORT(&xact->pnode->addr));
                     rv = ogs_pfcp_sendto(xact->pnode, pkbuf);
                     ogs_expect(rv == OGS_OK);
                 } else {
@@ -394,9 +394,9 @@ int ogs_pfcp_xact_update_rx(ogs_pfcp_xact_t *xact, uint8_t type)
                             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->pnode->remote_addr,
+                            OGS_ADDR(&xact->pnode->addr,
                                 buf),
-                            OGS_PORT(&xact->pnode->remote_addr));
+                            OGS_PORT(&xact->pnode->addr));
                 }
 
                 return OGS_RETRY;
@@ -462,8 +462,8 @@ int ogs_pfcp_xact_commit(ogs_pfcp_xact_t *xact)
     ogs_debug("[%d] %s Commit  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&xact->pnode->remote_addr, buf),
-            OGS_PORT(&xact->pnode->remote_addr));
+            OGS_ADDR(&xact->pnode->addr, buf),
+            OGS_PORT(&xact->pnode->addr));
 
     type = xact->seq[xact->step-1].type;
     stage = ogs_pfcp_xact_get_stage(type, xact->xid);
@@ -570,8 +570,8 @@ static void response_timeout(void *data)
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             xact->step, xact->seq[xact->step-1].type,
-            OGS_ADDR(&xact->pnode->remote_addr, buf),
-            OGS_PORT(&xact->pnode->remote_addr));
+            OGS_ADDR(&xact->pnode->addr, buf),
+            OGS_PORT(&xact->pnode->addr));
 
     if (--xact->response_rcount > 0) {
         ogs_pkbuf_t *pkbuf = NULL;
@@ -592,8 +592,8 @@ static void response_timeout(void *data)
                 xact->xid,
                 xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
                 xact->step, xact->seq[xact->step-1].type,
-                OGS_ADDR(&xact->pnode->remote_addr, buf),
-                OGS_PORT(&xact->pnode->remote_addr));
+                OGS_ADDR(&xact->pnode->addr, buf),
+                OGS_PORT(&xact->pnode->addr));
 
         if (xact->cb)
             xact->cb(xact, xact->data);
@@ -620,8 +620,8 @@ static void holding_timeout(void *data)
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             xact->step, xact->seq[xact->step-1].type,
-            OGS_ADDR(&xact->pnode->remote_addr, buf),
-            OGS_PORT(&xact->pnode->remote_addr));
+            OGS_ADDR(&xact->pnode->addr, buf),
+            OGS_PORT(&xact->pnode->addr));
 
     if (--xact->holding_rcount > 0) {
         if (xact->tm_holding)
@@ -632,8 +632,8 @@ static void holding_timeout(void *data)
                 xact->xid,
                 xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
                 xact->step, xact->seq[xact->step-1].type,
-                OGS_ADDR(&xact->pnode->remote_addr, buf),
-                OGS_PORT(&xact->pnode->remote_addr));
+                OGS_ADDR(&xact->pnode->addr, buf),
+                OGS_PORT(&xact->pnode->addr));
         ogs_pfcp_xact_delete(xact);
     }
 }
@@ -658,8 +658,8 @@ int ogs_pfcp_xact_receive(
     ogs_debug("[%d] %s Receive peer [%s]:%d",
             new->xid,
             new->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&pnode->remote_addr, buf),
-            OGS_PORT(&pnode->remote_addr));
+            OGS_ADDR(&pnode->addr, buf),
+            OGS_PORT(&pnode->addr));
 
     rv = ogs_pfcp_xact_update_rx(new, h->type);
     if (rv != OGS_OK) {
@@ -745,8 +745,8 @@ ogs_pfcp_xact_t *ogs_pfcp_xact_find_by_xid(
             ogs_debug("[%d] %s Find    peer [%s]:%d",
                     xact->xid,
                     xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-                    OGS_ADDR(&pnode->remote_addr, buf),
-                    OGS_PORT(&pnode->remote_addr));
+                    OGS_ADDR(&pnode->addr, buf),
+                    OGS_PORT(&pnode->addr));
             break;
         }
     }
@@ -764,8 +764,8 @@ static int ogs_pfcp_xact_delete(ogs_pfcp_xact_t *xact)
     ogs_debug("[%d] %s Delete  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_PFCP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&xact->pnode->remote_addr, buf),
-            OGS_PORT(&xact->pnode->remote_addr));
+            OGS_ADDR(&xact->pnode->addr, buf),
+            OGS_PORT(&xact->pnode->addr));
 
     if (xact->seq[0].pkbuf)
         ogs_pkbuf_free(xact->seq[0].pkbuf);

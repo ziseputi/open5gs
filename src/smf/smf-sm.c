@@ -78,9 +78,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
         ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
             smf_event_t e;
-
             e.pnode = pnode;
-            e.id = 0;
 
             ogs_fsm_create(&pnode->sm,
                     smf_upf_state_initial, smf_upf_state_final);

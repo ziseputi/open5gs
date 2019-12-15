@@ -1049,16 +1049,8 @@ void smf_upf_remove_all(void)
 
 ogs_pfcp_node_t *smf_upf_find_by_addr(ogs_sockaddr_t *addr)
 {
-    ogs_pfcp_node_t *pnode = NULL;
-
     ogs_assert(addr);
-
-    ogs_list_for_each(&self.upf_n4_list, pnode) {
-        if (ogs_sockaddr_is_equal(&pnode->remote_addr, addr) == true)
-            break;
-    }
-
-    return pnode;
+    return ogs_pfcp_node_find_by_addr(&self.upf_n4_list, addr);
 }
 
 static void *sess_hash_keygen(uint8_t *out, int *out_len,

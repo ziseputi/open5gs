@@ -55,11 +55,11 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
             ogs_assert_if_reached();
 
         if (sock) {
-            ogs_info("pfcp_connect() [%s]:%d",
+            ogs_info("ogs_pfcp_connect() [%s]:%d",
                     OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             pnode->sock = sock;
-            memcpy(&pnode->remote_addr, addr, sizeof pnode->remote_addr);
+            memcpy(&pnode->addr, addr, sizeof pnode->addr);
             break;
         }
 
@@ -68,7 +68,7 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
 
     if (addr == NULL) {
         ogs_log_message(OGS_LOG_WARN, ogs_socket_errno,
-                "pfcp_connect() [%s]:%d failed",
+                "ogs_pfcp_connect() [%s]:%d failed",
                 OGS_ADDR(pnode->sa_list, buf), OGS_PORT(pnode->sa_list));
         return OGS_ERROR;
     }
@@ -105,12 +105,12 @@ int ogs_pfcp_sendto(ogs_pfcp_node_t *pnode, ogs_pkbuf_t *pkbuf)
     ogs_assert(pkbuf);
     sock = pnode->sock;
     ogs_assert(sock);
-    addr = &pnode->remote_addr;
+    addr = &pnode->addr;
     ogs_assert(addr);
 
     sent = ogs_sendto(sock->fd, pkbuf->data, pkbuf->len, 0, addr);
     if (sent < 0 || sent != pkbuf->len) {
-        ogs_error("ogs_send() failed");
+        ogs_error("ogs_sendto() failed");
         return OGS_ERROR;
     }
 

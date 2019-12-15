@@ -42,11 +42,11 @@ void smf_upf_state_initial(ogs_fsm_t *s, smf_event_t *e)
 
     rv = ogs_pfcp_connect(
             smf_self()->pfcp_sock, smf_self()->pfcp_sock6, pnode);
-    ogs_expect_or_return(rv == OGS_OK);
+    ogs_assert(rv == OGS_OK);
 
     pnode->t_conn = ogs_timer_add(smf_self()->timer_mgr,
             smf_timer_connect_to_upf, pnode);
-    ogs_expect_or_return(pnode->t_conn);
+    ogs_assert(pnode->t_conn);
 
     OGS_FSM_TRAN(s, &smf_upf_state_will_connect);
 }
@@ -87,7 +87,6 @@ void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
                 smf_timer_cfg(SMF_TIMER_CONNECT_TO_UPF)->duration);
 
         smf_pfcp_send_association_setup_request(pnode);
-
         break;
     case OGS_FSM_EXIT_SIG:
         ogs_timer_stop(pnode->t_conn);
@@ -108,7 +107,6 @@ void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
                 smf_timer_cfg(SMF_TIMER_CONNECT_TO_UPF)->duration);
 
             smf_pfcp_send_association_setup_request(pnode);
-
             break;
         default:
             ogs_error("Unknown timer[%s:%d]",

@@ -41,11 +41,12 @@ extern "C" {
 typedef struct ogs_pfcp_node_s {
     ogs_lnode_t     node;           /* A node of list_t */
 
-    ogs_sockaddr_t  *sa_list;       /* Socket Address List */
+    ogs_sockaddr_t  *sa_list;       /* Socket Address List Candidate */
 
     ogs_sock_t      *sock;          /* Socket Instance */
-    ogs_ip_t        ip;             /* Socket Address */
-    ogs_sockaddr_t  remote_addr;    /* Connected Address */
+    ogs_sockaddr_t  addr;           /* Remote Address */
+
+    ogs_ip_t        ip;             /* F-SEID IP address Duplicate Check */
 
     ogs_list_t      local_list;    
     ogs_list_t      remote_list;   

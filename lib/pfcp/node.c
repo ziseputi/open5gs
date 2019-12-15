@@ -109,7 +109,7 @@ ogs_pfcp_node_t *ogs_pfcp_node_add_by_addr(
     gnode = ogs_pfcp_node_new(new);
 
     ogs_assert(gnode);
-    memcpy(&gnode->remote_addr, new, sizeof gnode->remote_addr);
+    memcpy(&gnode->addr, new, sizeof gnode->addr);
 
     ogs_list_add(list, gnode);
 
@@ -142,13 +142,14 @@ ogs_pfcp_node_t *ogs_pfcp_node_find_by_addr(
     ogs_assert(addr);
 
     ogs_list_for_each(list, node) {
-        if (ogs_sockaddr_is_equal(&node->remote_addr, addr) == true)
+        if (ogs_sockaddr_is_equal(&node->addr, addr) == true)
             break;
     }
 
     return node;
 }
 
+#if 0
 ogs_pfcp_node_t *ogs_pfcp_node_find_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid)
 {
@@ -169,3 +170,4 @@ ogs_pfcp_node_t *ogs_pfcp_node_find_by_f_seid(
 
     return node;
 }
+#endif

@@ -91,7 +91,6 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 
 int smf_pfcp_open(void)
 {
-    ogs_pfcp_node_t *pnode = NULL;
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
 

@@ -27,9 +27,11 @@
 #include "smf-n4-handler.h"
 #endif
 
-void smf_pfcp_state_initial(ogs_fsm_t *s, smf_event_t *e)
+void smf_upf_state_initial(ogs_fsm_t *s, smf_event_t *e)
 {
+    int rv;
     ogs_pfcp_node_t *pnode = NULL;
+
     ogs_assert(s);
     ogs_assert(e);
 
@@ -38,14 +40,18 @@ void smf_pfcp_state_initial(ogs_fsm_t *s, smf_event_t *e)
     pnode = e->pnode;
     ogs_assert(pnode);
 
+    rv = ogs_pfcp_connect(
+            smf_self()->pfcp_sock, smf_self()->pfcp_sock6, pnode);
+    ogs_assert(rv == OGS_OK);
+
     pnode->t_conn = ogs_timer_add(smf_self()->timer_mgr,
             smf_timer_connect_to_upf, pnode);
     ogs_expect_or_return(pnode->t_conn);
 
-    OGS_FSM_TRAN(s, &smf_pfcp_state_will_connect);
+    OGS_FSM_TRAN(s, &smf_upf_state_will_connect);
 }
 
-void smf_pfcp_state_final(ogs_fsm_t *s, smf_event_t *e)
+void smf_upf_state_final(ogs_fsm_t *s, smf_event_t *e)
 {
     ogs_pfcp_node_t *pnode = NULL;
     ogs_assert(s);
@@ -59,7 +65,7 @@ void smf_pfcp_state_final(ogs_fsm_t *s, smf_event_t *e)
     ogs_timer_delete(pnode->t_conn);
 }
 
-void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
+void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
 {
     char buf[OGS_ADDRSTRLEN];
 
@@ -112,7 +118,7 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
         break;
     case SMF_EVT_N4_MESSAGE:
 #if 0
-        OGS_FSM_TRAN(s, smf_pfcp_state_connected);
+        OGS_FSM_TRAN(s, smf_upf_state_connected);
 #endif
         break;
     default:
@@ -121,7 +127,7 @@ void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
     }
 }
 
-void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
+void smf_upf_state_connected(ogs_fsm_t *s, smf_event_t *e)
 {
     ogs_pfcp_node_t *pnode = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
@@ -142,7 +148,7 @@ void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_N4_TIMER:
 #if 0
         smf_upf_close(pnode);
-        OGS_FSM_TRAN(s, smf_pfcp_state_will_connect);
+        OGS_FSM_TRAN(s, smf_upf_state_will_connect);
 #endif
         break;
     case SMF_EVT_N4_MESSAGE:
@@ -171,7 +177,7 @@ void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
             sgsap_handle_reset_indication(upf, pkbuf);
 
             smf_upf_close(upf);
-            OGS_FSM_TRAN(s, smf_pfcp_state_will_connect);
+            OGS_FSM_TRAN(s, smf_upf_state_will_connect);
             break;
         case N4_RELEASE_REQUEST:
             sgsap_handle_release_request(upf, pkbuf);
@@ -191,7 +197,7 @@ void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e)
     }
 }
 
-void smf_pfcp_state_exception(ogs_fsm_t *s, smf_event_t *e)
+void smf_upf_state_exception(ogs_fsm_t *s, smf_event_t *e)
 {
     ogs_assert(s);
     ogs_assert(e);

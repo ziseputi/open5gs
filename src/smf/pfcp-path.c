@@ -121,40 +121,11 @@ int smf_pfcp_open(void)
 
     ogs_assert(smf_self()->pfcp_addr || smf_self()->pfcp_addr6);
 
-    /* PFCP Client */
-    ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
-        smf_event_t e;
-        int rv;
-
-        e.pnode = pnode;
-        e.id = 0;
-
-        rv = ogs_pfcp_connect(
-                smf_self()->pfcp_sock, smf_self()->pfcp_sock6, pnode);
-        ogs_assert(rv == OGS_OK);
-
-        ogs_fsm_create(&pnode->sm,
-                smf_pfcp_state_initial, smf_pfcp_state_final);
-        ogs_fsm_init(&pnode->sm, &e);
-    }
-
     return OGS_OK;
 }
 
 void smf_pfcp_close(void)
 {
-    ogs_pfcp_node_t *pnode = NULL;
-
-    /* PFCP Client */
-    ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
-        smf_event_t e;
-        e.pnode = pnode;
-
-        ogs_fsm_fini(&pnode->sm, &e);
-        ogs_fsm_delete(&pnode->sm);
-    }
-
-    /* PFCP Server */
     ogs_socknode_remove_all(&smf_self()->pfcp_list);
     ogs_socknode_remove_all(&smf_self()->pfcp_list6);
 }

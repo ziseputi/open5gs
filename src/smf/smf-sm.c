@@ -69,13 +69,33 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             ogs_fatal("Can't establish S11-GTP path");
             break;
         }
+
         rv = smf_pfcp_open();
         if (rv != OGS_OK) {
             ogs_fatal("Can't establish N4-PFCP path");
             break;
         }
+
+        ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
+            smf_event_t e;
+
+            e.pnode = pnode;
+            e.id = 0;
+
+            ogs_fsm_create(&pnode->sm,
+                    smf_upf_state_initial, smf_upf_state_final);
+            ogs_fsm_init(&pnode->sm, &e);
+        }
         break;
     case OGS_FSM_EXIT_SIG:
+        ogs_list_for_each(&smf_self()->upf_n4_list, pnode) {
+            smf_event_t e;
+            e.pnode = pnode;
+
+            ogs_fsm_fini(&pnode->sm, &e);
+            ogs_fsm_delete(&pnode->sm);
+        }
+
         smf_gtp_close();
         smf_pfcp_close();
         break;

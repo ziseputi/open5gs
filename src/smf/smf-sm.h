@@ -31,11 +31,11 @@ void smf_state_final(ogs_fsm_t *s, smf_event_t *e);
 void smf_state_operational(ogs_fsm_t *s, smf_event_t *e);
 void smf_state_exception(ogs_fsm_t *s, smf_event_t *e);
 
-void smf_pfcp_state_initial(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_final(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_will_connect(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_connected(ogs_fsm_t *s, smf_event_t *e);
-void smf_pfcp_state_exception(ogs_fsm_t *s, smf_event_t *e);
+void smf_upf_state_initial(ogs_fsm_t *s, smf_event_t *e);
+void smf_upf_state_final(ogs_fsm_t *s, smf_event_t *e);
+void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e);
+void smf_upf_state_connected(ogs_fsm_t *s, smf_event_t *e);
+void smf_upf_state_exception(ogs_fsm_t *s, smf_event_t *e);
 
 #define smf_sm_debug(__pe) \
     ogs_debug("%s(): %s", __func__, smf_event_get_name(__pe))

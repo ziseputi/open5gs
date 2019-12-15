@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2019-12-05 22:18:23.140115 by acetcom
+ * Created on: 2019-12-15 22:00:10.038624 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -396,13 +396,11 @@ extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcpsrreq_flags_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcpaureq_flags_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_activation_time_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_deactivation_time_0;
-extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_mar_id_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_steering_functionality_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_steering_mode_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_weight_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_priority_0;
-extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_ue_ip_address_pool_identity_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_alternative_smf_ip_address_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_packet_replication_and_detection_carry_on_information_0;
@@ -425,7 +423,9 @@ extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfd_context_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_application_id_s_pfds_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_ethernet_traffic_information_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_1_0;
+extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_1_0;
+extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_create_urr_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_create_qer_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_created_pdr_0;
@@ -508,7 +508,7 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_report_type_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_offending_ie_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_forwarding_policy_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_destination_interface_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_up_function_features_t;
+typedef ogs_tlv_uint16_t ogs_pfcp_tlv_up_function_features_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_apply_action_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_downlink_data_service_information_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_downlink_data_notification_delay_t;
@@ -541,14 +541,14 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_urr_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_linked_urr_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_outer_header_creation_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_bar_id_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_cp_function_features_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_cp_function_features_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_usage_information_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_application_instance_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_flow_information_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_ue_ip_address_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_packet_rate_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_outer_header_removal_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_recovery_time_stamp_t;
+typedef ogs_tlv_uint32_t ogs_pfcp_tlv_recovery_time_stamp_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_dl_flow_level_marking_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_header_enrichment_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_measurement_information_t;
@@ -609,13 +609,11 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfcpsrreq_flags_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfcpaureq_flags_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_activation_time_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_deactivation_time_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_access_forwarding_action_information_2_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_mar_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_steering_functionality_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_steering_mode_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_weight_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_priority_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_update_access_forwarding_action_information_2_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_ue_ip_address_pool_identity_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_alternative_smf_ip_address_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_packet_replication_and_detection_carry_on_information_t;
@@ -755,6 +753,10 @@ typedef struct ogs_pfcp_tlv_access_forwarding_action_information_1_s {
     ogs_pfcp_tlv_urr_id_t urr_id;
 } ogs_pfcp_tlv_access_forwarding_action_information_1_t;
 
+typedef struct ogs_pfcp_tlv_access_forwarding_action_information_2_s {
+    ogs_tlv_presence_t presence;
+} ogs_pfcp_tlv_access_forwarding_action_information_2_t;
+
 typedef struct ogs_pfcp_tlv_update_access_forwarding_action_information_1_s {
     ogs_tlv_presence_t presence;
     ogs_pfcp_tlv_far_id_t far_id;
@@ -762,6 +764,10 @@ typedef struct ogs_pfcp_tlv_update_access_forwarding_action_information_1_s {
     ogs_pfcp_tlv_priority_t priority;
     ogs_pfcp_tlv_urr_id_t urr_id;
 } ogs_pfcp_tlv_update_access_forwarding_action_information_1_t;
+
+typedef struct ogs_pfcp_tlv_update_access_forwarding_action_information_2_s {
+    ogs_tlv_presence_t presence;
+} ogs_pfcp_tlv_update_access_forwarding_action_information_2_t;
 
 typedef struct ogs_pfcp_tlv_create_urr_s {
     ogs_tlv_presence_t presence;

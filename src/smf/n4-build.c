@@ -27,15 +27,12 @@ ogs_pkbuf_t *smf_n4_build_association_setup_request(uint8_t type)
 
     ogs_pfcp_node_id_t node_id;
     int node_id_len = 0;
-    uint32_t recovery_time_stamp = 11; 
-    uint8_t cp_function_features = 0;
 
     ogs_debug("[SMF] Association Setup Request");
 
     req = &pfcp_message.pfcp_association_setup_request;
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
-    /* Set node id, mandatory */
     ogs_pfcp_sockaddr_to_node_id(
             smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,
@@ -44,15 +41,11 @@ ogs_pkbuf_t *smf_n4_build_association_setup_request(uint8_t type)
     req->node_id.data = &node_id;
     req->node_id.len = node_id_len;
     
-    /* Set Recovery Time Stamp, mandatory */
     req->recovery_time_stamp.presence = 1;
-    req->recovery_time_stamp.data = &recovery_time_stamp;
-    req->recovery_time_stamp.len = sizeof recovery_time_stamp;
+    req->recovery_time_stamp.u32 = smf_self()->pfcp_started;
 
-    /* Set CP Function Features, conditional */
     req->cp_function_features.presence = 1;
-    req->cp_function_features.data = &cp_function_features;
-    req->cp_function_features.len = sizeof cp_function_features;
+    req->cp_function_features.u8 = smf_self()->cp_function_features;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);

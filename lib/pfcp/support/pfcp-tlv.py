@@ -406,14 +406,9 @@ for key in msg_list.keys():
             write_file(f, "msg_list[key][\"ies\"] = ies\n")
             f.close()
 
-#type_list["Recovery"]["size"] = 1                       # Type : 3
-#type_list["EBI"]["size"] = 1                            # Type : 73
-#type_list["RAT Type"]["size"] = 1                       # Type : 82
-#type_list["PDN Type"]["size"] = 1                       # Type : 99
-#type_list["Port Number"]["size"] = 2                    # Type : 126
-#type_list["APN Restriction"]["size"] = 1                # Type : 127
-#type_list["Selection Mode"]["size"] = 1                 # Type : 128
-#type_list["Node Type"]["size"] = 1                 # Type : 128
+type_list["UP Function Features"]["size"] = 2               # Type 43
+type_list["CP Function Features"]["size"] = 1               # Type 89
+type_list["Recovery Time Stamp"]["size"] = 4                # Type 96
 
 f = open(outdir + 'message.h', 'w')
 output_header_to_file(f)

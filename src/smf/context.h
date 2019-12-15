@@ -73,6 +73,10 @@ typedef struct smf_context_s {
     ogs_sockaddr_t  *pfcp_addr;     /* SMF PFCP IPv4 Address */
     ogs_sockaddr_t  *pfcp_addr6;    /* SMF PFCP IPv6 Address */
 
+    uint32_t        pfcp_started;   /* UTC time when the PFCP entity started */
+    uint8_t         cp_function_features; /* CP Function Features */
+    uint16_t        dp_function_features; /* DP Function Features */
+
     ogs_list_t      dev_list;       /* SMF Tun Device List */
     ogs_list_t      subnet_list;    /* SMF UE Subnet List */
 

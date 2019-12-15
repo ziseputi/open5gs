@@ -34,16 +34,16 @@ ogs_sock_t *ogs_pfcp_server(ogs_socknode_t *node)
     return pfcp;
 }
 
-int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *gnode)
+int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
 {
     ogs_sockaddr_t *addr;
     char buf[OGS_ADDRSTRLEN];
 
     ogs_assert(ipv4 || ipv6);
-    ogs_assert(gnode);
-    ogs_assert(gnode->sa_list);
+    ogs_assert(pnode);
+    ogs_assert(pnode->sa_list);
 
-    addr = gnode->sa_list;
+    addr = pnode->sa_list;
     while (addr) {
         ogs_sock_t *sock = NULL;
 
@@ -58,8 +58,8 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *gnode)
             ogs_info("pfcp_connect() [%s]:%d",
                     OGS_ADDR(addr, buf), OGS_PORT(addr));
 
-            gnode->sock = sock;
-            memcpy(&gnode->remote_addr, addr, sizeof gnode->remote_addr);
+            pnode->sock = sock;
+            memcpy(&pnode->remote_addr, addr, sizeof pnode->remote_addr);
             break;
         }
 
@@ -69,21 +69,21 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *gnode)
     if (addr == NULL) {
         ogs_log_message(OGS_LOG_WARN, ogs_socket_errno,
                 "pfcp_connect() [%s]:%d failed",
-                OGS_ADDR(gnode->sa_list, buf), OGS_PORT(gnode->sa_list));
+                OGS_ADDR(pnode->sa_list, buf), OGS_PORT(pnode->sa_list));
         return OGS_ERROR;
     }
 
     return OGS_OK;
 }
 
-int ogs_pfcp_send(ogs_pfcp_node_t *gnode, ogs_pkbuf_t *pkbuf)
+int ogs_pfcp_send(ogs_pfcp_node_t *pnode, ogs_pkbuf_t *pkbuf)
 {
     ssize_t sent;
     ogs_sock_t *sock = NULL;
 
-    ogs_assert(gnode);
+    ogs_assert(pnode);
     ogs_assert(pkbuf);
-    sock = gnode->sock;
+    sock = pnode->sock;
     ogs_assert(sock);
 
     sent = ogs_send(sock->fd, pkbuf->data, pkbuf->len, 0);
@@ -95,17 +95,17 @@ int ogs_pfcp_send(ogs_pfcp_node_t *gnode, ogs_pkbuf_t *pkbuf)
     return OGS_OK;
 }
 
-int ogs_pfcp_sendto(ogs_pfcp_node_t *gnode, ogs_pkbuf_t *pkbuf)
+int ogs_pfcp_sendto(ogs_pfcp_node_t *pnode, ogs_pkbuf_t *pkbuf)
 {
     ssize_t sent;
     ogs_sock_t *sock = NULL;
     ogs_sockaddr_t *addr = NULL;
 
-    ogs_assert(gnode);
+    ogs_assert(pnode);
     ogs_assert(pkbuf);
-    sock = gnode->sock;
+    sock = pnode->sock;
     ogs_assert(sock);
-    addr = &gnode->remote_addr;
+    addr = &pnode->remote_addr;
     ogs_assert(addr);
 
     sent = ogs_sendto(sock->fd, pkbuf->data, pkbuf->len, 0, addr);

@@ -67,9 +67,9 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
     }
 
     if (addr == NULL) {
-        ogs_log_message(OGS_LOG_WARN, ogs_socket_errno,
-                "ogs_pfcp_connect() [%s]:%d failed",
+        ogs_error("ogs_pfcp_connect() [%s]:%d failed",
                 OGS_ADDR(pnode->sa_list, buf), OGS_PORT(pnode->sa_list));
+        ogs_error("Please check the IP version between SMF and UPF nodes.");
         return OGS_ERROR;
     }
 

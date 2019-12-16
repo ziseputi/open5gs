@@ -37,9 +37,36 @@ int ogs_pfcp_sockaddr_to_node_id(
     ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6, int prefer_ipv4,
     ogs_pfcp_node_id_t *node_id, int *len)
 {
+    int rv;
+    char hostname[OGS_MAX_FQDN_LEN];
+
     ogs_assert(node_id);
 
     memset(node_id, 0, sizeof *node_id);
+
+    if (addr && addr->hostname) {
+        rv = ogs_getnameinfo(hostname, OGS_MAX_FQDN_LEN, addr, 0);
+        if (rv == OGS_OK && strcmp(addr->hostname, hostname) == 0) {
+            node_id->type = OGS_PFCP_NODE_ID_FQDN;
+            *len = OGS_PFCP_NODE_ID_HDR_LEN +
+                        ogs_fqdn_build(node_id->fqdn,
+                            addr->hostname, strlen(addr->hostname));
+
+            return OGS_OK;
+        }
+    }
+
+    if (addr6 && addr6->hostname) {
+        rv = ogs_getnameinfo(hostname, OGS_MAX_FQDN_LEN, addr6, 0);
+        if (rv == OGS_OK && strcmp(addr6->hostname, hostname) == 0) {
+            node_id->type = OGS_PFCP_NODE_ID_FQDN;
+            *len = OGS_PFCP_NODE_ID_HDR_LEN +
+                        ogs_fqdn_build(node_id->fqdn,
+                            addr6->hostname, strlen(addr6->hostname));
+
+            return OGS_OK;
+        }
+    }
 
     if (prefer_ipv4 && addr) {
         node_id->type = OGS_PFCP_NODE_ID_IPV4;
@@ -55,6 +82,7 @@ int ogs_pfcp_sockaddr_to_node_id(
         *len = OGS_PFCP_NODE_ID_IPV4_LEN;
     } else {
         ogs_assert_if_reached();
+        return OGS_ERROR;
     }
 
     return OGS_OK;

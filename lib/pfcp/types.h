@@ -148,6 +148,7 @@ ED2(uint8_t spare:4;,
     union {
         uint32_t addr;
         uint8_t addr6[OGS_IPV6_LEN];
+        char fqdn[OGS_MAX_FQDN_LEN];
     };
 } __attribute__ ((packed)) ogs_pfcp_node_id_t;
 

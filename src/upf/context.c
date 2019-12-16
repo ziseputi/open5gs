@@ -169,10 +169,6 @@ static int upf_context_validation(void)
                 ogs_config()->file);
         return OGS_ERROR;
     }
-    if (ogs_list_first(&self.smf_n4_list) == NULL) {
-        ogs_error("No upf.pfcp in '%s'", ogs_config()->file);
-        return OGS_ERROR;
-    }
     return OGS_OK;
 }
 

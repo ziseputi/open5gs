@@ -662,7 +662,7 @@ int ogs_pfcp_xact_receive(
             OGS_PORT(&pnode->addr));
 
     rv = ogs_pfcp_xact_update_rx(new, h->type);
-    if (rv != OGS_OK) {
+    if (rv == OGS_ERROR) {
         ogs_error("ogs_pfcp_xact_update_rx() failed");
         ogs_pfcp_xact_delete(new);
         return rv;

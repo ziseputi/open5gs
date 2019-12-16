@@ -177,10 +177,6 @@ static int smf_context_validation(void)
                 ogs_config()->file);
         return OGS_ERROR;
     }
-    if (ogs_list_first(&self.upf_n4_list) == NULL) {
-        ogs_error("No upf.pfcp in '%s'", ogs_config()->file);
-        return OGS_ERROR;
-    }
     if (self.dns[0] == NULL && self.dns6[0] == NULL) {
         ogs_error("No smf.dns in '%s'",
                 ogs_config()->file);

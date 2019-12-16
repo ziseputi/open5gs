@@ -28,7 +28,6 @@
 static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 {
     int rv;
-    char buf[OGS_ADDRSTRLEN];
 
     ssize_t size;
     smf_event_t *e = NULL;
@@ -69,14 +68,13 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
         return;
     }
 
-    pnode = smf_upf_find_by_addr(&from);
-    if (!pnode) {
-        ogs_error("Unknown UPF : %s", OGS_ADDR(&from, buf));
-        ogs_pkbuf_free(pkbuf);
-        return;
-    }
-
     e = smf_event_new(SMF_EVT_N4_MESSAGE);
+    pnode = ogs_pfcp_node_find_by_addr(&smf_self()->upf_n4_list, &from);
+    if (!pnode) {
+        pnode = ogs_pfcp_node_add_by_addr(&smf_self()->upf_n4_list, &from);
+        ogs_assert(pnode);
+        pnode->sock = data;
+    }
     ogs_assert(e);
     e->pnode = pnode;
     e->pkbuf = pkbuf;

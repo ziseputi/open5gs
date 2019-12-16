@@ -111,7 +111,6 @@ void smf_context_final(void)
 {
     ogs_assert(context_initiaized == 1);
 
-    smf_upf_remove_all();
     smf_sess_remove_all();
 
     smf_dev_remove_all();
@@ -129,6 +128,8 @@ void smf_context_final(void)
 
     ogs_gtp_node_remove_all(&self.sgw_s5c_list);
     ogs_gtp_node_remove_all(&self.sgw_s5u_list);
+
+    ogs_pfcp_node_remove_all(&smf_self()->upf_n4_list);
 
     ogs_gtp_node_final();
     ogs_pfcp_node_final();
@@ -1046,28 +1047,6 @@ ogs_pfcp_node_t *smf_upf_add(ogs_sockaddr_t *addr)
     ogs_list_add(&self.upf_n4_list, pnode);
 
     return pnode;
-}
-
-void smf_upf_remove(ogs_pfcp_node_t *pnode)
-{
-    ogs_assert(pnode);
-
-    ogs_list_remove(&self.upf_n4_list, pnode);
-    ogs_pfcp_node_free(pnode);
-}
-
-void smf_upf_remove_all(void)
-{
-    ogs_pfcp_node_t *pnode = NULL, *next_pnode = NULL;
-
-    ogs_list_for_each_safe(&self.upf_n4_list, next_pnode, pnode)
-        smf_upf_remove(pnode);
-}
-
-ogs_pfcp_node_t *smf_upf_find_by_addr(ogs_sockaddr_t *addr)
-{
-    ogs_assert(addr);
-    return ogs_pfcp_node_find_by_addr(&self.upf_n4_list, addr);
 }
 
 static void *sess_hash_keygen(uint8_t *out, int *out_len,

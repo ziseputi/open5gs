@@ -17,54 +17,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OGS_APP_H
-#define OGS_APP_H
+#ifndef UPF_IPFW_H
+#define UPF_IPFW_H
 
-#include "ogs-core.h"
-
-#define OGS_APP_INSIDE
-
-extern int __ogs_app_domain;
-
-#include "app/ogs-yaml.h"
-#include "app/ogs-config.h"
-#include "app/ogs-init.h"
-
-#undef OGS_APP_INSIDE
-
-#undef OGS_LOG_DOMAIN
-#define OGS_LOG_DOMAIN __ogs_app_domain
+#include "context.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int app_initialize(const char *const argv[]);
-void app_terminate(void);
-
-int mme_initialize(void);
-void mme_terminate(void);
-
-int hss_initialize(void);
-void hss_terminate(void);
-
-int sgw_initialize(void);
-void sgw_terminate(void);
-
-int pgw_initialize(void);
-void pgw_terminate(void);
-
-int pcrf_initialize(void);
-void pcrf_terminate(void);
-
-int smf_initialize(void);
-void smf_terminate(void);
-
-int upf_initialize(void);
-void upf_terminate(void);
+int upf_compile_packet_filter(upf_rule_t *pf, char *description);
+upf_bearer_t *upf_bearer_find_by_packet(ogs_pkbuf_t *pkt);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* OGS_APP_H */
+#endif /* UPF_IPFW_H */

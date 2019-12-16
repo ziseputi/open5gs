@@ -1,0 +1,16 @@
+logger:
+    file: @localstatedir@/log/open5gs/upf.log
+
+parameter:
+
+upf:
+    pfcp:
+      addr: 127.0.0.2
+    gtpu:
+      - addr: 127.0.0.3
+      - addr: ::1
+
+smf:
+    pfcp:
+      addr: 127.0.0.3
+

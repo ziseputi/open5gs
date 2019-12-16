@@ -28,3 +28,4 @@ subdir('pgw')
 subdir('pcrf')
 
 subdir('smf')
+subdir('upf')

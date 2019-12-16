@@ -17,54 +17,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OGS_APP_H
-#define OGS_APP_H
+#ifndef UPF_TIMER_H
+#define UPF_TIMER_H
 
 #include "ogs-core.h"
-
-#define OGS_APP_INSIDE
-
-extern int __ogs_app_domain;
-
-#include "app/ogs-yaml.h"
-#include "app/ogs-config.h"
-#include "app/ogs-init.h"
-
-#undef OGS_APP_INSIDE
-
-#undef OGS_LOG_DOMAIN
-#define OGS_LOG_DOMAIN __ogs_app_domain
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int app_initialize(const char *const argv[]);
-void app_terminate(void);
+/* forward declaration */
+typedef enum {
+    UPF_TIMER_BASE = 0,
 
-int mme_initialize(void);
-void mme_terminate(void);
+    UPF_TIMER_CONNECT_TO_UPF,
 
-int hss_initialize(void);
-void hss_terminate(void);
+    MAX_NUM_OF_UPF_TIMER,
 
-int sgw_initialize(void);
-void sgw_terminate(void);
+} upf_timer_e;
 
-int pgw_initialize(void);
-void pgw_terminate(void);
+typedef struct upf_timer_cfg_s {
+    int max_count;
+    ogs_time_t duration;
+} upf_timer_cfg_t;
 
-int pcrf_initialize(void);
-void pcrf_terminate(void);
+upf_timer_cfg_t *upf_timer_cfg(upf_timer_e id);
 
-int smf_initialize(void);
-void smf_terminate(void);
+const char *upf_timer_get_name(upf_timer_e id);
 
-int upf_initialize(void);
-void upf_terminate(void);
+void upf_timer_connect_to_upf(void *data);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* OGS_APP_H */
+#endif /* UPF_TIMER_H */

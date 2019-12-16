@@ -17,54 +17,52 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OGS_APP_H
-#define OGS_APP_H
+#ifndef UPF_EVENT_H
+#define UPF_EVENT_H
 
 #include "ogs-core.h"
-
-#define OGS_APP_INSIDE
-
-extern int __ogs_app_domain;
-
-#include "app/ogs-yaml.h"
-#include "app/ogs-config.h"
-#include "app/ogs-init.h"
-
-#undef OGS_APP_INSIDE
-
-#undef OGS_LOG_DOMAIN
-#define OGS_LOG_DOMAIN __ogs_app_domain
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int app_initialize(const char *const argv[]);
-void app_terminate(void);
+typedef struct ogs_pfcp_node_s ogs_pfcp_node_t;
+typedef struct ogs_pfcp_xact_s ogs_pfcp_xact_t;
+typedef struct upf_sess_s upf_sess_t;
+typedef struct upf_upf_s upf_upf_t;
 
-int mme_initialize(void);
-void mme_terminate(void);
+typedef enum {
+    UPF_EVT_BASE = OGS_FSM_USER_SIG,
 
-int hss_initialize(void);
-void hss_terminate(void);
+    UPF_EVT_N4_MESSAGE,
+    UPF_EVT_N4_TIMER,
 
-int sgw_initialize(void);
-void sgw_terminate(void);
+    UPF_EVT_TOP,
 
-int pgw_initialize(void);
-void pgw_terminate(void);
+} upf_event_e;
 
-int pcrf_initialize(void);
-void pcrf_terminate(void);
+typedef struct upf_event_s {
+    int id;
+    ogs_pkbuf_t *pkbuf;
+    int timer_id;
 
-int smf_initialize(void);
-void smf_terminate(void);
+    ogs_pfcp_node_t *pnode;
+    ogs_pfcp_xact_t *pxact;
 
-int upf_initialize(void);
-void upf_terminate(void);
+    upf_sess_t *sess;
+} upf_event_t;
+
+void upf_event_init(void);
+void upf_event_term(void);
+void upf_event_final(void);
+
+upf_event_t *upf_event_new(upf_event_e id);
+void upf_event_free(upf_event_t *e);
+
+const char *upf_event_get_name(upf_event_t *e);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* OGS_APP_H */
+#endif /* UPF_EVENT_H */

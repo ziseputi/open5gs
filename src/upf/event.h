@@ -28,6 +28,7 @@ extern "C" {
 
 typedef struct ogs_pfcp_node_s ogs_pfcp_node_t;
 typedef struct ogs_pfcp_xact_s ogs_pfcp_xact_t;
+typedef struct ogs_pfcp_message_s ogs_pfcp_message_t;
 typedef struct upf_sess_s upf_sess_t;
 typedef struct upf_upf_s upf_upf_t;
 
@@ -46,6 +47,7 @@ typedef struct upf_event_s {
     ogs_pkbuf_t *pkbuf;
     int timer_id;
 
+    ogs_pfcp_message_t *pfcp_message;
     ogs_pfcp_node_t *pnode;
     ogs_pfcp_xact_t *pxact;
 

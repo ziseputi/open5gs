@@ -83,13 +83,17 @@ void upf_smf_state_will_connect(ogs_fsm_t *s, upf_event_t *e)
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
+#if 0
         ogs_timer_start(pnode->t_conn,
                 upf_timer_cfg(UPF_TIMER_CONNECT_TO_UPF)->duration);
 
         upf_pfcp_send_association_setup_request(pnode);
+#endif
         break;
     case OGS_FSM_EXIT_SIG:
+#if 0
         ogs_timer_stop(pnode->t_conn);
+#endif
         break;
     case UPF_EVT_N4_TIMER:
         switch(e->timer_id) {
@@ -115,6 +119,7 @@ void upf_smf_state_will_connect(ogs_fsm_t *s, upf_event_t *e)
         }
         break;
     case UPF_EVT_N4_MESSAGE:
+        printf("UPF_EVT_N4_MESSAGE\n");
 #if 0
         OGS_FSM_TRAN(s, upf_smf_state_connected);
 #endif

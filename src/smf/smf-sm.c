@@ -102,8 +102,11 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         recvbuf = e->pkbuf;
         ogs_assert(recvbuf);
 
-        rv = ogs_gtp_parse_msg(&gtp_message, recvbuf);
-        ogs_assert(rv == OGS_OK);
+        if (ogs_gtp_parse_msg(&gtp_message, recvbuf) != OGS_OK) {
+            ogs_error("ogs_gtp_parse_msg() failed");
+            ogs_pkbuf_free(recvbuf);
+            break;
+        }
 
         if (gtp_message.h.teid != 0) {
             sess = smf_sess_find_by_teid(gtp_message.h.teid);
@@ -207,21 +210,13 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         ogs_assert(e);
         recvbuf = e->pkbuf;
         ogs_assert(recvbuf);
+        pnode = e->pnode;
+        ogs_assert(pnode);
 
-        rv = ogs_pfcp_parse_msg(&pfcp_message, recvbuf);
-        ogs_assert(rv == OGS_OK);
-
-        if (pfcp_message.h.seid != 0) {
-            sess = smf_sess_find_by_seid(pfcp_message.h.seid);
-        }
-
-        if (sess) {
-            pnode = sess->pnode;
-            ogs_assert(pnode);
-
-        } else {
-            pnode = e->pnode;
-            ogs_assert(pnode);
+        if (ogs_pfcp_parse_msg(&pfcp_message, recvbuf) != OGS_OK) {
+            ogs_error("ogs_pfcp_parse_msg() failed");
+            ogs_pkbuf_free(recvbuf);
+            break;
         }
 
         rv = ogs_pfcp_xact_receive(pnode, &pfcp_message.h, &pxact);
@@ -230,19 +225,24 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             break;
         }
 
+        if (pfcp_message.h.seid_p) {
+            sess = smf_sess_find_by_seid(pfcp_message.h.seid);
+        }
+
         switch (pfcp_message.h.type) {
         case OGS_PFCP_HEARTBEAT_REQUEST_TYPE:
             break;
         case OGS_PFCP_HEARTBEAT_RESPONSE_TYPE:
             break;
-#if 0
         case OGS_PFCP_PFD_MANAGEMENT_REQUEST_TYPE:
             break;
         case OGS_PFCP_PFD_MANAGEMENT_RESPONSE_TYPE:
             break;
         case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
+            printf("OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE\n");
             break;
         case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
+            printf("OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE\n");
             break;
         case OGS_PFCP_ASSOCIATION_UPDATE_REQUEST_TYPE:
             break;
@@ -278,7 +278,6 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             break;
         case OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE:
             break;
-#endif
         default:
             ogs_error("Not implemented PFCP message type[%d]",
                     pfcp_message.h.type);

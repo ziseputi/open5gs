@@ -69,8 +69,11 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
         recvbuf = e->pkbuf;
         ogs_assert(recvbuf);
 
-        rv = ogs_gtp_parse_msg(&gtp_message, recvbuf);
-        ogs_assert(rv == OGS_OK);
+        if (ogs_gtp_parse_msg(&gtp_message, recvbuf) != OGS_OK) {
+            ogs_error("ogs_gtp_parse_msg() failed");
+            ogs_pkbuf_free(recvbuf);
+            break;
+        }
 
         /*
          * 5.5.2 in spec 29.274

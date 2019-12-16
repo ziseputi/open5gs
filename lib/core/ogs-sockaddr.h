@@ -50,6 +50,8 @@ struct ogs_sockaddr_s {
     /* User Area
      *   - Could add your attribute.
      */
+    char *hostname;
+
     ogs_sockaddr_t *next;
 };
 

@@ -54,6 +54,8 @@ int ogs_freeaddrinfo(ogs_sockaddr_t *sa_list)
     addr = sa_list;
     while (addr) {
         next = addr->next;
+        if (addr->hostname)
+            ogs_free(addr->hostname);
         ogs_free(addr);
         addr = next;
     }
@@ -100,6 +102,8 @@ int ogs_addaddrinfo(ogs_sockaddr_t **sa_list,
         new = ogs_calloc(1, sizeof(ogs_sockaddr_t));
         memcpy(&new->sa, ai->ai_addr, ai->ai_addrlen);
         new->ogs_sin_port = htobe16(port);
+        if (hostname)
+            new->hostname = ogs_strdup(hostname);
         ogs_trace("addr:%s, port:%d", OGS_ADDR(new, buf), port);
 
         if (!prev)
@@ -138,6 +142,8 @@ int ogs_filteraddrinfo(ogs_sockaddr_t **sa_list, int family)
                 prev->next = addr->next;
             else
                 *sa_list = addr->next;
+            if (addr->hostname)
+                ogs_free(addr->hostname);
             ogs_free(addr);
 
         } else {
@@ -157,13 +163,19 @@ int ogs_copyaddrinfo(ogs_sockaddr_t **dst, const ogs_sockaddr_t *src)
 
     for (*dst = d = NULL, s = src; s; s = s->next) {
         if (!d) {
-            d = ogs_calloc(1, sizeof *s);
-            *dst = memcpy(d, s, sizeof *s);
+            *dst = d = ogs_memdup(s, sizeof *s);
         } else {
-            d->next = ogs_calloc(1, sizeof(ogs_sockaddr_t));
-            d = memcpy(d->next, s, sizeof *s);
+            d = d->next = ogs_memdup(s, sizeof *s);
+        }
+        if (s->hostname) {
+            if (s == src || s->hostname != src->hostname) {
+                d->hostname = ogs_strdup(s->hostname);
+            } else {
+                d->hostname = (*dst)->hostname;
+            }
         }
     }
+
     return OGS_OK;
 }
 

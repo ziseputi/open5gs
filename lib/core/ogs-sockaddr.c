@@ -40,6 +40,17 @@
 #undef OGS_LOG_DOMAIN
 #define OGS_LOG_DOMAIN __ogs_sock_domain
 
+int ogs_getnameinfo(
+    char *hostname, socklen_t hostname_len, ogs_sockaddr_t *addr, int flags)
+{
+    ogs_assert(hostname);
+    ogs_assert(addr);
+
+    return getnameinfo(&addr->sa, ogs_sockaddr_len(addr),
+            hostname, hostname_len,
+            NULL, 0, flags != 0 ? flags : NI_NAMEREQD);
+}
+
 int ogs_getaddrinfo(ogs_sockaddr_t **sa_list, 
         int family, const char *hostname, uint16_t port, int flags)
 {

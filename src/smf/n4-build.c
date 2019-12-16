@@ -33,11 +33,6 @@ ogs_pkbuf_t *smf_n4_build_association_setup_request(uint8_t type)
     req = &pfcp_message.pfcp_association_setup_request;
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
-#if 0
-    printf("%s, %s\n",
-            smf_self()->pfcp_addr->hostname,
-            smf_self()->pfcp_addr6->hostname);
-#endif
     ogs_pfcp_sockaddr_to_node_id(
             smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,

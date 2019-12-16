@@ -1015,8 +1015,9 @@ int smf_context_parse_config(void)
                                 ogs_config()->parameter.no_ipv6,
                                 ogs_config()->parameter.prefer_ipv4);
 
-                        pnode = smf_upf_add(addr);
+                        pnode = ogs_pfcp_node_new(addr);
                         ogs_assert(pnode);
+                        ogs_list_add(&self.upf_n4_list, pnode);
 
                         pnode->num_of_tac = num_of_tac;
                         if (num_of_tac != 0)
@@ -1033,20 +1034,6 @@ int smf_context_parse_config(void)
     if (rv != OGS_OK) return rv;
 
     return OGS_OK;
-}
-
-ogs_pfcp_node_t *smf_upf_add(ogs_sockaddr_t *addr)
-{
-    ogs_pfcp_node_t *pnode = NULL;
-
-    ogs_assert(addr);
-
-    pnode = ogs_pfcp_node_new(addr);
-    ogs_assert(pnode);
-
-    ogs_list_add(&self.upf_n4_list, pnode);
-
-    return pnode;
 }
 
 static void *sess_hash_keygen(uint8_t *out, int *out_len,

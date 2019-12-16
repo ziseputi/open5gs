@@ -255,8 +255,6 @@ smf_context_t *smf_self(void);
 
 int smf_context_parse_config(void);
 
-ogs_pfcp_node_t *smf_upf_add(ogs_sockaddr_t *addr);
-
 smf_sess_t *smf_sess_add_by_message(ogs_gtp_message_t *message);
 
 smf_sess_t *smf_sess_add(

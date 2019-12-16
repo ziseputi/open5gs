@@ -64,7 +64,7 @@ int ogs_pfcp_node_final(void);
 ogs_pfcp_node_t *ogs_pfcp_node_new(ogs_sockaddr_t *sa_list);
 void ogs_pfcp_node_free(ogs_pfcp_node_t *node);
 
-ogs_pfcp_node_t *ogs_pfcp_node_add(
+ogs_pfcp_node_t *ogs_pfcp_node_add_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid,
         uint16_t port, int no_ipv4, int no_ipv6, int prefer_ipv4);
 ogs_pfcp_node_t *ogs_pfcp_node_add_by_addr(

@@ -57,7 +57,7 @@ int ogs_gtp_node_final(void);
 ogs_gtp_node_t *ogs_gtp_node_new(ogs_sockaddr_t *sa_list);
 void ogs_gtp_node_free(ogs_gtp_node_t *node);
 
-ogs_gtp_node_t *ogs_gtp_node_add(
+ogs_gtp_node_t *ogs_gtp_node_add_by_f_teid(
         ogs_list_t *list, ogs_gtp_f_teid_t *f_teid,
         uint16_t port, int no_ipv4, int no_ipv6, int prefer_ipv4);
 ogs_gtp_node_t *ogs_gtp_node_add_by_addr(

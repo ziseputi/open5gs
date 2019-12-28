@@ -156,8 +156,7 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
             break;
         case OGS_GTP_BEARER_RESOURCE_COMMAND_TYPE:
             pgw_s5c_handle_bearer_resource_command(
-                sess, xact, &message->bearer_resource_command);
-            ogs_pkbuf_free(copybuf);
+                sess, xact, &gtp_message.bearer_resource_command);
             break;
         default:
             ogs_warn("Not implmeneted(type:%d)", gtp_message.h.type);

@@ -153,6 +153,10 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             smf_s5c_handle_delete_bearer_response(
                 sess, gxact, &gtp_message.delete_bearer_response);
             break;
+        case OGS_GTP_BEARER_RESOURCE_COMMAND_TYPE:
+            smf_s5c_handle_bearer_resource_command(
+                sess, gxact, &gtp_message.bearer_resource_command);
+            break;
         default:
             ogs_warn("Not implmeneted(type:%d)", gtp_message.h.type);
             break;

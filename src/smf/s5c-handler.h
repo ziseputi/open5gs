@@ -41,6 +41,9 @@ void smf_s5c_handle_update_bearer_response(
 void smf_s5c_handle_delete_bearer_response(
         smf_sess_t *sess, ogs_gtp_xact_t *xact,
         ogs_gtp_delete_bearer_response_t *req);
+void smf_s5c_handle_bearer_resource_command(
+        smf_sess_t *sess, ogs_gtp_xact_t *xact,
+        ogs_gtp_bearer_resource_command_t *cmd);
 
 #ifdef __cplusplus
 }

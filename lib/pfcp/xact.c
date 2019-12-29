@@ -729,10 +729,7 @@ ogs_pfcp_xact_t *ogs_pfcp_xact_find_by_xid(
         list = &pnode->local_list;
         break;
     case PFCP_XACT_FINAL_STAGE:
-        if (xid & PFCP_MAX_XACT_ID)
-            list = &pnode->remote_list;
-        else
-            list = &pnode->local_list;
+        list = &pnode->local_list;
         break;
     default:
         ogs_assert_if_reached();

@@ -1467,15 +1467,11 @@ smf_pf_t *smf_pf_find_by_id(smf_bearer_t *bearer, uint8_t id)
 {
     smf_pf_t *pf = NULL;
     
-    pf = smf_pf_first(bearer);
-    while (pf) {
-        if (pf->identifier == id)
-            return pf;
-
-        pf = smf_pf_next(pf);
+    ogs_list_for_each(&bearer->pf_list, pf) {
+        if (pf->identifier == id) return pf;
     }
 
-    return OGS_OK;
+    return NULL;
 }
 
 smf_pf_t *smf_pf_first(smf_bearer_t *bearer)

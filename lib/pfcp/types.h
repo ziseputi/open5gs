@@ -30,7 +30,7 @@ extern "C" {
 
 #define OGS_PFCP_VERSION                                    1
 
-#define OGS_PFCP_CAUSE_SUCCESS                              1
+#define OGS_PFCP_CAUSE_REQUEST_ACCEPTED                     1
 #define OGS_PFCP_CAUSE_REQUEST_REJECTED                     64
 #define OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND            65
 #define OGS_PFCP_CAUSE_MANDATORY_IE_MISSING                 66

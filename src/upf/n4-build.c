@@ -51,7 +51,8 @@ ogs_pkbuf_t *upf_n4_build_association_setup_request(uint8_t type)
     return ogs_pfcp_build_msg(&pfcp_message);
 }
 
-ogs_pkbuf_t *upf_n4_build_association_setup_response(uint8_t type)
+ogs_pkbuf_t *upf_n4_build_association_setup_response(uint8_t type,
+        uint8_t cause)
 {
     ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_association_setup_response_t *rsp = NULL;
@@ -71,6 +72,9 @@ ogs_pkbuf_t *upf_n4_build_association_setup_response(uint8_t type)
     rsp->node_id.presence = 1;
     rsp->node_id.data = &node_id;
     rsp->node_id.len = node_id_len;
+
+    rsp->cause.presence = 1;
+    rsp->cause.u8 = cause;
     
     rsp->recovery_time_stamp.presence = 1;
     rsp->recovery_time_stamp.u32 = upf_self()->pfcp_started;

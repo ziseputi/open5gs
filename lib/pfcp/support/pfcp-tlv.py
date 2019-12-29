@@ -406,6 +406,7 @@ for key in msg_list.keys():
             write_file(f, "msg_list[key][\"ies\"] = ies\n")
             f.close()
 
+type_list["Cause"]["size"] = 1                              # Type 19
 type_list["UP Function Features"]["size"] = 2               # Type 43
 type_list["CP Function Features"]["size"] = 1               # Type 89
 type_list["Recovery Time Stamp"]["size"] = 4                # Type 96

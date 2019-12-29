@@ -24,8 +24,8 @@ int __ogs_pfcp_domain;
 const char *ogs_pfcp_cause_get_name(uint8_t cause)
 {
     switch(cause) {
-    case OGS_PFCP_CAUSE_SUCCESS:
-        return "OGS_PFCP_CAUSE_SUCCESS";
+    case OGS_PFCP_CAUSE_REQUEST_ACCEPTED:
+        return "OGS_PFCP_CAUSE_REQUEST_ACCEPTED";
         break;
     case OGS_PFCP_CAUSE_REQUEST_REJECTED:
         return "OGS_PFCP_CAUSE_REQUEST_REJECTED";

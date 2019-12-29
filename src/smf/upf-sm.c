@@ -115,9 +115,7 @@ void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
         }
         break;
     case SMF_EVT_N4_MESSAGE:
-#if 0
         OGS_FSM_TRAN(s, smf_upf_state_connected);
-#endif
         break;
     default:
         ogs_error("Unknown event %s", smf_event_get_name(e));
@@ -150,6 +148,7 @@ void smf_upf_state_connected(ogs_fsm_t *s, smf_event_t *e)
 #endif
         break;
     case SMF_EVT_N4_MESSAGE:
+#if 0
         pkbuf = e->pkbuf;
         ogs_assert(pkbuf);
         type = *(unsigned char *)(pkbuf->data);
@@ -188,6 +187,7 @@ void smf_upf_state_connected(ogs_fsm_t *s, smf_event_t *e)
             ogs_warn("Unknown Message Type: [%d]", type);
             break;
         }
+#endif
         break;
     default:
         ogs_error("Unknown event %s", smf_event_get_name(e));

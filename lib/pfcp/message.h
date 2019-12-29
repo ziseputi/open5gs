@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2019-12-29 15:59:31.951830 by acetcom
+ * Created on: 2019-12-29 16:07:34.147074 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -484,7 +484,7 @@ extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcp_session_report_request;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcp_session_report_response;
 
 /* Structure for Infomration Element */
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_cause_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_cause_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_source_interface_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_f_teid_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_network_instance_t;

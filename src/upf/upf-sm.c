@@ -108,6 +108,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
 
         if (pfcp_message.h.seid_p == 0) {
             e->pfcp_message = &pfcp_message;
+            e->pxact = pxact;
             ogs_fsm_dispatch(&pnode->sm, e);
             if (OGS_FSM_CHECK(&pnode->sm, upf_smf_state_exception)) {
                 ogs_error("SM exception");

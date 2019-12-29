@@ -70,6 +70,7 @@ void upf_smf_state_will_connect(ogs_fsm_t *s, upf_event_t *e)
     char buf[OGS_ADDRSTRLEN];
 
     ogs_pfcp_node_t *pnode = NULL;
+    ogs_pfcp_xact_t *xact = NULL;
     ogs_sockaddr_t *addr = NULL;
     ogs_assert(s);
     ogs_assert(e);
@@ -78,7 +79,6 @@ void upf_smf_state_will_connect(ogs_fsm_t *s, upf_event_t *e)
 
     pnode = e->pnode;
     ogs_assert(pnode);
-
     ogs_assert(pnode->t_conn);
 
     switch (e->id) {
@@ -98,15 +98,12 @@ void upf_smf_state_will_connect(ogs_fsm_t *s, upf_event_t *e)
     case UPF_EVT_N4_TIMER:
         switch(e->timer_id) {
         case UPF_TIMER_CONNECT_TO_UPF:
-            pnode = e->pnode;
-            ogs_assert(pnode);
             addr = pnode->sa_list;
             ogs_assert(addr);
 
             ogs_warn("Connect to UPF [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
-            ogs_assert(pnode->t_conn);
             ogs_timer_start(pnode->t_conn,
                 upf_timer_cfg(UPF_TIMER_CONNECT_TO_UPF)->duration);
 
@@ -120,9 +117,12 @@ void upf_smf_state_will_connect(ogs_fsm_t *s, upf_event_t *e)
         break;
     case UPF_EVT_N4_MESSAGE:
         printf("UPF_EVT_N4_MESSAGE\n");
-#if 0
+        xact = e->pxact;
+        ogs_assert(xact);
+
+        upf_pfcp_send_association_setup_response(
+                xact, OGS_PFCP_CAUSE_REQUEST_ACCEPTED);
         OGS_FSM_TRAN(s, upf_smf_state_connected);
-#endif
         break;
     default:
         ogs_error("Unknown event %s", upf_event_get_name(e));
@@ -133,6 +133,7 @@ void upf_smf_state_will_connect(ogs_fsm_t *s, upf_event_t *e)
 void upf_smf_state_connected(ogs_fsm_t *s, upf_event_t *e)
 {
     ogs_pfcp_node_t *pnode = NULL;
+    ogs_pfcp_xact_t *xact = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
     uint8_t type;
     ogs_assert(s);
@@ -142,6 +143,8 @@ void upf_smf_state_connected(ogs_fsm_t *s, upf_event_t *e)
 
     pnode = e->pnode;
     ogs_assert(pnode);
+    xact = e->pxact;
+    ogs_assert(xact);
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
@@ -155,6 +158,7 @@ void upf_smf_state_connected(ogs_fsm_t *s, upf_event_t *e)
 #endif
         break;
     case UPF_EVT_N4_MESSAGE:
+#if 0
         pkbuf = e->pkbuf;
         ogs_assert(pkbuf);
         type = *(unsigned char *)(pkbuf->data);
@@ -193,6 +197,7 @@ void upf_smf_state_connected(ogs_fsm_t *s, upf_event_t *e)
             ogs_warn("Unknown Message Type: [%d]", type);
             break;
         }
+#endif
         break;
     default:
         ogs_error("Unknown event %s", upf_event_get_name(e));

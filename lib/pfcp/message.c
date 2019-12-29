@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2019-12-29 15:59:31.962677 by acetcom
+ * Created on: 2019-12-29 16:07:34.157834 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -28,10 +28,10 @@
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_cause_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "Cause",
     OGS_PFCP_CAUSE_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_cause_t),
     { NULL }

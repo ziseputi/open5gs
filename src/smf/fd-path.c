@@ -388,10 +388,10 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
             ogs_diam_gx_uli.type = OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_TAI_AND_ECGI;
             memcpy(&ogs_diam_gx_uli.tai.plmn_id, &sess->tai.plmn_id, 
                     sizeof(sess->tai.plmn_id));
-            ogs_diam_gx_uli.tai.tac = htons(sess->tai.tac);
+            ogs_diam_gx_uli.tai.tac = htobe16(sess->tai.tac);
             memcpy(&ogs_diam_gx_uli.e_cgi.plmn_id, &sess->e_cgi.plmn_id, 
                     sizeof(sess->e_cgi.plmn_id));
-            ogs_diam_gx_uli.e_cgi.cell_id = htonl(sess->e_cgi.cell_id);
+            ogs_diam_gx_uli.e_cgi.cell_id = htobe32(sess->e_cgi.cell_id);
 
             ret = fd_msg_avp_new(ogs_diam_gx_3gpp_user_location_info, 0, &avp);
             ogs_assert(ret == 0);

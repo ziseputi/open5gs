@@ -50,3 +50,34 @@ ogs_pkbuf_t *upf_n4_build_association_setup_request(uint8_t type)
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
 }
+
+ogs_pkbuf_t *upf_n4_build_association_setup_response(uint8_t type)
+{
+    ogs_pfcp_message_t pfcp_message;
+    ogs_pfcp_association_setup_response_t *rsp = NULL;
+
+    ogs_pfcp_node_id_t node_id;
+    int node_id_len = 0;
+
+    ogs_debug("[UPF] Association Setup Response");
+
+    rsp = &pfcp_message.pfcp_association_setup_response;
+    memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
+
+    ogs_pfcp_sockaddr_to_node_id(
+            upf_self()->pfcp_addr, upf_self()->pfcp_addr6,
+            ogs_config()->parameter.prefer_ipv4,
+            &node_id, &node_id_len);
+    rsp->node_id.presence = 1;
+    rsp->node_id.data = &node_id;
+    rsp->node_id.len = node_id_len;
+    
+    rsp->recovery_time_stamp.presence = 1;
+    rsp->recovery_time_stamp.u32 = upf_self()->pfcp_started;
+
+    rsp->up_function_features.presence = 1;
+    rsp->up_function_features.u16 = htobe16(upf_self()->up_function_features);
+
+    pfcp_message.h.type = type;
+    return ogs_pfcp_build_msg(&pfcp_message);
+}

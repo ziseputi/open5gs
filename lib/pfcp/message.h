@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2019-12-15 22:00:10.038624 by acetcom
+ * Created on: 2019-12-29 15:59:31.951830 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -54,8 +54,8 @@ typedef struct ogs_pfcp_header_s {
         struct {
             uint64_t seid;
             /* sqn : 31bit ~ 8bit, spare : 7bit ~ 0bit */
-#define OGS_PFCP_XID_TO_SQN(__xid) htonl(((__xid) << 8))
-#define OGS_PFCP_SQN_TO_XID(__sqn) (ntohl(__sqn) >> 8)
+#define OGS_PFCP_XID_TO_SQN(__xid) htobe32(((__xid) << 8))
+#define OGS_PFCP_SQN_TO_XID(__sqn) (be32toh(__sqn) >> 8)
             uint32_t sqn;
         };
         /* sqn : 31bit ~ 8bit, spare : 7bit ~ 0bit */

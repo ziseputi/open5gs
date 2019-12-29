@@ -95,12 +95,12 @@ void smf_s5c_handle_create_session_request(
     /* Control Plane(DL) : SGW-S5C */
     sgw_s5c_teid = req->sender_f_teid_for_control_plane.data;
     ogs_assert(sgw_s5c_teid);
-    sess->sgw_s5c_teid = ntohl(sgw_s5c_teid->teid);
+    sess->sgw_s5c_teid = be32toh(sgw_s5c_teid->teid);
 
     /* Control Plane(DL) : SGW-S5U */
     sgw_s5u_teid = req->bearer_contexts_to_be_created.s5_s8_u_sgw_f_teid.data;
     ogs_assert(sgw_s5u_teid);
-    bearer->sgw_s5u_teid = ntohl(sgw_s5u_teid->teid);
+    bearer->sgw_s5u_teid = be32toh(sgw_s5u_teid->teid);
 
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_S5C_TEID[0x%x]",
             sess->sgw_s5c_teid, sess->smf_s5c_teid);
@@ -222,7 +222,7 @@ void smf_s5c_handle_create_bearer_response(
     ogs_assert(smf_s5u_teid);
 
     /* Find the Bearer by SMF-S5U-TEID */
-    bearer = smf_bearer_find_by_smf_s5u_teid(ntohl(smf_s5u_teid->teid));
+    bearer = smf_bearer_find_by_smf_s5u_teid(be32toh(smf_s5u_teid->teid));
     ogs_assert(bearer);
 
     /* Set EBI */
@@ -230,7 +230,7 @@ void smf_s5c_handle_create_bearer_response(
 
     /* Data Plane(DL) : SGW-S5U */
     sgw_s5u_teid = req->bearer_contexts.s5_s8_u_sgw_f_teid.data;
-    bearer->sgw_s5u_teid = ntohl(sgw_s5u_teid->teid);
+    bearer->sgw_s5u_teid = be32toh(sgw_s5u_teid->teid);
     sgw = ogs_gtp_node_find_by_f_teid(&smf_self()->sgw_s5u_list, sgw_s5u_teid);
     if (!sgw) {
         sgw = ogs_gtp_node_add_by_f_teid(

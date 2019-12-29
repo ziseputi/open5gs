@@ -263,7 +263,7 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
         h->seid_p = 0;
         h->sqn_only = OGS_PFCP_XID_TO_SQN(xact->xid);
     }
-    h->length = htons(pkbuf->len - 4);
+    h->length = htobe16(pkbuf->len - 4);
 
     /* Save Message type and packet of this step */
     xact->seq[xact->step].type = h->type;

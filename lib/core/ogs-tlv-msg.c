@@ -56,7 +56,7 @@ static ogs_tlv_t *tlv_add_leaf(
     {
         ogs_tlv_uint16_t *v = (ogs_tlv_uint16_t *)msg;
 
-        v->u16 = htons(v->u16);
+        v->u16 = htobe16(v->u16);
 
         if (parent_tlv)
             tlv = ogs_tlv_embed(parent_tlv, 
@@ -72,7 +72,7 @@ static ogs_tlv_t *tlv_add_leaf(
         ogs_tlv_uint24_t *v = (ogs_tlv_uint24_t *)msg;
 
         v->u24 = v->u24 << 8;
-        v->u24 = htonl(v->u24);
+        v->u24 = htobe32(v->u24);
 
         if (parent_tlv)
             tlv = ogs_tlv_embed(parent_tlv, 
@@ -87,7 +87,7 @@ static ogs_tlv_t *tlv_add_leaf(
     {
         ogs_tlv_uint32_t *v = (ogs_tlv_uint32_t *)msg;
 
-        v->u32 = htonl(v->u32);
+        v->u32 = htobe32(v->u32);
 
         if (parent_tlv)
             tlv = ogs_tlv_embed(parent_tlv,

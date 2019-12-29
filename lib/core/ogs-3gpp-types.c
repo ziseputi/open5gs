@@ -28,7 +28,7 @@ uint32_t ogs_plmn_id_hexdump(void *plmn_id)
     uint32_t hex;
     ogs_assert(plmn_id);
     memcpy(&hex, plmn_id, sizeof(ogs_plmn_id_t));
-    hex = ntohl(hex) >> 8;
+    hex = be32toh(hex) >> 8;
     return hex;
 }
 
@@ -124,7 +124,7 @@ int ogs_pco_parse(ogs_pco_t *pco, unsigned char *data, int data_len)
         ogs_pco_id_t *id = &pco->ids[i];
         ogs_assert(size + sizeof(id->id) <= data_len);
         memcpy(&id->id, data + size, sizeof(id->id));
-        id->id = ntohs(id->id);
+        id->id = be16toh(id->id);
         size += sizeof(id->id);
 
         ogs_assert(size + sizeof(id->len) <= data_len);
@@ -162,7 +162,7 @@ int ogs_pco_build(unsigned char *data, int data_len, ogs_pco_t *pco)
         ogs_pco_id_t *id = &target.ids[i];
 
         ogs_assert(size + sizeof(id->id) <= data_len);
-        id->id = htons(id->id);
+        id->id = htobe16(id->id);
         memcpy(data + size, &id->id, sizeof(id->id));
         size += sizeof(id->id);
 

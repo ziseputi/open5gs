@@ -252,8 +252,8 @@ int ogs_gtp_xact_update_tx(ogs_gtp_xact_t *xact,
     h->version = 2;
     h->teid_presence = 1;
     h->type = hdesc->type;
-    h->length = htons(pkbuf->len - 4);
-    h->teid = htonl(hdesc->teid);
+    h->length = htobe16(pkbuf->len - 4);
+    h->teid = htobe32(hdesc->teid);
     h->sqn = OGS_GTP_XID_TO_SQN(xact->xid);
 
     /* Save Message type and packet of this step */

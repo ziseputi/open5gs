@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by gtp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2019-12-23 11:28:04.952636 by acetcom
+ * Created on: 2019-12-29 16:00:15.140511 by acetcom
  * from 29274-d80.docx
  ******************************************************************************/
 
@@ -2827,7 +2827,7 @@ int ogs_gtp_parse_msg(ogs_gtp_message_t *gtp_message, ogs_pkbuf_t *pkbuf)
     memcpy(&gtp_message->h, pkbuf->data - size, size);
 
     if (h->teid_presence)
-        gtp_message->h.teid = ntohl(gtp_message->h.teid);
+        gtp_message->h.teid = be32toh(gtp_message->h.teid);
 
     if (pkbuf->len == 0)
         return OGS_OK;

@@ -148,7 +148,7 @@ ogs_pkbuf_t *ogs_gtp_handle_echo_req(ogs_pkbuf_t *pkb)
     gtph_resp->flags |= (1 << 4); /* set PT */
     gtph_resp->type = OGS_GTPU_MSGTYPE_ECHO_RSP;
     length = 0;     /* length of Recovery IE */
-    gtph_resp->length = htons(length); /* to be overwriten */
+    gtph_resp->length = htobe16(length); /* to be overwriten */
     gtph_resp->teid = 0;
     idx = 8;
 
@@ -182,7 +182,7 @@ ogs_pkbuf_t *ogs_gtp_handle_echo_req(ogs_pkbuf_t *pkb)
     *((uint8_t *)pkb_resp->data + idx) = 14; idx++; /* type */
     *((uint8_t *)pkb_resp->data + idx) = 0; idx++; /* restart counter */
 
-    gtph_resp->length = htons(length);
+    gtph_resp->length = htobe16(length);
     ogs_pkbuf_trim(pkb_resp, idx); /* buffer length */
 
     return pkb_resp;

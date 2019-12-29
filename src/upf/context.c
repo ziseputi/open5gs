@@ -1083,7 +1083,7 @@ int upf_ue_pool_generate(void)
                 rv = ogs_ipsubnet(
                         &high, subnet->range[rangeindex].high, NULL);
                 ogs_assert(rv == OGS_OK);
-                high.sub[lastindex] += htonl(1);
+                high.sub[lastindex] += htobe32(1);
                 memcpy(end, high.sub, maxbytes);
             } else {
                 memcpy(end, broadcast, maxbytes);
@@ -1099,7 +1099,7 @@ int upf_ue_pool_generate(void)
                 ue_ip->subnet = subnet;
 
                 memcpy(ue_ip->addr, start, maxbytes);
-                ue_ip->addr[lastindex] += htonl(inc);
+                ue_ip->addr[lastindex] += htobe32(inc);
                 inc++;
 
                 if (memcmp(ue_ip->addr, end, maxbytes) == 0)

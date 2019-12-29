@@ -462,7 +462,7 @@ void ogs_nas_tai_list_build(
 
         for (j = 0; j < source0->tai[i].num; j++) 
         {
-            target0.tai[i].tac[j] = htons(source0->tai[i].tac[j]);
+            target0.tai[i].tac[j] = htobe16(source0->tai[i].tac[j]);
         }
 
         size = (1 + 3 + 2 * source0->tai[i].num);
@@ -499,7 +499,7 @@ void ogs_nas_tai_list_build(
             memcpy(&target2.tai[i].plmn_id,
                     ogs_nas_from_plmn_id(&ogs_nas_plmn_id, &source2->tai[i].plmn_id),
                     OGS_PLMN_ID_LEN);
-            target2.tai[i].tac = htons(source2->tai[i].tac);
+            target2.tai[i].tac = htobe16(source2->tai[i].tac);
         }
         memcpy(target->buffer + target->length, &target2, size);
         target->length += size;

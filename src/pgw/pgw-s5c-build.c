@@ -66,7 +66,7 @@ ogs_pkbuf_t *pgw_s5c_build_create_session_response(
     /* Control Plane(UL) : PGW-S5C */
     memset(&pgw_s5c_teid, 0, sizeof(ogs_gtp_f_teid_t));
     pgw_s5c_teid.interface_type = OGS_GTP_F_TEID_S5_S8_PGW_GTP_C;
-    pgw_s5c_teid.teid = htonl(sess->pgw_s5c_teid);
+    pgw_s5c_teid.teid = htobe32(sess->pgw_s5c_teid);
     rv = ogs_gtp_sockaddr_to_f_teid(
         pgw_self()->gtpc_addr, pgw_self()->gtpc_addr6, &pgw_s5c_teid, &len);
     ogs_assert(rv == OGS_OK);
@@ -121,7 +121,7 @@ ogs_pkbuf_t *pgw_s5c_build_create_session_response(
     /* Data Plane(UL) : PGW-S5U */
     memset(&pgw_s5u_teid, 0, sizeof(ogs_gtp_f_teid_t));
     pgw_s5u_teid.interface_type = OGS_GTP_F_TEID_S5_S8_PGW_GTP_U;
-    pgw_s5u_teid.teid = htonl(bearer->pgw_s5u_teid);
+    pgw_s5u_teid.teid = htobe32(bearer->pgw_s5u_teid);
     rv = ogs_gtp_sockaddr_to_f_teid(
         pgw_self()->gtpu_addr, pgw_self()->gtpu_addr6, &pgw_s5u_teid, &len);
     ogs_assert(rv == OGS_OK);
@@ -218,7 +218,7 @@ ogs_pkbuf_t *pgw_s5c_build_create_bearer_request(
     /* Data Plane(UL) : PGW_S5U */
     memset(&pgw_s5u_teid, 0, sizeof(ogs_gtp_f_teid_t));
     pgw_s5u_teid.interface_type = OGS_GTP_F_TEID_S5_S8_PGW_GTP_U;
-    pgw_s5u_teid.teid = htonl(bearer->pgw_s5u_teid);
+    pgw_s5u_teid.teid = htobe32(bearer->pgw_s5u_teid);
     rv = ogs_gtp_sockaddr_to_f_teid(
         pgw_self()->gtpu_addr, pgw_self()->gtpu_addr6, &pgw_s5u_teid, &len);
     ogs_assert(rv == OGS_OK);
@@ -413,7 +413,7 @@ static int16_t pgw_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco)
 
                 memset(&pco_ipcp, 0, sizeof(ogs_pco_ipcp_t));
                 pco_ipcp.code = 2; /* Code : Configuration Ack */
-                pco_ipcp.len = htons(len);
+                pco_ipcp.len = htobe16(len);
 
                 /* Primary DNS Server IP Address */
                 if (pgw_self()->dns[0]) {

@@ -53,11 +53,11 @@ typedef struct smf_event_s {
     int timer_id;
 
     ogs_gtp_node_t *gnode;
-    ogs_gtp_xact_t *gxact;
+    ogs_gtp_xact_t *gtp_xact;
 
-    ogs_pfcp_message_t *pfcp_message;
     ogs_pfcp_node_t *pnode;
-    ogs_pfcp_xact_t *pxact;
+    ogs_pfcp_xact_t *pfcp_xact;
+    ogs_pfcp_message_t *pfcp_message;
 
     smf_sess_t *sess;
 } smf_event_t;

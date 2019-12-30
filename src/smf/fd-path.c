@@ -714,7 +714,7 @@ out:
 
         e->sess = sess;
         e->pkbuf = gxbuf;
-        e->gxact = xact;
+        e->gtp_xact = xact;
         rv = ogs_queue_push(smf_self()->queue, e);
         if (rv != OGS_OK) {
             ogs_error("ogs_queue_push() failed:%d", (int)rv);

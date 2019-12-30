@@ -48,15 +48,15 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
     ogs_pkbuf_t *recvbuf = NULL;
     smf_sess_t *sess = NULL;
 
-    ogs_gtp_message_t gtp_message;
     ogs_gtp_node_t *gnode = NULL;
-    ogs_gtp_xact_t *gxact = NULL;
+    ogs_gtp_xact_t *gtp_xact = NULL;
+    ogs_gtp_message_t gtp_message;
 
     ogs_diam_gx_message_t *gx_message = NULL;
 
-    ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_node_t *pnode = NULL;
-    ogs_pfcp_xact_t *pxact = NULL;
+    ogs_pfcp_xact_t *pfcp_xact = NULL;
+    ogs_pfcp_message_t pfcp_message;
 
     smf_sm_debug(e);
 
@@ -120,7 +120,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             ogs_assert(gnode);
         }
 
-        rv = ogs_gtp_xact_receive(gnode, &gtp_message.h, &gxact);
+        rv = ogs_gtp_xact_receive(gnode, &gtp_message.h, &gtp_xact);
         if (rv != OGS_OK) {
             ogs_pkbuf_free(recvbuf);
             break;
@@ -135,27 +135,27 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                     OGS_SETUP_GTP_NODE(sess, gnode);
             }
             smf_s5c_handle_create_session_request(
-                sess, gxact, &gtp_message.create_session_request);
+                sess, gtp_xact, &gtp_message.create_session_request);
             break;
         case OGS_GTP_DELETE_SESSION_REQUEST_TYPE:
             smf_s5c_handle_delete_session_request(
-                sess, gxact, &gtp_message.delete_session_request);
+                sess, gtp_xact, &gtp_message.delete_session_request);
             break;
         case OGS_GTP_CREATE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_create_bearer_response(
-                sess, gxact, &gtp_message.create_bearer_response);
+                sess, gtp_xact, &gtp_message.create_bearer_response);
             break;
         case OGS_GTP_UPDATE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_update_bearer_response(
-                sess, gxact, &gtp_message.update_bearer_response);
+                sess, gtp_xact, &gtp_message.update_bearer_response);
             break;
         case OGS_GTP_DELETE_BEARER_RESPONSE_TYPE:
             smf_s5c_handle_delete_bearer_response(
-                sess, gxact, &gtp_message.delete_bearer_response);
+                sess, gtp_xact, &gtp_message.delete_bearer_response);
             break;
         case OGS_GTP_BEARER_RESOURCE_COMMAND_TYPE:
             smf_s5c_handle_bearer_resource_command(
-                sess, gxact, &gtp_message.bearer_resource_command);
+                sess, gtp_xact, &gtp_message.bearer_resource_command);
             break;
         default:
             ogs_warn("Not implmeneted(type:%d)", gtp_message.h.type);
@@ -177,18 +177,18 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
         switch(gx_message->cmd_code) {
         case OGS_DIAM_GX_CMD_CODE_CREDIT_CONTROL:
-            gxact = e->gxact;
-            ogs_assert(gxact);
+            gtp_xact = e->gtp_xact;
+            ogs_assert(gtp_xact);
 
             if (gx_message->result_code == ER_DIAMETER_SUCCESS) {
                 switch(gx_message->cc_request_type) {
                 case OGS_DIAM_GX_CC_REQUEST_TYPE_INITIAL_REQUEST:
                     smf_gx_handle_cca_initial_request(
-                            sess, gx_message, gxact);
+                            sess, gx_message, gtp_xact);
                     break;
                 case OGS_DIAM_GX_CC_REQUEST_TYPE_TERMINATION_REQUEST:
                     smf_gx_handle_cca_termination_request(
-                            sess, gx_message, gxact);
+                            sess, gx_message, gtp_xact);
                     break;
                 default:
                     ogs_error("Not implemented(%d)",
@@ -223,7 +223,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
             break;
         }
 
-        rv = ogs_pfcp_xact_receive(pnode, &pfcp_message.h, &pxact);
+        rv = ogs_pfcp_xact_receive(pnode, &pfcp_message.h, &pfcp_xact);
         if (rv != OGS_OK) {
             ogs_pkbuf_free(recvbuf);
             break;
@@ -231,7 +231,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
         if (pfcp_message.h.seid_p == 0) {
             e->pfcp_message = &pfcp_message;
-            e->pxact = pxact;
+            e->pfcp_xact = pfcp_xact;
             ogs_fsm_dispatch(&pnode->sm, e);
             if (OGS_FSM_CHECK(&pnode->sm, smf_upf_state_exception)) {
                 ogs_error("SM exception");

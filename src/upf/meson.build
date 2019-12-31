@@ -55,7 +55,7 @@ libupf_sources = files('''
     timer.c
     context.c
     upf-sm.c
-    smf-sm.c
+    pfcp-sm.c
     gtp-path.c
     pfcp-path.c
     n4-build.c

@@ -25,7 +25,7 @@
 #include "pfcp-path.h"
 #include "n4-handler.h"
 
-void upf_smf_state_initial(ogs_fsm_t *s, upf_event_t *e)
+void upf_pfcp_state_initial(ogs_fsm_t *s, upf_event_t *e)
 {
     int rv;
     ogs_pfcp_node_t *pnode = NULL;
@@ -46,10 +46,10 @@ void upf_smf_state_initial(ogs_fsm_t *s, upf_event_t *e)
             upf_timer_connect_to_upf, pnode);
     ogs_assert(pnode->t_conn);
 
-    OGS_FSM_TRAN(s, &upf_smf_state_will_associate);
+    OGS_FSM_TRAN(s, &upf_pfcp_state_will_associate);
 }
 
-void upf_smf_state_final(ogs_fsm_t *s, upf_event_t *e)
+void upf_pfcp_state_final(ogs_fsm_t *s, upf_event_t *e)
 {
     ogs_pfcp_node_t *pnode = NULL;
     ogs_assert(s);
@@ -63,7 +63,7 @@ void upf_smf_state_final(ogs_fsm_t *s, upf_event_t *e)
     ogs_timer_delete(pnode->t_conn);
 }
 
-void upf_smf_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
+void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
 {
     char buf[OGS_ADDRSTRLEN];
 
@@ -120,12 +120,12 @@ void upf_smf_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
         case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
             upf_n4_handle_association_setup_request(pnode, xact,
                     &message->pfcp_association_setup_request);
-            OGS_FSM_TRAN(s, upf_smf_state_associated);
+            OGS_FSM_TRAN(s, upf_pfcp_state_associated);
             break;
         case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
             upf_n4_handle_association_setup_response(pnode, xact,
                     &message->pfcp_association_setup_response);
-            OGS_FSM_TRAN(s, upf_smf_state_associated);
+            OGS_FSM_TRAN(s, upf_pfcp_state_associated);
             break;
         default:
             ogs_error("[NOT ASSOC] cannot handle PFCP message type[%d]",
@@ -139,7 +139,7 @@ void upf_smf_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
     }
 }
 
-void upf_smf_state_associated(ogs_fsm_t *s, upf_event_t *e)
+void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
 {
     ogs_pfcp_node_t *pnode = NULL;
     ogs_pfcp_xact_t *xact = NULL;
@@ -237,7 +237,7 @@ void upf_smf_state_associated(ogs_fsm_t *s, upf_event_t *e)
     }
 }
 
-void upf_smf_state_exception(ogs_fsm_t *s, upf_event_t *e)
+void upf_pfcp_state_exception(ogs_fsm_t *s, upf_event_t *e)
 {
     ogs_assert(s);
     ogs_assert(e);

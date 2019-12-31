@@ -71,7 +71,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
             e.pnode = pnode;
 
             ogs_fsm_create(&pnode->sm,
-                    upf_smf_state_initial, upf_smf_state_final);
+                    upf_pfcp_state_initial, upf_pfcp_state_final);
             ogs_fsm_init(&pnode->sm, &e);
         }
         break;
@@ -109,7 +109,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
         e->pfcp_message = &pfcp_message;
         e->pfcp_xact = xact;
         ogs_fsm_dispatch(&pnode->sm, e);
-        if (OGS_FSM_CHECK(&pnode->sm, upf_smf_state_exception)) {
+        if (OGS_FSM_CHECK(&pnode->sm, upf_pfcp_state_exception)) {
             ogs_error("PFCP state machine exception");
             break;
         }

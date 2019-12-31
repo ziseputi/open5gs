@@ -82,7 +82,7 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
         ogs_timer_start(pnode->t_conn,
-                upf_timer_cfg(UPF_TIMER_CONNECT_TO_UPF)->duration);
+                upf_timer_cfg(UPF_TIMER_CONNECT_TO_SMF)->duration);
 
         upf_pfcp_send_association_setup_request(pnode);
         break;
@@ -91,7 +91,7 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
         break;
     case UPF_EVT_N4_TIMER:
         switch(e->timer_id) {
-        case UPF_TIMER_CONNECT_TO_UPF:
+        case UPF_TIMER_CONNECT_TO_SMF:
             addr = pnode->sa_list;
             ogs_assert(addr);
 
@@ -99,7 +99,7 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             ogs_timer_start(pnode->t_conn,
-                upf_timer_cfg(UPF_TIMER_CONNECT_TO_UPF)->duration);
+                upf_timer_cfg(UPF_TIMER_CONNECT_TO_SMF)->duration);
 
             upf_pfcp_send_association_setup_request(pnode);
             break;

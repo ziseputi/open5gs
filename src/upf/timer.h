@@ -30,7 +30,8 @@ extern "C" {
 typedef enum {
     UPF_TIMER_BASE = 0,
 
-    UPF_TIMER_CONNECT_TO_UPF,
+    UPF_TIMER_CONNECT_TO_SMF,
+    UPF_TIMER_HEARTBEAT,
 
     MAX_NUM_OF_UPF_TIMER,
 
@@ -46,6 +47,7 @@ upf_timer_cfg_t *upf_timer_cfg(upf_timer_e id);
 const char *upf_timer_get_name(upf_timer_e id);
 
 void upf_timer_connect_to_upf(void *data);
+void upf_timer_heartbeat(void *data);
 
 #ifdef __cplusplus
 }

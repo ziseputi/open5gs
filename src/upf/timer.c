@@ -22,8 +22,10 @@
 #include "context.h"
 
 static upf_timer_cfg_t g_upf_timer_cfg[MAX_NUM_OF_UPF_TIMER] = {
-    [UPF_TIMER_CONNECT_TO_UPF] = 
-        { .duration = ogs_time_from_sec(12) },
+    [UPF_TIMER_CONNECT_TO_SMF] =
+        { .duration = ogs_time_from_sec(5) },
+    [UPF_TIMER_HEARTBEAT] =
+        { .duration = ogs_time_from_sec(3) },
 };
 
 upf_timer_cfg_t *upf_timer_cfg(upf_timer_e id)
@@ -35,8 +37,10 @@ upf_timer_cfg_t *upf_timer_cfg(upf_timer_e id)
 const char *upf_timer_get_name(upf_timer_e id)
 {
     switch (id) {
-    case UPF_TIMER_CONNECT_TO_UPF:
-        return "UPF_TIMER_CONNECT_TO_UPF";
+    case UPF_TIMER_CONNECT_TO_SMF:
+        return "UPF_TIMER_CONNECT_TO_SMF";
+    case UPF_TIMER_HEARTBEAT:
+        return "UPF_TIMER_HEARTBEAT";
     default: 
        break;
     }
@@ -44,14 +48,14 @@ const char *upf_timer_get_name(upf_timer_e id)
     return "UNKNOWN_TIMER";
 }
 
-void upf_timer_connect_to_upf(void *data)
+static void timer_send_event(int timer_id, void *data)
 {
     int rv;
     upf_event_t *e = NULL;
     ogs_assert(data);
 
     e = upf_event_new(UPF_EVT_N4_TIMER);
-    e->timer_id = UPF_TIMER_CONNECT_TO_UPF;
+    e->timer_id = timer_id;
     e->pnode = data;
 
     rv = ogs_queue_push(upf_self()->queue, e);
@@ -59,4 +63,14 @@ void upf_timer_connect_to_upf(void *data)
         ogs_warn("ogs_queue_push() failed:%d", (int)rv);
         upf_event_free(e);
     }
+}
+
+void upf_timer_connect_to_upf(void *data)
+{
+    timer_send_event(UPF_TIMER_CONNECT_TO_SMF, data);
+}
+
+void upf_timer_heartbeat(void *data)
+{
+    timer_send_event(UPF_TIMER_HEARTBEAT, data);
 }

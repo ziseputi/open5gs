@@ -128,7 +128,7 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
             OGS_FSM_TRAN(s, upf_pfcp_state_associated);
             break;
         default:
-            ogs_error("[NOT ASSOC] cannot handle PFCP message type[%d]",
+            ogs_error("cannot handle PFCP message type[%d]",
                     message->h.type);
             break;
         }
@@ -185,10 +185,14 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
         case OGS_PFCP_PFD_MANAGEMENT_RESPONSE_TYPE:
             break;
         case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
-            ogs_warn("[ASSOCIATED] cannot handle PFCP setup request");
+            ogs_warn("PFCP[REQ] has already been associated");
+            upf_n4_handle_association_setup_request(pnode, xact,
+                    &message->pfcp_association_setup_request);
             break;
         case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
-            ogs_warn("[ASSOCIATED] cannot handle PFCP setup response");
+            ogs_warn("PFCP[RSP] has already been associated");
+            upf_n4_handle_association_setup_response(pnode, xact,
+                    &message->pfcp_association_setup_response);
             break;
         case OGS_PFCP_ASSOCIATION_UPDATE_REQUEST_TYPE:
             break;

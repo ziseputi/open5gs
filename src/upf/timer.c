@@ -23,9 +23,9 @@
 
 static upf_timer_cfg_t g_upf_timer_cfg[MAX_NUM_OF_UPF_TIMER] = {
     [UPF_TIMER_CONNECT_TO_SMF] =
-        { .duration = ogs_time_from_sec(5) },
+        { .duration = ogs_time_from_sec(12) },
     [UPF_TIMER_HEARTBEAT] =
-        { .duration = ogs_time_from_sec(3) },
+        { .duration = ogs_time_from_sec(5) },
 };
 
 upf_timer_cfg_t *upf_timer_cfg(upf_timer_e id)

@@ -150,9 +150,6 @@ void smf_pfcp_send_association_setup_request(ogs_pfcp_node_t *pnode)
     xact = ogs_pfcp_xact_local_create(pnode, &h, n4buf, timeout, pnode);
     ogs_expect_or_return(xact);
 
-    /* Disable retransmission */
-    xact->response_rcount = 1;
-
     rv = ogs_pfcp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
 }

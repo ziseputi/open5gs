@@ -33,8 +33,8 @@ void smf_state_exception(ogs_fsm_t *s, smf_event_t *e);
 
 void smf_upf_state_initial(ogs_fsm_t *s, smf_event_t *e);
 void smf_upf_state_final(ogs_fsm_t *s, smf_event_t *e);
-void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e);
-void smf_upf_state_connected(ogs_fsm_t *s, smf_event_t *e);
+void smf_upf_state_will_associate(ogs_fsm_t *s, smf_event_t *e);
+void smf_upf_state_associated(ogs_fsm_t *s, smf_event_t *e);
 void smf_upf_state_exception(ogs_fsm_t *s, smf_event_t *e);
 
 #define smf_sm_debug(__pe) \

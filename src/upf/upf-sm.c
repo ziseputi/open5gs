@@ -47,7 +47,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
 
     ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_node_t *pnode = NULL;
-    ogs_pfcp_xact_t *pxact = NULL;
+    ogs_pfcp_xact_t *xact = NULL;
 
     upf_sm_debug(e);
 
@@ -100,97 +100,17 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
             break;
         }
 
-        rv = ogs_pfcp_xact_receive(pnode, &pfcp_message.h, &pxact);
+        rv = ogs_pfcp_xact_receive(pnode, &pfcp_message.h, &xact);
         if (rv != OGS_OK) {
             ogs_pkbuf_free(recvbuf);
             break;
         }
 
-        if (pfcp_message.h.seid_p == 0) {
-            e->pfcp_message = &pfcp_message;
-            e->pxact = pxact;
-            ogs_fsm_dispatch(&pnode->sm, e);
-            if (OGS_FSM_CHECK(&pnode->sm, upf_smf_state_exception)) {
-                ogs_error("SM exception");
-            }
-        } else {
-            sess = upf_sess_find_by_seid(pfcp_message.h.seid);
-            switch (pfcp_message.h.type) {
-            case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
-                break;
-            case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
-                break;
-            case OGS_PFCP_SESSION_MODIFICATION_REQUEST_TYPE:
-                break;
-            case OGS_PFCP_SESSION_MODIFICATION_RESPONSE_TYPE:
-                break;
-            case OGS_PFCP_SESSION_DELETION_REQUEST_TYPE:
-                break;
-            case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:
-                break;
-            case OGS_PFCP_SESSION_REPORT_REQUEST_TYPE:
-                break;
-            case OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE:
-                break;
-            default:
-                ogs_error("Not implemented PFCP message type[%d]",
-                        pfcp_message.h.type);
-                break;
-            }
-        }
-
-        switch (pfcp_message.h.type) {
-        case OGS_PFCP_HEARTBEAT_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_HEARTBEAT_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_PFD_MANAGEMENT_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_PFD_MANAGEMENT_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
-            printf("OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE\n");
-            break;
-        case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
-            printf("OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE\n");
-            break;
-        case OGS_PFCP_ASSOCIATION_UPDATE_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_ASSOCIATION_UPDATE_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_ASSOCIATION_RELEASE_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_ASSOCIATION_RELEASE_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_VERSION_NOT_SUPPORTED_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_NODE_REPORT_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_NODE_REPORT_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_SESSION_SET_DELETION_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_SESSION_SET_DELETION_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_SESSION_MODIFICATION_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_SESSION_MODIFICATION_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_SESSION_DELETION_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:
-            break;
-        case OGS_PFCP_SESSION_REPORT_REQUEST_TYPE:
-            break;
-        case OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE:
-            break;
-        default:
-            ogs_error("Not implemented PFCP message type[%d]",
-                    pfcp_message.h.type);
+        e->pfcp_message = &pfcp_message;
+        e->pfcp_xact = xact;
+        ogs_fsm_dispatch(&pnode->sm, e);
+        if (OGS_FSM_CHECK(&pnode->sm, upf_smf_state_exception)) {
+            ogs_error("PFCP state machine exception");
             break;
         }
 

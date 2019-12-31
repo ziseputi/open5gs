@@ -47,6 +47,7 @@ libupf_sources = files('''
     gtp-path.h
     pfcp-path.h
     n4-build.h
+    n4-handler.h
 
     ipfw.c
     init.c
@@ -58,6 +59,7 @@ libupf_sources = files('''
     gtp-path.c
     pfcp-path.c
     n4-build.c
+    n4-handler.c
 '''.split())
 
 libupf = static_library('upf',

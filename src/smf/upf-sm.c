@@ -23,9 +23,7 @@
 #include "smf-sm.h"
 
 #include "pfcp-path.h"
-#if 0
-#include "smf-n4-handler.h"
-#endif
+#include "n4-handler.h"
 
 void smf_upf_state_initial(ogs_fsm_t *s, smf_event_t *e)
 {
@@ -48,7 +46,7 @@ void smf_upf_state_initial(ogs_fsm_t *s, smf_event_t *e)
             smf_timer_connect_to_upf, pnode);
     ogs_assert(pnode->t_conn);
 
-    OGS_FSM_TRAN(s, &smf_upf_state_will_connect);
+    OGS_FSM_TRAN(s, &smf_upf_state_will_associate);
 }
 
 void smf_upf_state_final(ogs_fsm_t *s, smf_event_t *e)
@@ -65,11 +63,13 @@ void smf_upf_state_final(ogs_fsm_t *s, smf_event_t *e)
     ogs_timer_delete(pnode->t_conn);
 }
 
-void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
+void smf_upf_state_will_associate(ogs_fsm_t *s, smf_event_t *e)
 {
     char buf[OGS_ADDRSTRLEN];
 
     ogs_pfcp_node_t *pnode = NULL;
+    ogs_pfcp_xact_t *xact = NULL;
+    ogs_pfcp_message_t *message = NULL;
     ogs_sockaddr_t *addr = NULL;
     ogs_assert(s);
     ogs_assert(e);
@@ -78,8 +78,6 @@ void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
 
     pnode = e->pnode;
     ogs_assert(pnode);
-
-    ogs_assert(pnode->t_conn);
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
@@ -102,7 +100,6 @@ void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
             ogs_warn("Connect to UPF [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
-            ogs_assert(pnode->t_conn);
             ogs_timer_start(pnode->t_conn,
                 smf_timer_cfg(SMF_TIMER_CONNECT_TO_UPF)->duration);
 
@@ -115,7 +112,28 @@ void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
         }
         break;
     case SMF_EVT_N4_MESSAGE:
-        OGS_FSM_TRAN(s, smf_upf_state_connected);
+        message = e->pfcp_message;
+        ogs_assert(message);
+
+        xact = e->pfcp_xact;
+        ogs_assert(xact);
+
+        switch (message->h.type) {
+        case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
+            smf_n4_handle_association_setup_request(pnode, xact,
+                    &message->pfcp_association_setup_request);
+            OGS_FSM_TRAN(s, smf_upf_state_associated);
+            break;
+        case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
+            smf_n4_handle_association_setup_response(pnode, xact,
+                    &message->pfcp_association_setup_response);
+            OGS_FSM_TRAN(s, smf_upf_state_associated);
+            break;
+        default:
+            ogs_error("[NOT ASSOC] cannot handle PFCP message type[%d]",
+                    message->h.type);
+            break;
+        }
         break;
     default:
         ogs_error("Unknown event %s", smf_event_get_name(e));
@@ -123,11 +141,13 @@ void smf_upf_state_will_connect(ogs_fsm_t *s, smf_event_t *e)
     }
 }
 
-void smf_upf_state_connected(ogs_fsm_t *s, smf_event_t *e)
+void smf_upf_state_associated(ogs_fsm_t *s, smf_event_t *e)
 {
     ogs_pfcp_node_t *pnode = NULL;
-    ogs_pkbuf_t *pkbuf = NULL;
-    uint8_t type;
+    ogs_pfcp_xact_t *xact = NULL;
+    ogs_pfcp_message_t *message = NULL;
+    smf_sess_t *sess = NULL;
+
     ogs_assert(s);
     ogs_assert(e);
 
@@ -138,56 +158,82 @@ void smf_upf_state_connected(ogs_fsm_t *s, smf_event_t *e)
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
+        ogs_info("PFCP associated");
         break;
     case OGS_FSM_EXIT_SIG:
-        break;
-    case SMF_EVT_N4_TIMER:
-#if 0
-        smf_upf_close(pnode);
-        OGS_FSM_TRAN(s, smf_upf_state_will_connect);
-#endif
+        ogs_info("PFCP de-associated");
         break;
     case SMF_EVT_N4_MESSAGE:
-#if 0
-        pkbuf = e->pkbuf;
-        ogs_assert(pkbuf);
-        type = *(unsigned char *)(pkbuf->data);
-        switch (type) {
-#if 0
-        case N4_LOCATION_UPDATE_ACCEPT:
-            sgsap_handle_location_update_accept(pnode, pkbuf);
-            break;
-        case N4_LOCATION_UPDATE_REJECT:
-            sgsap_handle_location_update_reject(upf, pkbuf);
-            break;
-        case N4_EPS_DETACH_ACK:
-        case N4_IMSI_DETACH_ACK:
-            sgsap_handle_detach_ack(upf, pkbuf);
-            break;
-        case N4_PAGING_REQUEST:
-            sgsap_handle_paging_request(upf, pkbuf);
-            break;
-        case N4_DOWNLINK_UNITDATA:
-            sgsap_handle_downlink_unitdata(upf, pkbuf);
-            break;
-        case N4_RESET_INDICATION:
-            sgsap_handle_reset_indication(upf, pkbuf);
+        message = e->pfcp_message;
+        ogs_assert(message);
 
-            smf_upf_close(upf);
-            OGS_FSM_TRAN(s, smf_upf_state_will_connect);
+        xact = e->pfcp_xact;
+        ogs_assert(xact);
+
+        if (message->h.seid != 0)
+            sess = smf_sess_find_by_seid(message->h.seid);
+
+        switch (message->h.type) {
+        case OGS_PFCP_HEARTBEAT_REQUEST_TYPE:
             break;
-        case N4_RELEASE_REQUEST:
-            sgsap_handle_release_request(upf, pkbuf);
+        case OGS_PFCP_HEARTBEAT_RESPONSE_TYPE:
             break;
-        case N4_MM_INFORMATION_REQUEST:
-            sgsap_handle_mm_information_request(upf, pkbuf);
+        case OGS_PFCP_PFD_MANAGEMENT_REQUEST_TYPE:
             break;
-#endif
+        case OGS_PFCP_PFD_MANAGEMENT_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
+            smf_n4_handle_association_setup_request(pnode, xact,
+                    &message->pfcp_association_setup_request);
+            ogs_warn("[ASSOCIATED] cannot handle PFCP setup request");
+            break;
+        case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
+            smf_n4_handle_association_setup_response(pnode, xact,
+                    &message->pfcp_association_setup_response);
+            ogs_warn("[ASSOCIATED] cannot handle PFCP setup response");
+            break;
+        case OGS_PFCP_ASSOCIATION_UPDATE_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_UPDATE_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_RELEASE_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_ASSOCIATION_RELEASE_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_VERSION_NOT_SUPPORTED_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_NODE_REPORT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_NODE_REPORT_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_SET_DELETION_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_SET_DELETION_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_MODIFICATION_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_MODIFICATION_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_DELETION_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:
+            break;
+        case OGS_PFCP_SESSION_REPORT_REQUEST_TYPE:
+            break;
+        case OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE:
+            break;
         default:
-            ogs_warn("Unknown Message Type: [%d]", type);
+            ogs_error("Not implemented PFCP message type[%d]",
+                    message->h.type);
             break;
         }
-#endif
+
+        break;
+    case SMF_EVT_N4_TIMER:
         break;
     default:
         ogs_error("Unknown event %s", smf_event_get_name(e));

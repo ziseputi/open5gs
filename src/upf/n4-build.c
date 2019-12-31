@@ -44,8 +44,8 @@ ogs_pkbuf_t *upf_n4_build_association_setup_request(uint8_t type)
     req->recovery_time_stamp.presence = 1;
     req->recovery_time_stamp.u32 = upf_self()->pfcp_started;
 
-    req->cp_function_features.presence = 1;
-    req->cp_function_features.u8 = upf_self()->cp_function_features;
+    req->up_function_features.presence = 1;
+    req->up_function_features.u16 = htobe16(upf_self()->up_function_features);
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);

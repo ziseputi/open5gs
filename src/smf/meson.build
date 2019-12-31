@@ -43,6 +43,7 @@ libsmf_sources = files('''
     gx-handler.h
     pfcp-path.h
     n4-build.h
+    n4-handler.h
 
     ipfw.c
     init.c
@@ -58,6 +59,7 @@ libsmf_sources = files('''
     gx-handler.c 
     pfcp-path.c
     n4-build.c
+    n4-handler.c
 '''.split())
 
 libsmf = static_library('smf',

@@ -17,31 +17,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef UPF_SM_H
-#define UPF_SM_H
+#ifndef UPF_N4_HANDLER_H
+#define UPF_N4_HANDLER_H
 
-#include "event.h"
+#include "ogs-gtp.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void upf_state_initial(ogs_fsm_t *s, upf_event_t *e);
-void upf_state_final(ogs_fsm_t *s, upf_event_t *e);
-void upf_state_operational(ogs_fsm_t *s, upf_event_t *e);
-void upf_state_exception(ogs_fsm_t *s, upf_event_t *e);
-
-void upf_smf_state_initial(ogs_fsm_t *s, upf_event_t *e);
-void upf_smf_state_final(ogs_fsm_t *s, upf_event_t *e);
-void upf_smf_state_will_associate(ogs_fsm_t *s, upf_event_t *e);
-void upf_smf_state_associated(ogs_fsm_t *s, upf_event_t *e);
-void upf_smf_state_exception(ogs_fsm_t *s, upf_event_t *e);
-
-#define upf_sm_debug(__pe) \
-    ogs_debug("%s(): %s", __func__, upf_event_get_name(__pe))
+void upf_n4_handle_association_setup_request(
+        ogs_pfcp_node_t *pnode, ogs_pfcp_xact_t *xact, 
+        ogs_pfcp_association_setup_request_t *req);
+void upf_n4_handle_association_setup_response(
+        ogs_pfcp_node_t *pnode, ogs_pfcp_xact_t *xact, 
+        ogs_pfcp_association_setup_response_t *req);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* UPF_SM_H */
+#endif /* UPF_N4_HANDLER_H */

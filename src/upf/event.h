@@ -47,11 +47,9 @@ typedef struct upf_event_s {
     ogs_pkbuf_t *pkbuf;
     int timer_id;
 
-    ogs_pfcp_message_t *pfcp_message;
     ogs_pfcp_node_t *pnode;
-    ogs_pfcp_xact_t *pxact;
-
-    upf_sess_t *sess;
+    ogs_pfcp_xact_t *pfcp_xact;
+    ogs_pfcp_message_t *pfcp_message;
 } upf_event_t;
 
 void upf_event_init(void);

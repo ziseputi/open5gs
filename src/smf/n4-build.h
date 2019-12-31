@@ -27,6 +27,8 @@ extern "C" {
 #endif
 
 ogs_pkbuf_t *smf_n4_build_association_setup_request(uint8_t type);
+ogs_pkbuf_t *smf_n4_build_association_setup_response(uint8_t type,
+        uint8_t cause);
 
 #ifdef __cplusplus
 }

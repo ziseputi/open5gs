@@ -74,7 +74,6 @@ typedef struct upf_context_s {
     ogs_sockaddr_t  *pfcp_addr6;    /* UPF PFCP IPv6 Address */
 
     uint32_t        pfcp_started;   /* UTC time when the PFCP entity started */
-    uint8_t         cp_function_features; /* CP Function Features */
     uint16_t        up_function_features; /* UP Function Features */
 
     ogs_list_t      dev_list;       /* UPF Tun Device List */

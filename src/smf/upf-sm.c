@@ -183,13 +183,9 @@ void smf_upf_state_associated(ogs_fsm_t *s, smf_event_t *e)
         case OGS_PFCP_PFD_MANAGEMENT_RESPONSE_TYPE:
             break;
         case OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE:
-            smf_n4_handle_association_setup_request(pnode, xact,
-                    &message->pfcp_association_setup_request);
             ogs_warn("[ASSOCIATED] cannot handle PFCP setup request");
             break;
         case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
-            smf_n4_handle_association_setup_response(pnode, xact,
-                    &message->pfcp_association_setup_response);
             ogs_warn("[ASSOCIATED] cannot handle PFCP setup response");
             break;
         case OGS_PFCP_ASSOCIATION_UPDATE_REQUEST_TYPE:

@@ -669,7 +669,7 @@ int ogs_pfcp_xact_receive(
     }
 
     *xact = new;
-    return OGS_OK;
+    return rv;
 }
 
 ogs_pfcp_xact_t *ogs_pfcp_xact_find(ogs_index_t index)

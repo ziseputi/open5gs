@@ -112,7 +112,6 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
     case UPF_EVT_N4_MESSAGE:
         message = e->pfcp_message;
         ogs_assert(message);
-
         xact = e->pfcp_xact;
         ogs_assert(xact);
 
@@ -153,8 +152,6 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
 
     pnode = e->pnode;
     ogs_assert(pnode);
-    xact = e->pfcp_xact;
-    ogs_assert(xact);
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
@@ -168,6 +165,8 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
     case UPF_EVT_N4_MESSAGE:
         message = e->pfcp_message;
         ogs_assert(message);
+        xact = e->pfcp_xact;
+        ogs_assert(xact);
 
         xact = e->pfcp_xact;
         ogs_assert(xact);

@@ -114,7 +114,6 @@ void smf_pfcp_state_will_associate(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_N4_MESSAGE:
         message = e->pfcp_message;
         ogs_assert(message);
-
         xact = e->pfcp_xact;
         ogs_assert(xact);
 
@@ -166,7 +165,6 @@ void smf_pfcp_state_associated(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_N4_MESSAGE:
         message = e->pfcp_message;
         ogs_assert(message);
-
         xact = e->pfcp_xact;
         ogs_assert(xact);
 

@@ -99,7 +99,7 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
             addr = pnode->sa_list;
             ogs_assert(addr);
 
-            ogs_warn("Associate to Peer [%s]:%d failed",
+            ogs_warn("Retry to association with peer [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             ogs_timer_start(pnode->t_association,

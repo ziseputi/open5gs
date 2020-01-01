@@ -103,7 +103,7 @@ void smf_pfcp_state_will_associate(ogs_fsm_t *s, smf_event_t *e)
             pnode = e->pnode;
             ogs_assert(pnode);
 
-            ogs_warn("Associate to Peer [%s]:%d failed",
+            ogs_warn("Retry to association with peer [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             ogs_timer_start(pnode->t_association,

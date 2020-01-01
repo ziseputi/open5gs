@@ -18,6 +18,7 @@
  */
 
 #include "context.h"
+#include "timer.h"
 #include "pfcp-path.h"
 #include "n4-handler.h"
 
@@ -42,6 +43,7 @@ void smf_n4_handle_heartbeat_request(
         ogs_pfcp_heartbeat_request_t *req)
 {
     ogs_assert(xact);
+    smf_pfcp_send_heartbeat_response(xact);
 }
 
 void smf_n4_handle_heartbeat_response(
@@ -49,4 +51,6 @@ void smf_n4_handle_heartbeat_response(
         ogs_pfcp_heartbeat_response_t *rsp)
 {
     ogs_assert(xact);
+    ogs_timer_start(pnode->t_heartbeat,
+            smf_timer_cfg(SMF_TIMER_HEARTBEAT)->duration);
 }

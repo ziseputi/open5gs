@@ -240,7 +240,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         ogs_pkbuf_free(recvbuf);
         break;
     case SMF_EVT_N4_TIMER:
-    case SMF_EVT_N4_LO_DEASSOCIATED:
+    case SMF_EVT_N4_NO_HEARTBEAT:
         pnode = e->pnode;
         ogs_assert(pnode);
         ogs_assert(OGS_FSM_STATE(&pnode->sm));

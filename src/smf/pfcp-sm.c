@@ -183,7 +183,7 @@ void smf_pfcp_state_associated(ogs_fsm_t *s, smf_event_t *e)
         xact = e->pfcp_xact;
         ogs_assert(xact);
 
-        if (message->h.seid != 0)
+        if (message->h.seid_p)
             sess = smf_sess_find_by_seid(message->h.seid);
 
         switch (message->h.type) {
@@ -264,8 +264,8 @@ void smf_pfcp_state_associated(ogs_fsm_t *s, smf_event_t *e)
             break;
         }
         break;
-    case SMF_EVT_N4_LO_DEASSOCIATED:
-        ogs_warn("UPF [%s]:%d de-associated",
+    case SMF_EVT_N4_NO_HEARTBEAT:
+        ogs_warn("No heartbeat from UPF [%s]:%d",
                     OGS_ADDR(addr, buf), OGS_PORT(addr));
         OGS_FSM_TRAN(s, smf_pfcp_state_will_associate);
         break;

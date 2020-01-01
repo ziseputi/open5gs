@@ -89,6 +89,8 @@ const char *smf_event_get_name(smf_event_t *e)
         return "SMF_EVT_N4_MESSAGE";
     case SMF_EVT_N4_TIMER:
         return "SMF_EVT_N4_TIMER";
+    case SMF_EVT_N4_NO_HEARTBEAT:
+        return "SMF_EVT_N4_NO_HEARTBEAT";
 
     default: 
        break;

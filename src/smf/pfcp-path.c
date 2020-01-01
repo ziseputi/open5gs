@@ -141,7 +141,7 @@ static void timeout(ogs_pfcp_xact_t *xact, void *data)
     case OGS_PFCP_HEARTBEAT_REQUEST_TYPE:
         ogs_assert(data);
 
-        e = smf_event_new(SMF_EVT_N4_LO_DEASSOCIATED);
+        e = smf_event_new(SMF_EVT_N4_NO_HEARTBEAT);
         e->pnode = data;
 
         rv = ogs_queue_push(smf_self()->queue, e);

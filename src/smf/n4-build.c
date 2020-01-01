@@ -60,7 +60,7 @@ ogs_pkbuf_t *smf_n4_build_association_setup_response(uint8_t type,
     ogs_pfcp_node_id_t node_id;
     int node_id_len = 0;
 
-    ogs_debug("[UPF] Association Setup Response");
+    ogs_debug("[SMF] Association Setup Response");
 
     rsp = &pfcp_message.pfcp_association_setup_response;
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
@@ -81,6 +81,40 @@ ogs_pkbuf_t *smf_n4_build_association_setup_response(uint8_t type,
 
     rsp->cp_function_features.presence = 1;
     rsp->cp_function_features.u8 = smf_self()->cp_function_features;
+
+    pfcp_message.h.type = type;
+    return ogs_pfcp_build_msg(&pfcp_message);
+}
+
+ogs_pkbuf_t *smf_n4_build_heartbeat_request(uint8_t type)
+{
+    ogs_pfcp_message_t pfcp_message;
+    ogs_pfcp_heartbeat_request_t *req = NULL;
+
+    ogs_debug("[SMF] Heartbeat Request");
+
+    req = &pfcp_message.pfcp_heartbeat_request;
+    memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
+
+    req->recovery_time_stamp.presence = 1;
+    req->recovery_time_stamp.u32 = smf_self()->pfcp_started;
+
+    pfcp_message.h.type = type;
+    return ogs_pfcp_build_msg(&pfcp_message);
+}
+
+ogs_pkbuf_t *smf_n4_build_heartbeat_response(uint8_t type)
+{
+    ogs_pfcp_message_t pfcp_message;
+    ogs_pfcp_heartbeat_response_t *rsp = NULL;
+
+    ogs_debug("[SMF] Heartbeat Request");
+
+    rsp = &pfcp_message.pfcp_heartbeat_response;
+    memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
+
+    rsp->recovery_time_stamp.presence = 1;
+    rsp->recovery_time_stamp.u32 = smf_self()->pfcp_started;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);

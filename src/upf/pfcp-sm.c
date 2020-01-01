@@ -42,9 +42,9 @@ void upf_pfcp_state_initial(ogs_fsm_t *s, upf_event_t *e)
             upf_self()->pfcp_sock, upf_self()->pfcp_sock6, pnode);
     ogs_assert(rv == OGS_OK);
 
-    pnode->t_conn = ogs_timer_add(upf_self()->timer_mgr,
-            upf_timer_connect_to_upf, pnode);
-    ogs_assert(pnode->t_conn);
+    pnode->t_association = ogs_timer_add(upf_self()->timer_mgr,
+            upf_timer_association, pnode);
+    ogs_assert(pnode->t_association);
 
     OGS_FSM_TRAN(s, &upf_pfcp_state_will_associate);
 }
@@ -60,7 +60,7 @@ void upf_pfcp_state_final(ogs_fsm_t *s, upf_event_t *e)
     pnode = e->pnode;
     ogs_assert(pnode);
 
-    ogs_timer_delete(pnode->t_conn);
+    ogs_timer_delete(pnode->t_association);
 }
 
 void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
@@ -81,25 +81,25 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
-        ogs_timer_start(pnode->t_conn,
-                upf_timer_cfg(UPF_TIMER_CONNECT_TO_SMF)->duration);
+        ogs_timer_start(pnode->t_association,
+                upf_timer_cfg(UPF_TIMER_ASSOCIATION)->duration);
 
         upf_pfcp_send_association_setup_request(pnode);
         break;
     case OGS_FSM_EXIT_SIG:
-        ogs_timer_stop(pnode->t_conn);
+        ogs_timer_stop(pnode->t_association);
         break;
     case UPF_EVT_N4_TIMER:
         switch(e->timer_id) {
-        case UPF_TIMER_CONNECT_TO_SMF:
+        case UPF_TIMER_ASSOCIATION:
             addr = pnode->sa_list;
             ogs_assert(addr);
 
             ogs_warn("Connect to SMF [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
-            ogs_timer_start(pnode->t_conn,
-                upf_timer_cfg(UPF_TIMER_CONNECT_TO_SMF)->duration);
+            ogs_timer_start(pnode->t_association,
+                upf_timer_cfg(UPF_TIMER_ASSOCIATION)->duration);
 
             upf_pfcp_send_association_setup_request(pnode);
             break;

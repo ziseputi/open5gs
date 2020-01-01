@@ -176,3 +176,49 @@ void smf_pfcp_send_association_setup_response(ogs_pfcp_xact_t *xact,
     rv = ogs_pfcp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
 }
+
+void smf_pfcp_send_heartbeat_request(ogs_pfcp_node_t *pnode)
+{
+    int rv;
+    ogs_pkbuf_t *n4buf = NULL;
+    ogs_pfcp_header_t h;
+    ogs_pfcp_xact_t *xact = NULL;
+
+    ogs_assert(pnode);
+
+    memset(&h, 0, sizeof(ogs_pfcp_header_t));
+    h.type = OGS_PFCP_HEARTBEAT_REQUEST_TYPE;
+    h.seid = 0;
+
+    n4buf = smf_n4_build_heartbeat_request(h.type);
+    ogs_expect_or_return(n4buf);
+
+    xact = ogs_pfcp_xact_local_create(pnode, &h, n4buf, timeout, pnode);
+    ogs_expect_or_return(xact);
+
+    rv = ogs_pfcp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+}
+
+void smf_pfcp_send_heartbeat_response(ogs_pfcp_xact_t *xact)
+{
+    int rv;
+    ogs_pkbuf_t *n4buf = NULL;
+    ogs_pfcp_header_t h;
+
+    ogs_assert(xact);
+
+    memset(&h, 0, sizeof(ogs_pfcp_header_t));
+    h.type = OGS_PFCP_HEARTBEAT_RESPONSE_TYPE;
+    h.seid = 0;
+
+    n4buf = smf_n4_build_heartbeat_response(h.type);
+    ogs_expect_or_return(n4buf);
+
+    rv = ogs_pfcp_xact_update_tx(xact, &h, n4buf);
+    ogs_expect_or_return(rv == OGS_OK);
+
+    rv = ogs_pfcp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+}
+

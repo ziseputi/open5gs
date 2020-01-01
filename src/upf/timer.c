@@ -22,7 +22,7 @@
 #include "context.h"
 
 static upf_timer_cfg_t g_upf_timer_cfg[MAX_NUM_OF_UPF_TIMER] = {
-    [UPF_TIMER_CONNECT_TO_SMF] =
+    [UPF_TIMER_ASSOCIATION] =
         { .duration = ogs_time_from_sec(12) },
     [UPF_TIMER_HEARTBEAT] =
         { .duration = ogs_time_from_sec(5) },
@@ -37,8 +37,8 @@ upf_timer_cfg_t *upf_timer_cfg(upf_timer_e id)
 const char *upf_timer_get_name(upf_timer_e id)
 {
     switch (id) {
-    case UPF_TIMER_CONNECT_TO_SMF:
-        return "UPF_TIMER_CONNECT_TO_SMF";
+    case UPF_TIMER_ASSOCIATION:
+        return "UPF_TIMER_ASSOCIATION";
     case UPF_TIMER_HEARTBEAT:
         return "UPF_TIMER_HEARTBEAT";
     default: 
@@ -65,9 +65,9 @@ static void timer_send_event(int timer_id, void *data)
     }
 }
 
-void upf_timer_connect_to_upf(void *data)
+void upf_timer_association(void *data)
 {
-    timer_send_event(UPF_TIMER_CONNECT_TO_SMF, data);
+    timer_send_event(UPF_TIMER_ASSOCIATION, data);
 }
 
 void upf_timer_heartbeat(void *data)

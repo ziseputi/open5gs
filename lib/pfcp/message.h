@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2019-12-29 16:07:34.147074 by acetcom
+ * Created on: 2020-01-01 20:22:36.355487 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -44,7 +44,7 @@ typedef struct ogs_pfcp_header_s {
         ED4(uint8_t version:3;,
             uint8_t spare1:3;,
             uint8_t mp:1;,
-            uint8_t seid_p:1;)
+            uint8_t seid_presence:1;)
         };
         uint8_t flags;
     };

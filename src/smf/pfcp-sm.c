@@ -103,7 +103,7 @@ void smf_pfcp_state_will_associate(ogs_fsm_t *s, smf_event_t *e)
             pnode = e->pnode;
             ogs_assert(pnode);
 
-            ogs_warn("Connect to UPF [%s]:%d failed",
+            ogs_warn("Associate to Peer [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             ogs_timer_start(pnode->t_association,
@@ -183,7 +183,7 @@ void smf_pfcp_state_associated(ogs_fsm_t *s, smf_event_t *e)
         xact = e->pfcp_xact;
         ogs_assert(xact);
 
-        if (message->h.seid_p)
+        if (message->h.seid_presence && message->h.seid != 0)
             sess = smf_sess_find_by_seid(message->h.seid);
 
         switch (message->h.type) {
@@ -265,7 +265,7 @@ void smf_pfcp_state_associated(ogs_fsm_t *s, smf_event_t *e)
         }
         break;
     case SMF_EVT_N4_NO_HEARTBEAT:
-        ogs_warn("No heartbeat from UPF [%s]:%d",
+        ogs_warn("No Heartbeat from UPF [%s]:%d",
                     OGS_ADDR(addr, buf), OGS_PORT(addr));
         OGS_FSM_TRAN(s, smf_pfcp_state_will_associate);
         break;

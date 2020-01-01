@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2019-12-29 16:07:34.157834 by acetcom
+ * Created on: 2020-01-01 20:22:36.404512 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -2782,7 +2782,7 @@ int ogs_pfcp_parse_msg(ogs_pfcp_message_t *pfcp_message, ogs_pkbuf_t *pkbuf)
     
     memset(pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
-    if (h->seid_p)
+    if (h->seid_presence)
         size = OGS_PFCP_HEADER_LEN;
     else
         size = OGS_PFCP_HEADER_LEN-OGS_PFCP_SEID_LEN;
@@ -2790,7 +2790,7 @@ int ogs_pfcp_parse_msg(ogs_pfcp_message_t *pfcp_message, ogs_pkbuf_t *pkbuf)
     ogs_assert(ogs_pkbuf_pull(pkbuf, size));
     memcpy(&pfcp_message->h, pkbuf->data - size, size);
 
-    if (h->seid_p) {
+    if (h->seid_presence) {
         pfcp_message->h.seid = be64toh(pfcp_message->h.seid);
     } else {
         pfcp_message->h.sqn = pfcp_message->h.sqn_only;

@@ -95,7 +95,7 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
             addr = pnode->sa_list;
             ogs_assert(addr);
 
-            ogs_warn("Connect to SMF [%s]:%d failed",
+            ogs_warn("Associate to Peer [%s]:%d failed",
                         OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             ogs_timer_start(pnode->t_association,
@@ -171,7 +171,7 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
         xact = e->pfcp_xact;
         ogs_assert(xact);
 
-        if (message->h.seid_p)
+        if (message->h.seid_presence && message->h.seid != 0)
             sess = upf_sess_find_by_seid(message->h.seid);
 
         switch (message->h.type) {

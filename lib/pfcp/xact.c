@@ -256,11 +256,11 @@ int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
     h->type = hdesc->type;
 
     if (h->type >= OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE) {
-        h->seid_p = 1;
+        h->seid_presence = 1;
         h->seid = htobe64(hdesc->seid);
         h->sqn = OGS_PFCP_XID_TO_SQN(xact->xid);
     } else {
-        h->seid_p = 0;
+        h->seid_presence = 0;
         h->sqn_only = OGS_PFCP_XID_TO_SQN(xact->xid);
     }
     h->length = htobe16(pkbuf->len - 4);

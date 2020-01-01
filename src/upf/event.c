@@ -85,6 +85,8 @@ const char *upf_event_get_name(upf_event_t *e)
         return "UPF_EVT_N4_MESSAGE";
     case UPF_EVT_N4_TIMER:
         return "UPF_EVT_N4_TIMER";
+    case UPF_EVT_N4_NO_HEARTBEAT:
+        return "UPF_EVT_N4_NO_HEARTBEAT";
 
     default: 
        break;

@@ -117,6 +117,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
         ogs_pkbuf_free(recvbuf);
         break;
     case UPF_EVT_N4_TIMER:
+    case UPF_EVT_N4_NO_HEARTBEAT:
         pnode = e->pnode;
         ogs_assert(pnode);
         ogs_assert(OGS_FSM_STATE(&pnode->sm));

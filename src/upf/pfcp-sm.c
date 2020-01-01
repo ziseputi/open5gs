@@ -45,6 +45,9 @@ void upf_pfcp_state_initial(ogs_fsm_t *s, upf_event_t *e)
     pnode->t_association = ogs_timer_add(upf_self()->timer_mgr,
             upf_timer_association, pnode);
     ogs_assert(pnode->t_association);
+    pnode->t_heartbeat = ogs_timer_add(upf_self()->timer_mgr,
+            upf_timer_heartbeat, pnode);
+    ogs_assert(pnode->t_heartbeat);
 
     OGS_FSM_TRAN(s, &upf_pfcp_state_will_associate);
 }
@@ -61,6 +64,7 @@ void upf_pfcp_state_final(ogs_fsm_t *s, upf_event_t *e)
     ogs_assert(pnode);
 
     ogs_timer_delete(pnode->t_association);
+    ogs_timer_delete(pnode->t_heartbeat);
 }
 
 void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
@@ -140,9 +144,13 @@ void upf_pfcp_state_will_associate(ogs_fsm_t *s, upf_event_t *e)
 
 void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
 {
+    char buf[OGS_ADDRSTRLEN];
+
     ogs_pfcp_node_t *pnode = NULL;
     ogs_pfcp_xact_t *xact = NULL;
     ogs_pfcp_message_t *message = NULL;
+
+    ogs_sockaddr_t *addr = NULL;
     upf_sess_t *sess = NULL;
 
     ogs_assert(s);
@@ -152,15 +160,18 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
 
     pnode = e->pnode;
     ogs_assert(pnode);
+    addr = pnode->sa_list;
+    ogs_assert(addr);
 
     switch (e->id) {
     case OGS_FSM_ENTRY_SIG:
         ogs_info("PFCP associated");
+        ogs_timer_start(pnode->t_heartbeat,
+                upf_timer_cfg(UPF_TIMER_HEARTBEAT)->duration);
         break;
     case OGS_FSM_EXIT_SIG:
         ogs_info("PFCP de-associated");
-        break;
-    case UPF_EVT_N4_TIMER:
+        ogs_timer_stop(pnode->t_heartbeat);
         break;
     case UPF_EVT_N4_MESSAGE:
         message = e->pfcp_message;
@@ -176,8 +187,12 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
 
         switch (message->h.type) {
         case OGS_PFCP_HEARTBEAT_REQUEST_TYPE:
+            upf_n4_handle_heartbeat_request(pnode, xact,
+                    &message->pfcp_heartbeat_request);
             break;
         case OGS_PFCP_HEARTBEAT_RESPONSE_TYPE:
+            upf_n4_handle_heartbeat_response(pnode, xact,
+                    &message->pfcp_heartbeat_response);
             break;
         case OGS_PFCP_PFD_MANAGEMENT_REQUEST_TYPE:
             break;
@@ -233,6 +248,25 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
             break;
         }
 
+        break;
+    case UPF_EVT_N4_TIMER:
+        switch(e->timer_id) {
+        case UPF_TIMER_HEARTBEAT:
+            pnode = e->pnode;
+            ogs_assert(pnode);
+
+            upf_pfcp_send_heartbeat_request(pnode);
+            break;
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    upf_timer_get_name(e->timer_id), e->timer_id);
+            break;
+        }
+        break;
+    case UPF_EVT_N4_NO_HEARTBEAT:
+        ogs_warn("No Heartbeat from UPF [%s]:%d",
+                    OGS_ADDR(addr, buf), OGS_PORT(addr));
+        OGS_FSM_TRAN(s, upf_pfcp_state_will_associate);
         break;
     default:
         ogs_error("Unknown event %s", upf_event_get_name(e));

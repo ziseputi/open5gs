@@ -37,6 +37,7 @@ typedef enum {
 
     UPF_EVT_N4_MESSAGE,
     UPF_EVT_N4_TIMER,
+    UPF_EVT_N4_NO_HEARTBEAT,
 
     UPF_EVT_TOP,
 

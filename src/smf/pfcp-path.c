@@ -129,6 +129,30 @@ void smf_pfcp_close(void)
 
 static void timeout(ogs_pfcp_xact_t *xact, void *data)
 {
+    int rv;
+
+    smf_event_t *e = NULL;
+    uint8_t type;
+
+    ogs_assert(xact);
+    type = xact->seq[0].type;
+
+    switch (type) {
+    case OGS_PFCP_HEARTBEAT_REQUEST_TYPE:
+        ogs_assert(data);
+
+        e = smf_event_new(SMF_EVT_N4_LO_DEASSOCIATED);
+        e->pnode = data;
+
+        rv = ogs_queue_push(smf_self()->queue, e);
+        if (rv != OGS_OK) {
+            ogs_warn("ogs_queue_push() failed:%d", (int)rv);
+            smf_event_free(e);
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 void smf_pfcp_send_association_setup_request(ogs_pfcp_node_t *pnode)

@@ -42,6 +42,7 @@ typedef enum {
 
     SMF_EVT_N4_MESSAGE,
     SMF_EVT_N4_TIMER,
+    SMF_EVT_N4_LO_DEASSOCIATED,
 
     SMF_EVT_TOP,
 

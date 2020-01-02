@@ -26,8 +26,7 @@ static int16_t smf_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco);
 
 ogs_pkbuf_t *smf_s5c_build_create_session_response(
         uint8_t type, smf_sess_t *sess,
-        ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_create_session_request_t *req)
+        ogs_diam_gx_message_t *gx_message)
 {
     int rv;
     smf_bearer_t *bearer = NULL;
@@ -44,7 +43,6 @@ ogs_pkbuf_t *smf_s5c_build_create_session_response(
     ogs_debug("[SMF] Create Session Response");
 
     ogs_assert(sess);
-    ogs_assert(req);
     bearer = smf_default_bearer_in_sess(sess);
     ogs_assert(bearer);
 
@@ -97,8 +95,8 @@ ogs_pkbuf_t *smf_s5c_build_create_session_response(
      * if PCRF changes APN-AMBR, this should be included. */
 
     /* PCO */
-    if (req->protocol_configuration_options.presence == 1) {
-        pco_len = smf_pco_build(pco_buf, &req->protocol_configuration_options);
+    if (sess->ue_pco.presence && sess->ue_pco.len && sess->ue_pco.data) {
+        pco_len = smf_pco_build(pco_buf, &sess->ue_pco);
         ogs_assert(pco_len > 0);
         rsp->protocol_configuration_options.presence = 1;
         rsp->protocol_configuration_options.data = pco_buf;
@@ -136,8 +134,8 @@ ogs_pkbuf_t *smf_s5c_build_create_session_response(
 }
 
 ogs_pkbuf_t *smf_s5c_build_delete_session_response(
-        uint8_t type, ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_delete_session_request_t *req)
+        uint8_t type, smf_sess_t *sess,
+        ogs_diam_gx_message_t *gx_message)
 {
     ogs_gtp_message_t gtp_message;
     ogs_gtp_delete_session_response_t *rsp = NULL;
@@ -147,7 +145,6 @@ ogs_pkbuf_t *smf_s5c_build_delete_session_response(
     int16_t pco_len;
     
     ogs_assert(gx_message);
-    ogs_assert(req);
 
     /* prepare cause */
     memset(&cause, 0, sizeof(cause));
@@ -164,8 +161,8 @@ ogs_pkbuf_t *smf_s5c_build_delete_session_response(
     /* Recovery */
 
     /* PCO */
-    if (req->protocol_configuration_options.presence == 1) {
-        pco_len = smf_pco_build(pco_buf, &req->protocol_configuration_options);
+    if (sess->ue_pco.presence && sess->ue_pco.len && sess->ue_pco.data) {
+        pco_len = smf_pco_build(pco_buf, &sess->ue_pco);
         ogs_assert(pco_len > 0);
         rsp->protocol_configuration_options.presence = 1;
         rsp->protocol_configuration_options.data = pco_buf;

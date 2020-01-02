@@ -131,14 +131,10 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
                 if (sess)
                     OGS_SETUP_GTP_NODE(sess, gnode);
             }
-            OGS_MEM_STORE(sess->create_session_request,
-                    &gtp_message.create_session_request);
             pgw_s5c_handle_create_session_request(
                 sess, xact, &gtp_message.create_session_request);
             break;
         case OGS_GTP_DELETE_SESSION_REQUEST_TYPE:
-            OGS_MEM_STORE(sess->delete_session_request,
-                    &gtp_message.delete_session_request);
             pgw_s5c_handle_delete_session_request(
                 sess, xact, &gtp_message.delete_session_request);
             break;

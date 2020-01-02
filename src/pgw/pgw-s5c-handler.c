@@ -147,6 +147,15 @@ void pgw_s5c_handle_create_session_request(
         sess->pdn.ambr.downlink = be32toh(ambr->downlink) * 1000;
         sess->pdn.ambr.uplink = be32toh(ambr->uplink) * 1000;
     }
+
+    /* PCO */
+    if (req->protocol_configuration_options.presence) {
+        OGS_TLV_STORE_DATA(&sess->ue_pco, &req->protocol_configuration_options);
+    }
+
+    if (req->ue_time_zone.presence) {
+        OGS_TLV_STORE_DATA(&sess->ue_timezone, &req->ue_time_zone);
+    }
     
     /* Set User Location Information */
     decoded = ogs_gtp_parse_uli(&uli, &req->user_location_information);

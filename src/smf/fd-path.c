@@ -404,12 +404,12 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
         }
 
         /* Set 3GPP-MS-Timezone */
-        ogs_assert(sess->create_session_request);
-        if (sess->create_session_request->ue_time_zone.presence) {
+        if (sess->ue_timezone.presence &&
+                sess->ue_timezone.len && sess->ue_timezone.data) {
             ret = fd_msg_avp_new(ogs_diam_gx_3gpp_ms_timezone, 0, &avp);
             ogs_assert(ret == 0);
-            val.os.data = sess->create_session_request->ue_time_zone.data;
-            val.os.len = sess->create_session_request->ue_time_zone.len;
+            val.os.data = sess->ue_timezone.data;
+            val.os.len = sess->ue_timezone.len;
             ret = fd_msg_avp_setvalue(avp, &val);
             ogs_assert(ret == 0);
             ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);

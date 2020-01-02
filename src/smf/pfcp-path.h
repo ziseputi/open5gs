@@ -35,6 +35,8 @@ void smf_pfcp_send_association_setup_response(ogs_pfcp_xact_t *xact,
 void smf_pfcp_send_heartbeat_request(ogs_pfcp_node_t *pnode);
 void smf_pfcp_send_heartbeat_response(ogs_pfcp_xact_t *xact);
 
+void smf_pfcp_send_session_establishment_request(smf_sess_t *sess);
+
 #ifdef __cplusplus
 }
 #endif

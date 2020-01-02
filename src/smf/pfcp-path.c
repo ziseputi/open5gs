@@ -246,3 +246,26 @@ void smf_pfcp_send_heartbeat_response(ogs_pfcp_xact_t *xact)
     ogs_expect(rv == OGS_OK);
 }
 
+void smf_pfcp_send_session_establishment_request(smf_sess_t *sess)
+{
+    int rv;
+    ogs_pkbuf_t *n4buf = NULL;
+    ogs_pfcp_header_t h;
+    ogs_pfcp_xact_t *xact = NULL;
+
+    ogs_assert(sess);
+
+    memset(&h, 0, sizeof(ogs_pfcp_header_t));
+    h.type = OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE;
+    h.seid = sess->upf_n4_seid;
+
+    n4buf = smf_n4_build_session_establishment_request(h.type, sess);
+    ogs_expect_or_return(n4buf);
+
+    xact = ogs_pfcp_xact_local_create(
+            sess->pnode, &h, n4buf, timeout, sess->pnode);
+    ogs_expect_or_return(xact);
+
+    rv = ogs_pfcp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+}

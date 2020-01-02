@@ -32,6 +32,9 @@ ogs_pkbuf_t *smf_n4_build_association_setup_response(uint8_t type,
 ogs_pkbuf_t *smf_n4_build_heartbeat_request(uint8_t type);
 ogs_pkbuf_t *smf_n4_build_heartbeat_response(uint8_t type);
 
+ogs_pkbuf_t *smf_n4_build_session_establishment_request(
+        uint8_t type, smf_sess_t *sess);
+
 #ifdef __cplusplus
 }
 #endif

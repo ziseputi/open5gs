@@ -108,13 +108,28 @@ ogs_pkbuf_t *smf_n4_build_heartbeat_response(uint8_t type)
     ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_heartbeat_response_t *rsp = NULL;
 
-    ogs_debug("[SMF] Heartbeat Request");
+    ogs_debug("[SMF] Heartbeat Response");
 
     rsp = &pfcp_message.pfcp_heartbeat_response;
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     rsp->recovery_time_stamp.presence = 1;
     rsp->recovery_time_stamp.u32 = smf_self()->pfcp_started;
+
+    pfcp_message.h.type = type;
+    return ogs_pfcp_build_msg(&pfcp_message);
+}
+
+ogs_pkbuf_t *smf_n4_build_session_establishment_request(
+        uint8_t type, smf_sess_t *sess)
+{
+    ogs_pfcp_message_t pfcp_message;
+    ogs_pfcp_session_establishment_request_t *req = NULL;
+
+    ogs_debug("[SMF] Session Establishment Request");
+
+    req = &pfcp_message.pfcp_session_establishment_request;
+    memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);

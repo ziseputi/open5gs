@@ -107,6 +107,7 @@ void smf_s5c_handle_create_session_request(
     ogs_debug("    SGW_S5U_TEID[%d] SMF_S5U_TEID[%d]",
             bearer->sgw_s5u_teid, bearer->smf_s5u_teid);
 
+#if 0
     sgw = ogs_gtp_node_find_by_f_teid(&smf_self()->sgw_s5u_list, sgw_s5u_teid);
     if (!sgw) {
         sgw = ogs_gtp_node_add_by_f_teid(
@@ -122,6 +123,7 @@ void smf_s5c_handle_create_session_request(
     }
     /* Setup GTP Node */
     OGS_SETUP_GTP_NODE(bearer, sgw);
+#endif
 
     decoded = ogs_gtp_parse_bearer_qos(&bearer_qos,
         &req->bearer_contexts_to_be_created.bearer_level_qos);
@@ -229,6 +231,7 @@ void smf_s5c_handle_create_bearer_response(
     bearer->ebi = req->bearer_contexts.eps_bearer_id.u8;
 
     /* Data Plane(DL) : SGW-S5U */
+#if 0
     sgw_s5u_teid = req->bearer_contexts.s5_s8_u_sgw_f_teid.data;
     bearer->sgw_s5u_teid = be32toh(sgw_s5u_teid->teid);
     sgw = ogs_gtp_node_find_by_f_teid(&smf_self()->sgw_s5u_list, sgw_s5u_teid);
@@ -245,6 +248,7 @@ void smf_s5c_handle_create_bearer_response(
     }
     /* Setup GTP Node */
     OGS_SETUP_GTP_NODE(bearer, sgw);
+#endif
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);

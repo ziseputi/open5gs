@@ -48,7 +48,6 @@ typedef struct smf_context_s {
     ogs_diam_config_t   *diam_config;     /* SMF Diameter config */
 
     uint32_t        gtpc_port;      /* Default: SMF GTP-C local port */
-    uint32_t        gtpu_port;      /* Default: SMF GTP-U local port */
     uint32_t        pfcp_port;      /* Default: SMF GTP-U local port */
     const char      *tun_ifname;    /* Default: ogstun */
 
@@ -58,13 +57,6 @@ typedef struct smf_context_s {
     ogs_sock_t      *gtpc_sock6;    /* SMF GTPC IPv6 Socket */
     ogs_sockaddr_t  *gtpc_addr;     /* SMF GTPC IPv4 Address */
     ogs_sockaddr_t  *gtpc_addr6;    /* SMF GTPC IPv6 Address */
-
-    ogs_list_t      gtpu_list;      /* SMF GTPU IPv4 Server List */
-    ogs_list_t      gtpu_list6;     /* SMF GTPU IPv6 Server List */
-    ogs_sock_t      *gtpu_sock;     /* SMF GTPU IPv4 Socket */
-    ogs_sock_t      *gtpu_sock6;    /* SMF GTPU IPv6 Socket */
-    ogs_sockaddr_t  *gtpu_addr;     /* SMF GTPU IPv4 Address */
-    ogs_sockaddr_t  *gtpu_addr6;    /* SMF GTPU IPv6 Address */
 
     ogs_list_t      pfcp_list;      /* SMF PFCP IPv4 Server List */
     ogs_list_t      pfcp_list6;     /* SMF PFCP IPv6 Server List */

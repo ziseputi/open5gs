@@ -134,6 +134,8 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 if (sess)
                     OGS_SETUP_GTP_NODE(sess, gnode);
             }
+            OGS_MEM_STORE(sess->create_session_request,
+                    &gtp_message.create_session_request);
             smf_s5c_handle_create_session_request(
                 sess, gtp_xact, &gtp_message.create_session_request);
             break;

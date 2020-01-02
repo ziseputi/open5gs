@@ -40,6 +40,7 @@ example_conf = '''
     csfb.yaml
     volte.yaml
     srslte.yaml
+    cups.yaml
 '''.split()
 
 foreach file : example_conf

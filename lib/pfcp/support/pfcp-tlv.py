@@ -407,9 +407,22 @@ for key in msg_list.keys():
             f.close()
 
 type_list["Cause"]["size"] = 1                              # Type 19
+type_list["Source Interface"]["size"] = 1                   # Type 20
+type_list["Gate Status"]["size"] = 1                        # Type 25
+type_list["QER Correlation ID"]["size"] = 4                 # Type 28
+type_list["Precedence"]["size"] = 4                         # Type 29
+type_list["Reporting Triggers"]["size"] = 1                 # Type 37
+type_list["Destination Interface"]["size"] = 1              # Type 42
 type_list["UP Function Features"]["size"] = 2               # Type 43
+type_list["Apply Action"]["size"] = 1                       # Type 44
+type_list["PDR ID"]["size"] = 2                             # Type 56
+type_list["Measurement Method"]["size"] = 1                 # Type 62
+type_list["URR ID"]["size"] = 4                             # Type 81
+type_list["BAR ID"]["size"] = 1                             # Type 88
 type_list["CP Function Features"]["size"] = 1               # Type 89
 type_list["Recovery Time Stamp"]["size"] = 4                # Type 96
+type_list["FAR ID"]["size"] = 4                             # Type 108
+type_list["QER ID"]["size"] = 4                             # Type 109
 
 f = open(outdir + 'message.h', 'w')
 output_header_to_file(f)

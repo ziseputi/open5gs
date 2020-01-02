@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-01 20:22:36.355487 by acetcom
+ * Created on: 2020-01-02 20:57:58.203455 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -485,16 +485,16 @@ extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcp_session_report_response;
 
 /* Structure for Infomration Element */
 typedef ogs_tlv_uint8_t ogs_pfcp_tlv_cause_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_source_interface_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_source_interface_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_f_teid_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_network_instance_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_sdf_filter_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_application_id_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_gate_status_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_gate_status_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_mbr_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_gbr_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_qer_correlation_id_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_precedence_t;
+typedef ogs_tlv_uint32_t ogs_pfcp_tlv_qer_correlation_id_t;
+typedef ogs_tlv_uint32_t ogs_pfcp_tlv_precedence_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_transport_level_marking_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_volume_threshold_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_time_threshold_t;
@@ -502,14 +502,14 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_monitoring_time_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_subsequent_volume_threshold_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_subsequent_time_threshold_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_inactivity_detection_time_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_reporting_triggers_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_reporting_triggers_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_redirect_information_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_report_type_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_offending_ie_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_forwarding_policy_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_destination_interface_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_destination_interface_t;
 typedef ogs_tlv_uint16_t ogs_pfcp_tlv_up_function_features_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_apply_action_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_apply_action_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_downlink_data_service_information_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_downlink_data_notification_delay_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_dl_buffering_duration_t;
@@ -519,11 +519,11 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfcpsrrsp_flags_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_sequence_number_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_metric_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_timer_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_pdr_id_t;
+typedef ogs_tlv_uint16_t ogs_pfcp_tlv_pdr_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_f_seid_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_node_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfd_contents_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_measurement_method_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_measurement_method_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_usage_report_trigger_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_measurement_period_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_fq_csid_t;
@@ -537,10 +537,10 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_volume_quota_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_time_quota_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_start_time_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_end_time_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_urr_id_t;
+typedef ogs_tlv_uint32_t ogs_pfcp_tlv_urr_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_linked_urr_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_outer_header_creation_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_bar_id_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_bar_id_t;
 typedef ogs_tlv_uint8_t ogs_pfcp_tlv_cp_function_features_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_usage_information_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_application_instance_id_t;
@@ -557,8 +557,8 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_remote_gtp_u_peer_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_ur_seqn_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_activate_predefined_rules_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_deactivate_predefined_rules_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_far_id_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_qer_id_t;
+typedef ogs_tlv_uint32_t ogs_pfcp_tlv_far_id_t;
+typedef ogs_tlv_uint32_t ogs_pfcp_tlv_qer_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_oci_flags_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfcp_association_release_request_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_graceful_release_period_t;

@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-01 20:22:36.404512 by acetcom
+ * Created on: 2020-01-02 20:57:58.233641 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -39,10 +39,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_cause_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_source_interface_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "Source Interface",
     OGS_PFCP_SOURCE_INTERFACE_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_source_interface_t),
     { NULL }
@@ -94,10 +94,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_application_id_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_gate_status_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "Gate Status",
     OGS_PFCP_GATE_STATUS_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_gate_status_t),
     { NULL }
@@ -127,10 +127,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_gbr_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_qer_correlation_id_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT32,
     "QER Correlation ID",
     OGS_PFCP_QER_CORRELATION_ID_TYPE,
-    0,
+    4,
     0,
     sizeof(ogs_pfcp_tlv_qer_correlation_id_t),
     { NULL }
@@ -138,10 +138,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_qer_correlation_id_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_precedence_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT32,
     "Precedence",
     OGS_PFCP_PRECEDENCE_TYPE,
-    0,
+    4,
     0,
     sizeof(ogs_pfcp_tlv_precedence_t),
     { NULL }
@@ -226,10 +226,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_inactivity_detection_time_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_reporting_triggers_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "Reporting Triggers",
     OGS_PFCP_REPORTING_TRIGGERS_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_reporting_triggers_t),
     { NULL }
@@ -281,10 +281,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_forwarding_policy_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_destination_interface_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "Destination Interface",
     OGS_PFCP_DESTINATION_INTERFACE_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_destination_interface_t),
     { NULL }
@@ -303,10 +303,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_up_function_features_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_apply_action_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "Apply Action",
     OGS_PFCP_APPLY_ACTION_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_apply_action_t),
     { NULL }
@@ -413,10 +413,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_timer_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_pdr_id_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT16,
     "PDR ID",
     OGS_PFCP_PDR_ID_TYPE,
-    0,
+    2,
     0,
     sizeof(ogs_pfcp_tlv_pdr_id_t),
     { NULL }
@@ -457,10 +457,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfd_contents_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_measurement_method_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "Measurement Method",
     OGS_PFCP_MEASUREMENT_METHOD_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_measurement_method_t),
     { NULL }
@@ -611,10 +611,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_end_time_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_urr_id_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT32,
     "URR ID",
     OGS_PFCP_URR_ID_TYPE,
-    0,
+    4,
     0,
     sizeof(ogs_pfcp_tlv_urr_id_t),
     { NULL }
@@ -644,10 +644,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_outer_header_creation_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_bar_id_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "BAR ID",
     OGS_PFCP_BAR_ID_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_bar_id_t),
     { NULL }
@@ -831,10 +831,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_deactivate_predefined_rules_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_far_id_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT32,
     "FAR ID",
     OGS_PFCP_FAR_ID_TYPE,
-    0,
+    4,
     0,
     sizeof(ogs_pfcp_tlv_far_id_t),
     { NULL }
@@ -842,10 +842,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_far_id_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_qer_id_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT32,
     "QER ID",
     OGS_PFCP_QER_ID_TYPE,
-    0,
+    4,
     0,
     sizeof(ogs_pfcp_tlv_qer_id_t),
     { NULL }

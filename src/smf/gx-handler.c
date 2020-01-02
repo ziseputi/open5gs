@@ -20,6 +20,7 @@
 #include "context.h"
 #include "gtp-path.h"
 #include "s5c-build.h"
+#include "pfcp-path.h"
 #include "gx-handler.h"
 #include "ipfw.h"
 
@@ -54,6 +55,8 @@ void smf_gx_handle_cca_initial_request(
     ogs_assert(gx_message);
     ogs_assert(xact);
 
+    smf_pfcp_send_session_establishment_request(sess);
+#if 0
     /* Send Create Session Request with Creating Default Bearer */
     memset(&h, 0, sizeof(ogs_gtp_header_t));
     h.type = OGS_GTP_CREATE_SESSION_RESPONSE_TYPE;
@@ -70,6 +73,7 @@ void smf_gx_handle_cca_initial_request(
     ogs_expect(rv == OGS_OK);
 
     bearer_binding(sess, gx_message);
+#endif
 }
 
 void smf_gx_handle_cca_termination_request(
@@ -92,6 +96,7 @@ void smf_gx_handle_cca_termination_request(
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_S5C_TEID[0x%x]",
             sess->sgw_s5c_teid, sess->smf_s5c_teid);
 
+#if 0
     /* Remove a smf session */
     smf_sess_remove(sess);
 
@@ -108,6 +113,7 @@ void smf_gx_handle_cca_termination_request(
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
+#endif
 }
 
 void smf_gx_handle_re_auth_request(

@@ -126,10 +126,30 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_session_establishment_request_t *req = NULL;
 
+    ogs_pfcp_node_id_t node_id;
+    int node_id_len = 0;
+    ogs_pfcp_f_seid_t f_seid;
+    int f_seid_len = 0;
+
     ogs_debug("[SMF] Session Establishment Request");
 
     req = &pfcp_message.pfcp_session_establishment_request;
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
+
+    ogs_pfcp_sockaddr_to_node_id(
+            smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
+            ogs_config()->parameter.prefer_ipv4,
+            &node_id, &node_id_len);
+    req->node_id.presence = 1;
+    req->node_id.data = &node_id;
+    req->node_id.len = node_id_len;
+
+    ogs_pfcp_sockaddr_to_f_seid(
+            smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
+            &f_seid, &f_seid_len);
+    req->cp_f_seid.presence = 1;
+    req->cp_f_seid.data = &f_seid;
+    req->cp_f_seid.len = f_seid_len;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);

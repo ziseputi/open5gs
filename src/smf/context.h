@@ -173,6 +173,10 @@ typedef struct smf_sess_s {
 
     ogs_list_t      bearer_list;
 
+    /* PDR ID Generator(1~MAX_NUM_OF_PDR) */
+    uint8_t         pdr_id;
+    ogs_list_t      pdr_list;
+
     /* Related Context */
     ogs_gtp_node_t  *gnode;
     ogs_pfcp_node_t *pnode;
@@ -198,6 +202,50 @@ typedef struct smf_bearer_s {
     smf_sess_t      *sess;
     ogs_gtp_node_t  *gnode;
 } smf_bearer_t;
+
+typedef struct smf_pdr_s {
+    ogs_lnode_t     lnode;
+
+    uint16_t        id;
+
+    /* FAR ID Generator(1~MAX_NUM_OF_FAR) */
+    uint8_t         far_id;
+    ogs_list_t      far_list;
+
+    /* URR ID Generator(1~MAX_NUM_OF_URR) */
+    uint8_t         urr_id;
+    ogs_list_t      urr_list;
+
+    /* QER ID Generator(1~MAX_NUM_OF_QER) */
+    uint8_t         qer_id;
+    ogs_list_t      qer_list;
+
+    smf_sess_t      *sess;
+} smf_pdr_t;
+
+typedef struct smf_far_s {
+    ogs_lnode_t     lnode;
+
+    uint16_t        id;
+
+    smf_pdr_t       *pdr;
+} smf_far_t;
+
+typedef struct smf_urr_s {
+    ogs_lnode_t     lnode;
+
+    uint16_t        id;
+
+    smf_pdr_t       *pdr;
+} smf_urr_t;
+
+typedef struct smf_qer_s {
+    ogs_lnode_t     lnode;
+
+    uint16_t        id;
+
+    smf_pdr_t       *pdr;
+} smf_qer_t;
 
 typedef struct smf_rule_s {
     uint8_t proto;
@@ -273,6 +321,11 @@ smf_bearer_t *smf_bearer_find_by_qci_arp(smf_sess_t *sess,
 smf_bearer_t *smf_default_bearer_in_sess(smf_sess_t *sess);
 smf_bearer_t *smf_bearer_first(smf_sess_t *sess);
 smf_bearer_t *smf_bearer_next(smf_bearer_t *bearer);
+
+smf_pdr_t *smf_pdr_add(smf_sess_t *sess);
+int smf_pdr_remove(smf_pdr_t *pdr);
+void smf_pdr_remove_all(smf_sess_t *sess);
+smf_pdr_t *smf_pdr_find_by_id(smf_sess_t *sess, uint8_t id);
 
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer, uint32_t precedence);
 int smf_pf_remove(smf_pf_t *pf);

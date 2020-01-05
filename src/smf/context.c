@@ -19,6 +19,11 @@
 
 #include "context.h"
 
+#define MAX_NUM_OF_PDR        4
+#define MAX_NUM_OF_FAR        1
+#define MAX_NUM_OF_URR        1
+#define MAX_NUM_OF_QER        1
+
 static smf_context_t self;
 static ogs_diam_config_t g_diam_conf;
 
@@ -29,6 +34,11 @@ static OGS_POOL(smf_subnet_pool, smf_subnet_t);
 
 static OGS_POOL(smf_sess_pool, smf_sess_t);
 static OGS_POOL(smf_bearer_pool, smf_bearer_t);
+
+static OGS_POOL(smf_pdr_pool, smf_pdr_t);
+static OGS_POOL(smf_far_pool, smf_far_t);
+static OGS_POOL(smf_urr_pool, smf_urr_t);
+static OGS_POOL(smf_qer_pool, smf_qer_t);
 
 static OGS_POOL(smf_pf_pool, smf_pf_t);
 
@@ -96,6 +106,11 @@ void smf_context_init(void)
     ogs_pool_init(&smf_sess_pool, ogs_config()->pool.sess);
     ogs_pool_init(&smf_bearer_pool, ogs_config()->pool.bearer);
 
+    ogs_pool_init(&smf_pdr_pool, ogs_config()->pool.sess*MAX_NUM_OF_PDR);
+    ogs_pool_init(&smf_far_pool, ogs_config()->pool.sess*MAX_NUM_OF_FAR);
+    ogs_pool_init(&smf_urr_pool, ogs_config()->pool.sess*MAX_NUM_OF_URR);
+    ogs_pool_init(&smf_qer_pool, ogs_config()->pool.sess*MAX_NUM_OF_QER);
+
     ogs_pool_init(&smf_pf_pool, ogs_config()->pool.pf);
 
     self.sess_hash = ogs_hash_make();
@@ -119,6 +134,12 @@ void smf_context_final(void)
 
     ogs_pool_final(&smf_bearer_pool);
     ogs_pool_final(&smf_sess_pool);
+
+    ogs_pool_final(&smf_pdr_pool);
+    ogs_pool_final(&smf_far_pool);
+    ogs_pool_final(&smf_urr_pool);
+    ogs_pool_final(&smf_qer_pool);
+
     ogs_pool_final(&smf_pf_pool);
 
     ogs_pool_final(&smf_dev_pool);
@@ -1298,6 +1319,55 @@ smf_bearer_t *smf_bearer_first(smf_sess_t *sess)
 smf_bearer_t *smf_bearer_next(smf_bearer_t *bearer)
 {
     return ogs_list_next(bearer);
+}
+
+smf_pdr_t *smf_pdr_add(smf_sess_t *sess)
+{
+    smf_pdr_t *pdr = NULL;
+
+    ogs_assert(sess);
+
+    ogs_pool_alloc(&smf_pdr_pool, &pdr);
+    ogs_assert(pdr);
+    memset(pdr, 0, sizeof *pdr);
+
+    pdr->id = OGS_NEXT_ID(sess->pdr_id, 1, MAX_NUM_OF_PDR+1);
+    pdr->sess = sess;
+
+    ogs_list_add(&sess->pdr_list, pdr);
+
+    return pdr;
+}
+
+int smf_pdr_remove(smf_pdr_t *pdr)
+{
+    ogs_assert(pdr);
+    ogs_assert(pdr->sess);
+
+    ogs_list_remove(&pdr->sess->pdr_list, pdr);
+    ogs_pool_free(&smf_pdr_pool, pdr);
+
+    return OGS_OK;
+}
+
+void smf_pdr_remove_all(smf_sess_t *sess)
+{
+    smf_pdr_t *pdr = NULL, *next_pdr = NULL;
+
+    ogs_assert(sess);
+    ogs_list_for_each_safe(&sess->pdr_list, next_pdr, pdr)
+        smf_pdr_remove(pdr);
+}
+
+smf_pdr_t *smf_pdr_find_by_id(smf_sess_t *sess, uint8_t id)
+{
+    smf_pdr_t *pdr = NULL;
+
+    ogs_list_for_each(&sess->pdr_list, pdr) {
+        if (pdr->id == id) return pdr;
+    }
+
+    return NULL;
 }
 
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer, uint32_t precedence)

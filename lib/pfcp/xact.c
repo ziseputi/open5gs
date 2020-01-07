@@ -106,7 +106,7 @@ ogs_pfcp_xact_t *ogs_pfcp_xact_local_create(ogs_pfcp_node_t *pnode,
 
     rv = ogs_pfcp_xact_update_tx(xact, hdesc, pkbuf);
     if (rv != OGS_OK) {
-        ogs_error("ogs_pfcp_xact_update_tx() failed");
+        ogs_error("ogs_pfcp_xact_update_tx(rv=%d) failed", (int)rv);
         ogs_pfcp_xact_delete(xact);
         return NULL;
     }
@@ -665,6 +665,8 @@ int ogs_pfcp_xact_receive(
     if (rv == OGS_ERROR) {
         ogs_error("ogs_pfcp_xact_update_rx() failed");
         ogs_pfcp_xact_delete(new);
+        return rv;
+    } else if (rv == OGS_RETRY) {
         return rv;
     }
 

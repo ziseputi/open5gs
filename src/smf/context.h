@@ -173,9 +173,20 @@ typedef struct smf_sess_s {
 
     ogs_list_t      bearer_list;
 
-    /* PDR ID Generator(1~MAX_NUM_OF_PDR) */
-    uint8_t         pdr_id;
-    ogs_list_t      pdr_list;
+    uint8_t         pdr_id;     /* ID Generator(1~MAX_NUM_OF_PDR) */
+    ogs_list_t      pdr_list;   /* PDR List */
+
+    /* FAR ID Generator(1~MAX_NUM_OF_FAR) */
+    uint8_t         far_id;     /* ID Generator(1~MAX_NUM_OF_FAR) */
+    ogs_list_t      far_list;   /* FAR List */
+
+    /* URR ID Generator(1~MAX_NUM_OF_URR) */
+    uint8_t         urr_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
+    ogs_list_t      urr_list;   /* URR List */
+
+    /* QER ID Generator(1~MAX_NUM_OF_QER) */
+    uint8_t         qer_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
+    ogs_list_t      qer_list;   /* QER List */
 
     /* Related Context */
     ogs_gtp_node_t  *gnode;
@@ -203,22 +214,18 @@ typedef struct smf_bearer_s {
     ogs_gtp_node_t  *gnode;
 } smf_bearer_t;
 
+typedef struct smf_far_s smf_far_t;
+typedef struct smf_urr_s smf_urr_t;
+typedef struct smf_qer_s smf_qer_t;
+
 typedef struct smf_pdr_s {
     ogs_lnode_t     lnode;
 
     uint16_t        id;
 
-    /* FAR ID Generator(1~MAX_NUM_OF_FAR) */
-    uint8_t         far_id;
-    ogs_list_t      far_list;
-
-    /* URR ID Generator(1~MAX_NUM_OF_URR) */
-    uint8_t         urr_id;
-    ogs_list_t      urr_list;
-
-    /* QER ID Generator(1~MAX_NUM_OF_QER) */
-    uint8_t         qer_id;
-    ogs_list_t      qer_list;
+    smf_far_t       *far;
+    smf_urr_t       *urr;
+    smf_qer_t       *qer;
 
     smf_sess_t      *sess;
 } smf_pdr_t;
@@ -229,6 +236,7 @@ typedef struct smf_far_s {
     uint16_t        id;
 
     smf_pdr_t       *pdr;
+    smf_sess_t      *sess;
 } smf_far_t;
 
 typedef struct smf_urr_s {
@@ -237,6 +245,7 @@ typedef struct smf_urr_s {
     uint16_t        id;
 
     smf_pdr_t       *pdr;
+    smf_sess_t      *sess;
 } smf_urr_t;
 
 typedef struct smf_qer_s {
@@ -245,6 +254,7 @@ typedef struct smf_qer_s {
     uint16_t        id;
 
     smf_pdr_t       *pdr;
+    smf_sess_t      *sess;
 } smf_qer_t;
 
 typedef struct smf_rule_s {
@@ -326,6 +336,11 @@ smf_pdr_t *smf_pdr_add(smf_sess_t *sess);
 int smf_pdr_remove(smf_pdr_t *pdr);
 void smf_pdr_remove_all(smf_sess_t *sess);
 smf_pdr_t *smf_pdr_find_by_id(smf_sess_t *sess, uint8_t id);
+
+smf_far_t *smf_far_add(smf_sess_t *sess);
+int smf_far_remove(smf_far_t *far);
+void smf_far_remove_all(smf_sess_t *sess);
+smf_far_t *smf_far_find_by_id(smf_sess_t *sess, uint8_t id);
 
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer, uint32_t precedence);
 int smf_pf_remove(smf_pf_t *pf);

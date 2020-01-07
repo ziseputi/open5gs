@@ -60,6 +60,8 @@ void smf_context_init(void)
     struct timeval tv;
     ogs_assert(context_initiaized == 0);
 
+    ogs_pfcp_context_init();
+
     /* Initial FreeDiameter Config */
     memset(&g_diam_conf, 0, sizeof(ogs_diam_config_t));
 
@@ -84,12 +86,10 @@ void smf_context_init(void)
     self.pfcp_started = tv.tv_sec + 2208988800;
 
     ogs_log_install_domain(&__ogs_gtp_domain, "gtp", ogs_core()->log.level);
-    ogs_log_install_domain(&__ogs_pfcp_domain, "pfcp", ogs_core()->log.level);
     ogs_log_install_domain(&__ogs_diam_domain, "diam", ogs_core()->log.level);
     ogs_log_install_domain(&__smf_log_domain, "smf", ogs_core()->log.level);
 
     ogs_gtp_node_init(512);
-    ogs_pfcp_node_init(512);
 
     ogs_list_init(&self.gtpc_list);
     ogs_list_init(&self.gtpc_list6);
@@ -151,7 +151,8 @@ void smf_context_final(void)
     ogs_pfcp_node_remove_all(&smf_self()->upf_n4_list);
 
     ogs_gtp_node_final();
-    ogs_pfcp_node_final();
+
+    ogs_pfcp_context_final();
 
     context_initiaized = 0;
 }

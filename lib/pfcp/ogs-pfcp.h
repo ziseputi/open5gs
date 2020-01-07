@@ -32,6 +32,7 @@
 #include "pfcp/node.h"
 #include "pfcp/path.h"
 #include "pfcp/xact.h"
+#include "pfcp/context.h"
 
 #ifdef __cplusplus
 extern "C" {

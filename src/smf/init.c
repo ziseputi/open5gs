@@ -32,6 +32,7 @@ int smf_initialize()
 {
     int rv;
 
+    ogs_pfcp_context_init();
     smf_context_init();
     smf_event_init();
 
@@ -39,6 +40,9 @@ int smf_initialize()
     if (rv != OGS_OK) return rv;
 
     rv = ogs_pfcp_xact_init(smf_self()->timer_mgr, 512);
+    if (rv != OGS_OK) return rv;
+
+    rv = ogs_pfcp_context_parse_config("smf", "upf");
     if (rv != OGS_OK) return rv;
 
     rv = smf_context_parse_config();
@@ -73,8 +77,7 @@ void smf_terminate(void)
     smf_fd_final();
 
     smf_context_final();
-
-    ogs_pfcp_xact_final();
+    ogs_pfcp_context_final();
 
     ogs_gtp_xact_final();
 

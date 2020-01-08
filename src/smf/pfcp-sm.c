@@ -39,7 +39,7 @@ void smf_pfcp_state_initial(ogs_fsm_t *s, smf_event_t *e)
     ogs_assert(pnode);
 
     rv = ogs_pfcp_connect(
-            smf_self()->pfcp_sock, smf_self()->pfcp_sock6, pnode);
+            ogs_pfcp_self()->pfcp_sock, ogs_pfcp_self()->pfcp_sock6, pnode);
     ogs_assert(rv == OGS_OK);
 
     pnode->t_association = ogs_timer_add(smf_self()->timer_mgr,

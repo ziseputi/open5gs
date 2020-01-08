@@ -452,3 +452,50 @@ ogs_pfcp_sess_t *ogs_pfcp_sess_find_by_seid(uint64_t seid)
 {
     return ogs_pfcp_sess_find(seid);
 }
+
+ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    ogs_assert(sess);
+
+    ogs_pool_alloc(&ogs_pfcp_pdr_pool, &pdr);
+    ogs_assert(pdr);
+    memset(pdr, 0, sizeof *pdr);
+
+    pdr->id = OGS_NEXT_ID(sess->pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
+    pdr->sess = sess;
+
+    ogs_list_add(&sess->pdr_list, pdr);
+
+    return pdr;
+}
+
+void ogs_pfcp_pdr_remove(ogs_pfcp_pdr_t *pdr)
+{
+    ogs_assert(pdr);
+    ogs_assert(pdr->sess);
+
+    ogs_list_remove(&pdr->sess->pdr_list, pdr);
+    ogs_pool_free(&ogs_pfcp_pdr_pool, pdr);
+}
+
+void ogs_pfcp_pdr_remove_all(ogs_pfcp_sess_t *sess)
+{
+    ogs_pfcp_pdr_t *pdr = NULL, *next_pdr = NULL;
+
+    ogs_assert(sess);
+    ogs_list_for_each_safe(&sess->pdr_list, next_pdr, pdr)
+        ogs_pfcp_pdr_remove(pdr);
+}
+
+ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_by_id(ogs_pfcp_sess_t *sess, uint8_t id)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    ogs_list_for_each(&sess->pdr_list, pdr) {
+        if (pdr->id == id) return pdr;
+    }
+
+    return NULL;
+}

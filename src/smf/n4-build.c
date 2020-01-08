@@ -34,7 +34,7 @@ ogs_pkbuf_t *smf_n4_build_association_setup_request(uint8_t type)
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     ogs_pfcp_sockaddr_to_node_id(
-            smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
+            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,
             &node_id, &node_id_len);
     req->node_id.presence = 1;
@@ -42,10 +42,10 @@ ogs_pkbuf_t *smf_n4_build_association_setup_request(uint8_t type)
     req->node_id.len = node_id_len;
     
     req->recovery_time_stamp.presence = 1;
-    req->recovery_time_stamp.u32 = smf_self()->pfcp_started;
+    req->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     req->cp_function_features.presence = 1;
-    req->cp_function_features.u8 = smf_self()->cp_function_features;
+    req->cp_function_features.u8 = ogs_pfcp_self()->function_features;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
@@ -66,7 +66,7 @@ ogs_pkbuf_t *smf_n4_build_association_setup_response(uint8_t type,
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     ogs_pfcp_sockaddr_to_node_id(
-            smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
+            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,
             &node_id, &node_id_len);
     rsp->node_id.presence = 1;
@@ -77,10 +77,10 @@ ogs_pkbuf_t *smf_n4_build_association_setup_response(uint8_t type,
     rsp->cause.u8 = cause;
     
     rsp->recovery_time_stamp.presence = 1;
-    rsp->recovery_time_stamp.u32 = smf_self()->pfcp_started;
+    rsp->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     rsp->cp_function_features.presence = 1;
-    rsp->cp_function_features.u8 = smf_self()->cp_function_features;
+    rsp->cp_function_features.u8 = ogs_pfcp_self()->function_features;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
@@ -97,7 +97,7 @@ ogs_pkbuf_t *smf_n4_build_heartbeat_request(uint8_t type)
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     req->recovery_time_stamp.presence = 1;
-    req->recovery_time_stamp.u32 = smf_self()->pfcp_started;
+    req->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
@@ -114,7 +114,7 @@ ogs_pkbuf_t *smf_n4_build_heartbeat_response(uint8_t type)
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     rsp->recovery_time_stamp.presence = 1;
-    rsp->recovery_time_stamp.u32 = smf_self()->pfcp_started;
+    rsp->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
@@ -137,7 +137,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     ogs_pfcp_sockaddr_to_node_id(
-            smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
+            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,
             &node_id, &node_id_len);
     req->node_id.presence = 1;
@@ -145,7 +145,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     req->node_id.len = node_id_len;
 
     ogs_pfcp_sockaddr_to_f_seid(
-            smf_self()->pfcp_addr, smf_self()->pfcp_addr6,
+            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             &f_seid, &f_seid_len);
     req->cp_f_seid.presence = 1;
     req->cp_f_seid.data = &f_seid;

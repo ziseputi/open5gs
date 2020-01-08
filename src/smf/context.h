@@ -58,16 +58,6 @@ typedef struct smf_context_s {
     ogs_sockaddr_t  *gtpc_addr;     /* SMF GTPC IPv4 Address */
     ogs_sockaddr_t  *gtpc_addr6;    /* SMF GTPC IPv6 Address */
 
-    ogs_list_t      pfcp_list;      /* SMF PFCP IPv4 Server List */
-    ogs_list_t      pfcp_list6;     /* SMF PFCP IPv6 Server List */
-    ogs_sock_t      *pfcp_sock;     /* SMF PFCP IPv4 Socket */
-    ogs_sock_t      *pfcp_sock6;    /* SMF PFCP IPv6 Socket */
-    ogs_sockaddr_t  *pfcp_addr;     /* SMF PFCP IPv4 Address */
-    ogs_sockaddr_t  *pfcp_addr6;    /* SMF PFCP IPv6 Address */
-
-    uint32_t        pfcp_started;   /* UTC time when the PFCP entity started */
-    uint8_t         cp_function_features; /* CP Function Features */
-
     ogs_list_t      dev_list;       /* SMF Tun Device List */
     ogs_list_t      subnet_list;    /* SMF UE Subnet List */
 
@@ -90,9 +80,6 @@ typedef struct smf_context_s {
     ogs_list_t      sgw_s5c_list;   /* SGW GTPC Node List */
     ogs_list_t      sgw_s5u_list;   /* SGW GTPU Node List */
     ogs_list_t      ip_pool_list;
-
-    ogs_list_t      upf_n4_list;    /* UPF PFCP Node List */
-    ogs_pfcp_node_t *upf;           /* Iterator for UPF round-robin */
 
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
 
@@ -173,21 +160,6 @@ typedef struct smf_sess_s {
 
     ogs_list_t      bearer_list;
 
-    uint8_t         pdr_id;     /* ID Generator(1~MAX_NUM_OF_PDR) */
-    ogs_list_t      pdr_list;   /* PDR List */
-
-    /* FAR ID Generator(1~MAX_NUM_OF_FAR) */
-    uint8_t         far_id;     /* ID Generator(1~MAX_NUM_OF_FAR) */
-    ogs_list_t      far_list;   /* FAR List */
-
-    /* URR ID Generator(1~MAX_NUM_OF_URR) */
-    uint8_t         urr_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
-    ogs_list_t      urr_list;   /* URR List */
-
-    /* QER ID Generator(1~MAX_NUM_OF_QER) */
-    uint8_t         qer_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
-    ogs_list_t      qer_list;   /* QER List */
-
     /* Related Context */
     ogs_gtp_node_t  *gnode;
     ogs_pfcp_node_t *pnode;
@@ -213,49 +185,6 @@ typedef struct smf_bearer_s {
     smf_sess_t      *sess;
     ogs_gtp_node_t  *gnode;
 } smf_bearer_t;
-
-typedef struct smf_far_s smf_far_t;
-typedef struct smf_urr_s smf_urr_t;
-typedef struct smf_qer_s smf_qer_t;
-
-typedef struct smf_pdr_s {
-    ogs_lnode_t     lnode;
-
-    uint16_t        id;
-
-    smf_far_t       *far;
-    smf_urr_t       *urr;
-    smf_qer_t       *qer;
-
-    smf_sess_t      *sess;
-} smf_pdr_t;
-
-typedef struct smf_far_s {
-    ogs_lnode_t     lnode;
-
-    uint16_t        id;
-
-    smf_pdr_t       *pdr;
-    smf_sess_t      *sess;
-} smf_far_t;
-
-typedef struct smf_urr_s {
-    ogs_lnode_t     lnode;
-
-    uint16_t        id;
-
-    smf_pdr_t       *pdr;
-    smf_sess_t      *sess;
-} smf_urr_t;
-
-typedef struct smf_qer_s {
-    ogs_lnode_t     lnode;
-
-    uint16_t        id;
-
-    smf_pdr_t       *pdr;
-    smf_sess_t      *sess;
-} smf_qer_t;
 
 typedef struct smf_rule_s {
     uint8_t proto;
@@ -331,16 +260,6 @@ smf_bearer_t *smf_bearer_find_by_qci_arp(smf_sess_t *sess,
 smf_bearer_t *smf_default_bearer_in_sess(smf_sess_t *sess);
 smf_bearer_t *smf_bearer_first(smf_sess_t *sess);
 smf_bearer_t *smf_bearer_next(smf_bearer_t *bearer);
-
-smf_pdr_t *smf_pdr_add(smf_sess_t *sess);
-int smf_pdr_remove(smf_pdr_t *pdr);
-void smf_pdr_remove_all(smf_sess_t *sess);
-smf_pdr_t *smf_pdr_find_by_id(smf_sess_t *sess, uint8_t id);
-
-smf_far_t *smf_far_add(smf_sess_t *sess);
-int smf_far_remove(smf_far_t *far);
-void smf_far_remove_all(smf_sess_t *sess);
-smf_far_t *smf_far_find_by_id(smf_sess_t *sess, uint8_t id);
 
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer, uint32_t precedence);
 int smf_pf_remove(smf_pf_t *pf);

@@ -80,8 +80,6 @@ void ogs_pfcp_context_final(void)
 {
     ogs_assert(context_initiaized == 1);
 
-    ogs_pfcp_sess_remove_all();
-
     ogs_pool_final(&ogs_pfcp_sess_pool);
     ogs_pool_final(&ogs_pfcp_pdr_pool);
     ogs_pool_final(&ogs_pfcp_far_pool);
@@ -399,58 +397,6 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
     if (rv != OGS_OK) return rv;
 
     return OGS_OK;
-}
-
-ogs_pfcp_sess_t *ogs_pfcp_sess_add(void)
-{
-    ogs_pfcp_sess_t *sess = NULL;
-
-    ogs_pool_alloc(&ogs_pfcp_sess_pool, &sess);
-    ogs_assert(sess);
-    memset(sess, 0, sizeof *sess);
-
-    sess->index = ogs_pool_index(&ogs_pfcp_sess_pool, sess);
-    ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
-
-    sess->local_n4_seid = sess->index;
-
-    /* Select PFCP Node */
-    if (ogs_pfcp_self()->peer == NULL)
-        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
-
-    ogs_assert(ogs_pfcp_self()->peer);
-    OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->peer);
-
-    ogs_list_add(&self.sess_list, sess);
-    
-    return sess;
-}
-
-void ogs_pfcp_sess_remove(ogs_pfcp_sess_t *sess)
-{
-    ogs_assert(sess);
-
-    ogs_list_remove(&self.sess_list, sess);
-    ogs_pool_free(&ogs_pfcp_sess_pool, sess);
-}
-
-void ogs_pfcp_sess_remove_all(void)
-{
-    ogs_pfcp_sess_t *sess = NULL, *next = NULL;;
-
-    ogs_list_for_each_safe(&self.sess_list, next, sess)
-        ogs_pfcp_sess_remove(sess);
-}
-
-static ogs_pfcp_sess_t *ogs_pfcp_sess_find(uint32_t index)
-{
-    ogs_assert(index);
-    return ogs_pool_find(&ogs_pfcp_sess_pool, index);
-}
-
-ogs_pfcp_sess_t *ogs_pfcp_sess_find_by_seid(uint64_t seid)
-{
-    return ogs_pfcp_sess_find(seid);
 }
 
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess)

@@ -288,7 +288,7 @@ smf_bearer_t *smf_bearer_find_by_packet(ogs_pkbuf_t *pkt)
      *       Until be ready, linear searching will be use to find the bearer.
      */
 
-    ogs_list_for_each(&smf_self()->sess_list, sess) {
+    ogs_list_for_each(&ogs_pfcp_self()->sess_list, sess) {
         if (sess->ipv4)
             ogs_debug("[SMF] PAA IPv4:%s",
                     INET_NTOP(&sess->ipv4->addr, buf));

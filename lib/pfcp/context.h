@@ -53,9 +53,6 @@ typedef struct ogs_pfcp_context_s {
 } ogs_pfcp_context_t;
 
 typedef struct ogs_pfcp_sess_s {
-    ogs_lnode_t     lnode;
-    uint32_t        index;          /**< An index of this node */
-
     uint64_t        local_n4_seid;  /* Local SEID is dervied from INDEX */
     uint64_t        remote_n4_seid; /* Remote SEID is received from Peer */
 
@@ -72,7 +69,7 @@ typedef struct ogs_pfcp_sess_s {
     ogs_list_t      qer_list;   /* QER List */
 
     /* Related Context */
-    ogs_pfcp_node_t *pnode;
+    ogs_pfcp_node_t *node;
 } ogs_pfcp_sess_t;
 
 typedef struct ogs_pfcp_far_s ogs_pfcp_far_t;
@@ -122,12 +119,6 @@ void ogs_pfcp_context_init(void);
 void ogs_pfcp_context_final(void);
 ogs_pfcp_context_t *ogs_pfcp_self(void);
 int ogs_pfcp_context_parse_config(const char *local, const char *remote);
-
-ogs_pfcp_sess_t *ogs_pfcp_sess_add(void);
-void ogs_pfcp_sess_remove(ogs_pfcp_sess_t *sess);
-void ogs_pfcp_sess_remove_all(void);
-
-ogs_pfcp_sess_t *ogs_pfcp_sess_find_by_seid(uint64_t seid);
 
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess);
 void ogs_pfcp_pdr_remove(ogs_pfcp_pdr_t *pdr);

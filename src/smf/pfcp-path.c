@@ -259,13 +259,13 @@ void smf_pfcp_send_session_establishment_request(smf_sess_t *sess)
 
     memset(&h, 0, sizeof(ogs_pfcp_header_t));
     h.type = OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE;
-    h.seid = sess->upf_n4_seid;
+    h.seid = sess->pfcp.remote_n4_seid;
 
     n4buf = smf_n4_build_session_establishment_request(h.type, sess);
     ogs_expect_or_return(n4buf);
 
     xact = ogs_pfcp_xact_local_create(
-            sess->pnode, &h, n4buf, timeout, sess->pnode);
+            sess->pfcp.node, &h, n4buf, timeout, sess->pfcp.node);
     ogs_expect_or_return(xact);
 
     rv = ogs_pfcp_xact_commit(xact);

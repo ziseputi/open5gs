@@ -184,7 +184,7 @@ typedef struct upf_sess_s {
 
     /* Related Context */
     ogs_gtp_node_t  *gnode;
-    ogs_pfcp_node_t *pnode;
+    ogs_pfcp_node_t *node;
 } upf_sess_t;
 
 typedef struct upf_bearer_s {

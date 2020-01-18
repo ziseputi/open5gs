@@ -32,7 +32,7 @@ extern "C" {
     do { \
         ogs_assert((__cTX)); \
         ogs_assert((__pNODE)); \
-        (__cTX)->pnode = __pNODE; \
+        (__cTX)->node = __pNODE; \
     } while(0)
 
 /**

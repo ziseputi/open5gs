@@ -80,8 +80,6 @@ void smf_context_init(void)
 
     self.sess_hash = ogs_hash_make();
 
-    ogs_list_init(&self.sess_list);
-
     context_initiaized = 1;
 }
 
@@ -662,7 +660,7 @@ smf_sess_t *smf_sess_add(
     ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
 
     sess->smf_s5c_teid = sess->index;
-    sess->smf_n4_seid = sess->index;
+    sess->pfcp.local_n4_seid = sess->index;
 
     /* Set IMSI */
     sess->imsi_len = imsi_len;
@@ -716,7 +714,7 @@ smf_sess_t *smf_sess_add(
         ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
 
     ogs_assert(ogs_pfcp_self()->peer);
-    OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->peer);
+    OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
 
     ogs_info("UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
 	    sess->imsi_bcd,
@@ -729,7 +727,7 @@ smf_sess_t *smf_sess_add(
             imsi, imsi_len, apn);
     ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, sess);
 
-    ogs_list_add(&self.sess_list, sess);
+    ogs_list_add(&ogs_pfcp_self()->sess_list, sess);
     
     stats_add_session();
 
@@ -740,7 +738,7 @@ int smf_sess_remove(smf_sess_t *sess)
 {
     ogs_assert(sess);
 
-    ogs_list_remove(&self.sess_list, sess);
+    ogs_list_remove(&ogs_pfcp_self()->sess_list, sess);
 
     OGS_TLV_CLEAR_DATA(&sess->ue_pco);
     OGS_TLV_CLEAR_DATA(&sess->ue_timezone);
@@ -765,7 +763,7 @@ void smf_sess_remove_all(void)
 {
     smf_sess_t *sess = NULL, *next = NULL;;
 
-    ogs_list_for_each_safe(&self.sess_list, next, sess)
+    ogs_list_for_each_safe(&ogs_pfcp_self()->sess_list, next, sess)
         smf_sess_remove(sess);
 }
 

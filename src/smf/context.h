@@ -81,8 +81,6 @@ typedef struct smf_context_s {
     ogs_list_t      ip_pool_list;
 
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
-
-    ogs_list_t      sess_list;
 } smf_context_t;
 
 typedef struct smf_subnet_s smf_subnet_t;
@@ -134,8 +132,7 @@ typedef struct smf_sess_s {
 
     char            *gx_sid;        /* Gx Session ID */
 
-    uint64_t        smf_n4_seid;    /* SMF SEID is dervied from INDEX */
-    uint64_t        upf_n4_seid;    /* UPF SEID is received from UPF */
+    ogs_pfcp_sess_t pfcp;           /* PFCP session context */
 
     /* IMSI */
     uint8_t         imsi[OGS_MAX_IMSI_LEN];
@@ -161,7 +158,6 @@ typedef struct smf_sess_s {
 
     /* Related Context */
     ogs_gtp_node_t  *gnode;
-    ogs_pfcp_node_t *pnode;
 } smf_sess_t;
 
 typedef struct smf_bearer_s {

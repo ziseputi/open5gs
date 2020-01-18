@@ -285,7 +285,7 @@ static int upf_gtp_handle_multicast(ogs_pkbuf_t *recvbuf)
             upf_sess_t *sess = NULL;
 
             /* IPv6 Multicast */
-            ogs_list_for_each(&upf_self()->sess_list, sess) {
+            ogs_list_for_each(&ogs_pfcp_self()->sess_list, sess) {
                 if (sess->ipv6) {
                     /* PDN IPv6 is avaiable */
                     upf_bearer_t *bearer = upf_default_bearer_in_sess(sess);

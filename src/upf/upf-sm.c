@@ -66,7 +66,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
             break;
         }
 
-        ogs_list_for_each(&upf_self()->smf_n4_list, pnode) {
+        ogs_list_for_each(&ogs_pfcp_self()->n4_list, pnode) {
             upf_event_t e;
             e.pnode = pnode;
 
@@ -76,7 +76,7 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
         }
         break;
     case OGS_FSM_EXIT_SIG:
-        ogs_list_for_each(&upf_self()->smf_n4_list, pnode) {
+        ogs_list_for_each(&ogs_pfcp_self()->n4_list, pnode) {
             upf_event_t e;
             e.pnode = pnode;
 

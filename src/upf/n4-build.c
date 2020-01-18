@@ -34,7 +34,7 @@ ogs_pkbuf_t *upf_n4_build_association_setup_request(uint8_t type)
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     ogs_pfcp_sockaddr_to_node_id(
-            upf_self()->pfcp_addr, upf_self()->pfcp_addr6,
+            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,
             &node_id, &node_id_len);
     req->node_id.presence = 1;
@@ -42,10 +42,11 @@ ogs_pkbuf_t *upf_n4_build_association_setup_request(uint8_t type)
     req->node_id.len = node_id_len;
     
     req->recovery_time_stamp.presence = 1;
-    req->recovery_time_stamp.u32 = upf_self()->pfcp_started;
+    req->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     req->up_function_features.presence = 1;
-    req->up_function_features.u16 = htobe16(upf_self()->up_function_features);
+    req->up_function_features.u16 =
+        htobe16(ogs_pfcp_self()->up_function_features);
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
@@ -66,7 +67,7 @@ ogs_pkbuf_t *upf_n4_build_association_setup_response(uint8_t type,
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     ogs_pfcp_sockaddr_to_node_id(
-            upf_self()->pfcp_addr, upf_self()->pfcp_addr6,
+            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,
             &node_id, &node_id_len);
     rsp->node_id.presence = 1;
@@ -77,10 +78,11 @@ ogs_pkbuf_t *upf_n4_build_association_setup_response(uint8_t type,
     rsp->cause.u8 = cause;
     
     rsp->recovery_time_stamp.presence = 1;
-    rsp->recovery_time_stamp.u32 = upf_self()->pfcp_started;
+    rsp->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     rsp->up_function_features.presence = 1;
-    rsp->up_function_features.u16 = htobe16(upf_self()->up_function_features);
+    rsp->up_function_features.u16 =
+        htobe16(ogs_pfcp_self()->up_function_features);
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
@@ -97,7 +99,7 @@ ogs_pkbuf_t *upf_n4_build_heartbeat_request(uint8_t type)
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     req->recovery_time_stamp.presence = 1;
-    req->recovery_time_stamp.u32 = upf_self()->pfcp_started;
+    req->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
@@ -114,7 +116,7 @@ ogs_pkbuf_t *upf_n4_build_heartbeat_response(uint8_t type)
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
 
     rsp->recovery_time_stamp.presence = 1;
-    rsp->recovery_time_stamp.u32 = upf_self()->pfcp_started;
+    rsp->recovery_time_stamp.u32 = ogs_pfcp_self()->pfcp_started;
 
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);

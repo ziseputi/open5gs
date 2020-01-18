@@ -30,10 +30,14 @@ int upf_initialize()
 {
     int rv;
 
+    ogs_pfcp_context_init();
     upf_context_init();
     upf_event_init();
 
     rv = ogs_pfcp_xact_init(upf_self()->timer_mgr, 512);
+    if (rv != OGS_OK) return rv;
+
+    rv = ogs_pfcp_context_parse_config("upf", "smf");
     if (rv != OGS_OK) return rv;
 
     rv = upf_context_parse_config();
@@ -63,6 +67,7 @@ void upf_terminate(void)
     ogs_thread_destroy(thread);
 
     upf_context_final();
+    ogs_pfcp_context_final();
 
     ogs_pfcp_xact_final();
 

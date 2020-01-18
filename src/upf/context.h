@@ -49,7 +49,6 @@ typedef struct upf_context_s {
 
     uint32_t        gtpc_port;      /* Default: UPF GTP-C local port */
     uint32_t        gtpu_port;      /* Default: UPF GTP-U local port */
-    uint32_t        pfcp_port;      /* Default: UPF GTP-U local port */
     const char      *tun_ifname;    /* Default: ogstun */
 
     ogs_list_t      gtpc_list;      /* UPF GTPC IPv4 Server List */
@@ -65,16 +64,6 @@ typedef struct upf_context_s {
     ogs_sock_t      *gtpu_sock6;    /* UPF GTPU IPv6 Socket */
     ogs_sockaddr_t  *gtpu_addr;     /* UPF GTPU IPv4 Address */
     ogs_sockaddr_t  *gtpu_addr6;    /* UPF GTPU IPv6 Address */
-
-    ogs_list_t      pfcp_list;      /* UPF PFCP IPv4 Server List */
-    ogs_list_t      pfcp_list6;     /* UPF PFCP IPv6 Server List */
-    ogs_sock_t      *pfcp_sock;     /* UPF PFCP IPv4 Socket */
-    ogs_sock_t      *pfcp_sock6;    /* UPF PFCP IPv6 Socket */
-    ogs_sockaddr_t  *pfcp_addr;     /* UPF PFCP IPv4 Address */
-    ogs_sockaddr_t  *pfcp_addr6;    /* UPF PFCP IPv6 Address */
-
-    uint32_t        pfcp_started;   /* UTC time when the PFCP entity started */
-    uint16_t        up_function_features; /* UP Function Features */
 
     ogs_list_t      dev_list;       /* UPF Tun Device List */
     ogs_list_t      subnet_list;    /* UPF UE Subnet List */
@@ -99,12 +88,7 @@ typedef struct upf_context_s {
     ogs_list_t      sgw_s5u_list;   /* SGW GTPU Node List */
     ogs_list_t      ip_pool_list;
 
-    ogs_list_t      smf_n4_list;    /* UPF PFCP Node List */
-    ogs_pfcp_node_t *upf;           /* Iterator for UPF round-robin */
-
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
-
-    ogs_list_t      sess_list;
 } upf_context_t;
 
 typedef struct upf_subnet_s upf_subnet_t;
@@ -156,8 +140,7 @@ typedef struct upf_sess_s {
 
     char            *gx_sid;        /* Gx Session ID */
 
-    uint64_t        upf_n4_seid;    /* UPF SEID is dervied from INDEX */
-    uint64_t        smf_n4_seid;    /* SMF SEID is received from UPF */
+    ogs_pfcp_sess_t pfcp;
 
     /* IMSI */
     uint8_t         imsi[OGS_MAX_IMSI_LEN];
@@ -184,7 +167,6 @@ typedef struct upf_sess_s {
 
     /* Related Context */
     ogs_gtp_node_t  *gnode;
-    ogs_pfcp_node_t *node;
 } upf_sess_t;
 
 typedef struct upf_bearer_s {

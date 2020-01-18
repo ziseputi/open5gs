@@ -79,6 +79,7 @@ void smf_terminate(void)
     smf_context_final();
     ogs_pfcp_context_final();
 
+    ogs_pfcp_xact_final();
     ogs_gtp_xact_final();
 
     smf_event_final();

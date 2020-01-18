@@ -39,7 +39,7 @@ void upf_pfcp_state_initial(ogs_fsm_t *s, upf_event_t *e)
     ogs_assert(pnode);
 
     rv = ogs_pfcp_connect(
-            upf_self()->pfcp_sock, upf_self()->pfcp_sock6, pnode);
+            ogs_pfcp_self()->pfcp_sock, ogs_pfcp_self()->pfcp_sock6, pnode);
     ogs_assert(rv == OGS_OK);
 
     pnode->t_association = ogs_timer_add(upf_self()->timer_mgr,

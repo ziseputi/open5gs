@@ -57,29 +57,11 @@ void upf_context_init(void)
     memset(&self, 0, sizeof(upf_context_t));
     self.diam_config = &g_diam_conf;
 
-    /*
-     * PFCP entity uses NTP timestamp(1900), but Open5GS uses UNIX(1970).
-     *
-     * One is the offset between the two epochs. 
-     * Unix uses an epoch located at 1/1/1970-00:00h (UTC) and
-     * NTP uses 1/1/1900-00:00h. This leads to an offset equivalent 
-     * to 70 years in seconds (there are 17 leap years
-     * between the two dates so the offset is
-     *
-     *  (70*365 + 17)*86400 = 2208988800
-     *
-     * to be substracted from NTP time to get Unix struct timeval.
-     */
-    ogs_gettimeofday(&tv);
-    self.pfcp_started = tv.tv_sec + 2208988800;
-
     ogs_log_install_domain(&__ogs_gtp_domain, "gtp", ogs_core()->log.level);
-    ogs_log_install_domain(&__ogs_pfcp_domain, "pfcp", ogs_core()->log.level);
     ogs_log_install_domain(&__ogs_diam_domain, "diam", ogs_core()->log.level);
     ogs_log_install_domain(&__upf_log_domain, "upf", ogs_core()->log.level);
 
     ogs_gtp_node_init(512);
-    ogs_pfcp_node_init(512);
 
     ogs_list_init(&self.gtpc_list);
     ogs_list_init(&self.gtpc_list6);
@@ -88,7 +70,6 @@ void upf_context_init(void)
 
     ogs_list_init(&self.sgw_s5c_list);
     ogs_list_init(&self.sgw_s5u_list);
-    ogs_list_init(&self.smf_n4_list);
 
     ogs_list_init(&self.dev_list);
     ogs_pool_init(&upf_dev_pool, MAX_NUM_OF_DEV);
@@ -101,8 +82,6 @@ void upf_context_init(void)
     ogs_pool_init(&upf_pf_pool, ogs_config()->pool.pf);
 
     self.sess_hash = ogs_hash_make();
-
-    ogs_list_init(&self.sess_list);
 
     context_initiaized = 1;
 }
@@ -129,10 +108,7 @@ void upf_context_final(void)
     ogs_gtp_node_remove_all(&self.sgw_s5c_list);
     ogs_gtp_node_remove_all(&self.sgw_s5u_list);
 
-    ogs_pfcp_node_remove_all(&upf_self()->smf_n4_list);
-
     ogs_gtp_node_final();
-    ogs_pfcp_node_final();
 
     context_initiaized = 0;
 }
@@ -146,7 +122,6 @@ static int upf_context_prepare(void)
 {
     self.gtpc_port = OGS_GTPV2_C_UDP_PORT;
     self.gtpu_port = OGS_GTPV1_U_UDP_PORT;
-    self.pfcp_port = OGS_PFCP_UDP_PORT;
     self.diam_config->cnf_port = DIAMETER_PORT;
     self.diam_config->cnf_port_tls = DIAMETER_SECURE_PORT;
 
@@ -157,12 +132,6 @@ static int upf_context_prepare(void)
 
 static int upf_context_validation(void)
 {
-    if (ogs_list_first(&self.pfcp_list) == NULL &&
-        ogs_list_first(&self.pfcp_list6) == NULL) {
-        ogs_error("No upf.pfcp in '%s'",
-                ogs_config()->file);
-        return OGS_ERROR;
-    }
     if (ogs_list_first(&self.gtpu_list) == NULL &&
         ogs_list_first(&self.gtpu_list6) == NULL) {
         ogs_error("No upf.gtpu in '%s'",
@@ -316,256 +285,6 @@ int upf_context_parse_config(void)
                                 NULL, self.gtpu_port);
                         ogs_assert(rv == OGS_OK);
                     }
-                } else if (!strcmp(upf_key, "pfcp")) {
-                    ogs_yaml_iter_t pfcp_array, pfcp_iter;
-                    ogs_yaml_iter_recurse(&upf_iter, &pfcp_array);
-                    do {
-                        int family = AF_UNSPEC;
-                        int i, num = 0;
-                        const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
-                        uint16_t port = self.pfcp_port;
-                        const char *dev = NULL;
-                        ogs_sockaddr_t *addr = NULL;
-
-                        if (ogs_yaml_iter_type(&pfcp_array) ==
-                                YAML_MAPPING_NODE) {
-                            memcpy(&pfcp_iter, &pfcp_array,
-                                    sizeof(ogs_yaml_iter_t));
-                        } else if (ogs_yaml_iter_type(&pfcp_array) ==
-                            YAML_SEQUENCE_NODE) {
-                            if (!ogs_yaml_iter_next(&pfcp_array))
-                                break;
-                            ogs_yaml_iter_recurse(&pfcp_array, &pfcp_iter);
-                        } else if (ogs_yaml_iter_type(&pfcp_array) ==
-                            YAML_SCALAR_NODE) {
-                            break;
-                        } else
-                            ogs_assert_if_reached();
-
-                        while (ogs_yaml_iter_next(&pfcp_iter)) {
-                            const char *pfcp_key =
-                                ogs_yaml_iter_key(&pfcp_iter);
-                            ogs_assert(pfcp_key);
-                            if (!strcmp(pfcp_key, "family")) {
-                                const char *v = ogs_yaml_iter_value(&pfcp_iter);
-                                if (v) family = atoi(v);
-                                if (family != AF_UNSPEC &&
-                                    family != AF_INET && family != AF_INET6) {
-                                    ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
-                                        "AF_INET(%d), AF_INET6(%d) ", 
-                                        family, AF_UNSPEC, AF_INET, AF_INET6);
-                                    family = AF_UNSPEC;
-                                }
-                            } else if (!strcmp(pfcp_key, "addr") ||
-                                    !strcmp(pfcp_key, "name")) {
-                                ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&pfcp_iter, &hostname_iter);
-                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
-                                    YAML_MAPPING_NODE);
-
-                                do {
-                                    if (ogs_yaml_iter_type(&hostname_iter) ==
-                                            YAML_SEQUENCE_NODE) {
-                                        if (!ogs_yaml_iter_next(
-                                                    &hostname_iter))
-                                            break;
-                                    }
-
-                                    ogs_assert(num <= OGS_MAX_NUM_OF_HOSTNAME);
-                                    hostname[num++] = 
-                                        ogs_yaml_iter_value(&hostname_iter);
-                                } while (
-                                    ogs_yaml_iter_type(&hostname_iter) ==
-                                        YAML_SEQUENCE_NODE);
-                            } else if (!strcmp(pfcp_key, "port")) {
-                                const char *v = ogs_yaml_iter_value(&pfcp_iter);
-                                if (v) {
-                                    port = atoi(v);
-                                    self.pfcp_port = port;
-                                }
-                            } else if (!strcmp(pfcp_key, "dev")) {
-                                dev = ogs_yaml_iter_value(&pfcp_iter);
-                            } else if (!strcmp(pfcp_key, "apn")) {
-                                /* Skip */
-                            } else
-                                ogs_warn("unknown key `%s`", pfcp_key);
-                        }
-
-                        addr = NULL;
-                        for (i = 0; i < num; i++) {
-                            rv = ogs_addaddrinfo(&addr,
-                                    family, hostname[i], port, 0);
-                            ogs_assert(rv == OGS_OK);
-                        }
-
-                        if (addr) {
-                            if (ogs_config()->parameter.no_ipv4 == 0) {
-                                ogs_sockaddr_t *dup = NULL;
-                                rv = ogs_copyaddrinfo(&dup, addr);
-                                ogs_assert(rv == OGS_OK);
-                                ogs_socknode_add(
-                                        &self.pfcp_list, AF_INET, dup);
-                            }
-
-                            if (ogs_config()->parameter.no_ipv6 == 0) {
-                                ogs_sockaddr_t *dup = NULL;
-                                rv = ogs_copyaddrinfo(&dup, addr);
-                                ogs_assert(rv == OGS_OK);
-                                ogs_socknode_add(
-                                        &self.pfcp_list6, AF_INET6, dup);
-                            }
-
-                            ogs_freeaddrinfo(addr);
-                        }
-
-                        if (dev) {
-                            rv = ogs_socknode_probe(
-                                    ogs_config()->parameter.no_ipv4 ?
-                                        NULL : &self.pfcp_list,
-                                    ogs_config()->parameter.no_ipv6 ?
-                                        NULL : &self.pfcp_list6,
-                                    dev, self.pfcp_port);
-                            ogs_assert(rv == OGS_OK);
-                        }
-
-                    } while (ogs_yaml_iter_type(&pfcp_array) ==
-                            YAML_SEQUENCE_NODE);
-
-                    if (ogs_list_first(&self.pfcp_list) == NULL &&
-                        ogs_list_first(&self.pfcp_list6) == NULL) {
-                        rv = ogs_socknode_probe(
-                                ogs_config()->parameter.no_ipv4 ?
-                                    NULL : &self.pfcp_list,
-                                ogs_config()->parameter.no_ipv6 ?
-                                    NULL : &self.pfcp_list6,
-                                NULL, self.pfcp_port);
-                        ogs_assert(rv == OGS_OK);
-                    }
-                }
-            }
-        } else if (!strcmp(root_key, "smf")) {
-            ogs_yaml_iter_t upf_iter;
-            ogs_yaml_iter_recurse(&root_iter, &upf_iter);
-            while (ogs_yaml_iter_next(&upf_iter)) {
-                const char *upf_key = ogs_yaml_iter_key(&upf_iter);
-                ogs_assert(upf_key);
-                if (!strcmp(upf_key, "pfcp")) {
-                    ogs_yaml_iter_t pfcp_array, pfcp_iter;
-                    ogs_yaml_iter_recurse(&upf_iter, &pfcp_array);
-                    do {
-                        ogs_pfcp_node_t *pnode = NULL;
-                        ogs_sockaddr_t *addr = NULL;
-                        int family = AF_UNSPEC;
-                        int i, num = 0;
-                        const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
-                        uint16_t port = self.pfcp_port;
-                        uint16_t tac[OGS_MAX_NUM_OF_TAI] = {0,};
-                        uint8_t num_of_tac = 0;
-
-                        if (ogs_yaml_iter_type(&pfcp_array) ==
-                                YAML_MAPPING_NODE) {
-                            memcpy(&pfcp_iter, &pfcp_array,
-                                    sizeof(ogs_yaml_iter_t));
-                        } else if (ogs_yaml_iter_type(&pfcp_array) ==
-                            YAML_SEQUENCE_NODE) {
-                            if (!ogs_yaml_iter_next(&pfcp_array))
-                                break;
-                            ogs_yaml_iter_recurse(&pfcp_array, &pfcp_iter);
-                        } else if (ogs_yaml_iter_type(&pfcp_array) ==
-                                YAML_SCALAR_NODE) {
-                            break;
-                        } else
-                            ogs_assert_if_reached();
-
-                        while (ogs_yaml_iter_next(&pfcp_iter)) {
-                            const char *pfcp_key =
-                                ogs_yaml_iter_key(&pfcp_iter);
-                            ogs_assert(pfcp_key);
-                            if (!strcmp(pfcp_key, "family")) {
-                                const char *v = ogs_yaml_iter_value(&pfcp_iter);
-                                if (v) family = atoi(v);
-                                if (family != AF_UNSPEC &&
-                                    family != AF_INET && family != AF_INET6) {
-                                    ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
-                                        "AF_INET(%d), AF_INET6(%d) ", 
-                                        family, AF_UNSPEC, AF_INET, AF_INET6);
-                                    family = AF_UNSPEC;
-                                }
-                            } else if (!strcmp(pfcp_key, "addr") ||
-                                    !strcmp(pfcp_key, "name")) {
-                                ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&pfcp_iter,
-                                        &hostname_iter);
-                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
-                                    YAML_MAPPING_NODE);
-
-                                do {
-                                    if (ogs_yaml_iter_type(&hostname_iter) ==
-                                            YAML_SEQUENCE_NODE) {
-                                        if (!ogs_yaml_iter_next(&hostname_iter))
-                                            break;
-                                    }
-
-                                    ogs_assert(num <= OGS_MAX_NUM_OF_HOSTNAME);
-                                    hostname[num++] = 
-                                        ogs_yaml_iter_value(&hostname_iter);
-                                } while (
-                                    ogs_yaml_iter_type(&hostname_iter) ==
-                                        YAML_SEQUENCE_NODE);
-                            } else if (!strcmp(pfcp_key, "port")) {
-                                const char *v = ogs_yaml_iter_value(&pfcp_iter);
-                                if (v) port = atoi(v);
-                            } else if (!strcmp(pfcp_key, "tac")) {
-                                ogs_yaml_iter_t tac_iter;
-                                ogs_yaml_iter_recurse(&pfcp_iter, &tac_iter);
-                                ogs_assert(ogs_yaml_iter_type(&tac_iter) !=
-                                    YAML_MAPPING_NODE);
-
-                                do {
-                                    const char *v = NULL;
-
-                                    ogs_assert(num_of_tac <=
-                                            OGS_MAX_NUM_OF_TAI);
-                                    if (ogs_yaml_iter_type(&tac_iter) ==
-                                            YAML_SEQUENCE_NODE) {
-                                        if (!ogs_yaml_iter_next(&tac_iter))
-                                            break;
-                                    }
-
-                                    v = ogs_yaml_iter_value(&tac_iter);
-                                    if (v) {
-                                        tac[num_of_tac] = atoi(v);
-                                        num_of_tac++;
-                                    }
-                                } while (
-                                    ogs_yaml_iter_type(&tac_iter) ==
-                                        YAML_SEQUENCE_NODE);
-                            } else
-                                ogs_warn("unknown key `%s`", pfcp_key);
-                        }
-
-                        addr = NULL;
-                        for (i = 0; i < num; i++) {
-                            rv = ogs_addaddrinfo(&addr,
-                                    family, hostname[i], port, 0);
-                            ogs_assert(rv == OGS_OK);
-                        }
-
-                        ogs_filter_ip_version(&addr,
-                                ogs_config()->parameter.no_ipv4,
-                                ogs_config()->parameter.no_ipv6,
-                                ogs_config()->parameter.prefer_ipv4);
-
-                        pnode = ogs_pfcp_node_new(addr);
-                        ogs_assert(pnode);
-                        ogs_list_add(&self.smf_n4_list, pnode);
-
-                        pnode->num_of_tac = num_of_tac;
-                        if (num_of_tac != 0)
-                            memcpy(pnode->tac, tac, sizeof(pnode->tac));
-
-                    } while (ogs_yaml_iter_type(&pfcp_array) ==
-                            YAML_SEQUENCE_NODE);
                 }
             }
         }
@@ -609,7 +328,7 @@ upf_sess_t *upf_sess_add(
     ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
 
     sess->upf_s5c_teid = sess->index;
-    sess->smf_n4_seid = sess->index;
+    sess->pfcp.local_n4_seid = sess->index;
 
     /* Set IMSI */
     sess->imsi_len = imsi_len;
@@ -659,11 +378,11 @@ upf_sess_t *upf_sess_add(
         ogs_assert_if_reached();
 
     /* Select PFCP Node */
-    if (upf_self()->upf == NULL)
-        upf_self()->upf = ogs_list_first(&upf_self()->smf_n4_list);
+    if (ogs_pfcp_self()->peer == NULL)
+        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
 
-    ogs_assert(upf_self()->upf);
-    OGS_SETUP_PFCP_NODE(sess, upf_self()->upf);
+    ogs_assert(ogs_pfcp_self()->peer);
+    OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
 
     ogs_info("UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
 	    sess->imsi_bcd,
@@ -676,7 +395,7 @@ upf_sess_t *upf_sess_add(
             imsi, imsi_len, apn);
     ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, sess);
 
-    ogs_list_add(&self.sess_list, sess);
+    ogs_list_add(&ogs_pfcp_self()->sess_list, sess);
     
     stats_add_session();
 
@@ -687,7 +406,7 @@ int upf_sess_remove(upf_sess_t *sess)
 {
     ogs_assert(sess);
 
-    ogs_list_remove(&self.sess_list, sess);
+    ogs_list_remove(&ogs_pfcp_self()->sess_list, sess);
 
     OGS_MEM_CLEAR(sess->create_session_request);
     OGS_MEM_CLEAR(sess->delete_session_request);
@@ -712,7 +431,7 @@ void upf_sess_remove_all(void)
 {
     upf_sess_t *sess = NULL, *next = NULL;;
 
-    ogs_list_for_each_safe(&self.sess_list, next, sess)
+    ogs_list_for_each_safe(&ogs_pfcp_self()->sess_list, next, sess)
         upf_sess_remove(sess);
 }
 

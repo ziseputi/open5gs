@@ -69,9 +69,9 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 
     e = upf_event_new(UPF_EVT_N4_MESSAGE);
-    pnode = ogs_pfcp_node_find_by_addr(&upf_self()->smf_n4_list, &from);
+    pnode = ogs_pfcp_node_find_by_addr(&ogs_pfcp_self()->n4_list, &from);
     if (!pnode) {
-        pnode = ogs_pfcp_node_add_by_addr(&upf_self()->smf_n4_list, &from);
+        pnode = ogs_pfcp_node_add_by_addr(&ogs_pfcp_self()->n4_list, &from);
         ogs_assert(pnode);
         pnode->sock = data;
     }
@@ -93,14 +93,14 @@ int upf_pfcp_open(void)
     ogs_sock_t *sock = NULL;
 
     /* PFCP Server */
-    ogs_list_for_each(&upf_self()->pfcp_list, node) {
+    ogs_list_for_each(&ogs_pfcp_self()->pfcp_list, node) {
         sock = ogs_pfcp_server(node);
         ogs_assert(sock);
         
         node->poll = ogs_pollset_add(upf_self()->pollset,
                 OGS_POLLIN, sock->fd, pfcp_recv_cb, sock);
     }
-    ogs_list_for_each(&upf_self()->pfcp_list6, node) {
+    ogs_list_for_each(&ogs_pfcp_self()->pfcp_list6, node) {
         sock = ogs_pfcp_server(node);
         ogs_assert(sock);
 
@@ -108,23 +108,25 @@ int upf_pfcp_open(void)
                 OGS_POLLIN, sock->fd, pfcp_recv_cb, sock);
     }
 
-    upf_self()->pfcp_sock = ogs_socknode_sock_first(&upf_self()->pfcp_list);
-    if (upf_self()->pfcp_sock)
-        upf_self()->pfcp_addr = &upf_self()->pfcp_sock->local_addr;
+    ogs_pfcp_self()->pfcp_sock =
+        ogs_socknode_sock_first(&ogs_pfcp_self()->pfcp_list);
+    if (ogs_pfcp_self()->pfcp_sock)
+        ogs_pfcp_self()->pfcp_addr = &ogs_pfcp_self()->pfcp_sock->local_addr;
 
-    upf_self()->pfcp_sock6 = ogs_socknode_sock_first(&upf_self()->pfcp_list6);
-    if (upf_self()->pfcp_sock6)
-        upf_self()->pfcp_addr6 = &upf_self()->pfcp_sock6->local_addr;
+    ogs_pfcp_self()->pfcp_sock6 =
+        ogs_socknode_sock_first(&ogs_pfcp_self()->pfcp_list6);
+    if (ogs_pfcp_self()->pfcp_sock6)
+        ogs_pfcp_self()->pfcp_addr6 = &ogs_pfcp_self()->pfcp_sock6->local_addr;
 
-    ogs_assert(upf_self()->pfcp_addr || upf_self()->pfcp_addr6);
+    ogs_assert(ogs_pfcp_self()->pfcp_addr || ogs_pfcp_self()->pfcp_addr6);
 
     return OGS_OK;
 }
 
 void upf_pfcp_close(void)
 {
-    ogs_socknode_remove_all(&upf_self()->pfcp_list);
-    ogs_socknode_remove_all(&upf_self()->pfcp_list6);
+    ogs_socknode_remove_all(&ogs_pfcp_self()->pfcp_list);
+    ogs_socknode_remove_all(&ogs_pfcp_self()->pfcp_list6);
 }
 
 static void timeout(ogs_pfcp_xact_t *xact, void *data)

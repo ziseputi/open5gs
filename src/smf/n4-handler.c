@@ -43,7 +43,7 @@ void smf_n4_handle_heartbeat_request(
         ogs_pfcp_heartbeat_request_t *req)
 {
     ogs_assert(xact);
-    smf_pfcp_send_heartbeat_response(xact);
+    ogs_pfcp_send_heartbeat_response(xact);
 }
 
 void smf_n4_handle_heartbeat_response(

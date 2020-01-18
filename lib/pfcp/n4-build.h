@@ -17,34 +17,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if !defined(OGS_PFCP_INSIDE) && !defined(OGS_PFCP_COMPILATION)
-#error "This header cannot be included directly."
-#endif
-
-#ifndef OGS_PFCP_PATH_H
-#define OGS_PFCP_PATH_H
+#ifndef OGS_PFCP_N4_BUILD_H
+#define OGS_PFCP_N4_BUILD_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct ogs_pfcp_xact_s ogs_pfcp_xact_t;
-
-ogs_sock_t *ogs_pfcp_server(ogs_socknode_t *node);
-int ogs_pfcp_connect(
-    ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *gnode);
-
-int ogs_pfcp_send(ogs_pfcp_node_t *gnode, ogs_pkbuf_t *pkbuf);
-int ogs_pfcp_sendto(ogs_pfcp_node_t *gnode, ogs_pkbuf_t *pkbuf);
-
-ogs_pkbuf_t *ogs_pfcp_handle_echo_req(ogs_pkbuf_t *pkt);
-void ogs_pfcp_send_error_message(
-    ogs_pfcp_xact_t *xact, uint32_t teid, uint8_t type, uint8_t cause_value);
-
-void ogs_pfcp_send_heartbeat_response(ogs_pfcp_xact_t *xact);
+ogs_pkbuf_t *ogs_pfcp_n4_build_heartbeat_request(uint8_t type);
+ogs_pkbuf_t *ogs_pfcp_n4_build_heartbeat_response(uint8_t type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* OGS_PFCP_PATH_H */
+#endif /* OGS_PFCP_N4_BUILD_H */

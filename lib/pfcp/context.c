@@ -403,6 +403,15 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
     return OGS_OK;
 }
 
+void ogs_pfcp_sess_remove(ogs_pfcp_sess_t *sess)
+{
+    ogs_pfcp_pdr_remove_all(sess);
+    ogs_pfcp_far_remove_all(sess);
+    ogs_pfcp_urr_remove_all(sess);
+    ogs_pfcp_qer_remove_all(sess);
+    if (sess->bar) ogs_pfcp_bar_delete(sess->bar);
+}
+
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess)
 {
     ogs_pfcp_pdr_t *pdr = NULL;
@@ -725,39 +734,35 @@ void ogs_pfcp_qer_remove_all(ogs_pfcp_sess_t *sess)
         ogs_pfcp_qer_remove(qer);
 }
 
-ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_far_t *far)
+ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_sess_t *sess)
 {
     ogs_pfcp_bar_t *bar = NULL;
-    ogs_pfcp_sess_t *sess = NULL;
-    ogs_pfcp_pdr_t *pdr = NULL;
 
-    ogs_assert(far);
-    pdr = far->pdr;
-    ogs_assert(pdr);
-    sess = pdr->sess;
     ogs_assert(sess);
+    ogs_assert(sess->bar == NULL); /* Only One BAR is supported */
 
     ogs_pool_alloc(&ogs_pfcp_bar_pool, &bar);
     ogs_assert(bar);
     memset(bar, 0, sizeof *bar);
 
-    bar->id = OGS_NEXT_ID(sess->bar_id, 1, OGS_MAX_NUM_OF_BAR+1);
+    bar->id = 1; /* Always BAR_ID is 1 */
 
-    bar->far = far;
-    far->bar = bar;
+    bar->sess = sess;
+    sess->bar = bar;
 
     return bar;
 }
 
 void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar)
 {
-    ogs_pfcp_far_t *far = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
 
     ogs_assert(bar);
-    far = bar->far;
+    sess = bar->sess;
+    ogs_assert(sess);
 
-    bar->far = NULL;
-    far->bar = NULL;
+    bar->sess = NULL;
+    sess->bar = NULL;
 
     ogs_pool_free(&ogs_pfcp_bar_pool, bar);
 }

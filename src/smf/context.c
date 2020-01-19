@@ -740,6 +740,8 @@ int smf_sess_remove(smf_sess_t *sess)
 
     ogs_list_remove(&ogs_pfcp_self()->sess_list, sess);
 
+    ogs_pfcp_sess_remove(&sess->pfcp);
+
     OGS_TLV_CLEAR_DATA(&sess->ue_pco);
     OGS_TLV_CLEAR_DATA(&sess->ue_timezone);
 

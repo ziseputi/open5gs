@@ -105,8 +105,6 @@ typedef struct ogs_pfcp_far_s {
 
     ogs_pfcp_far_id_t   id;
 
-    ogs_pfcp_bar_t      *bar;
-
     ogs_pfcp_pdr_t      *pdr;
 } ogs_pfcp_far_t;
 
@@ -129,13 +127,15 @@ typedef struct ogs_pfcp_qer_s {
 typedef struct ogs_pfcp_bar_s {
     ogs_pfcp_bar_id_t   id;
 
-    ogs_pfcp_far_t      *far;
+    ogs_pfcp_sess_t     *sess;
 } ogs_pfcp_bar_t;
 
 void ogs_pfcp_context_init(void);
 void ogs_pfcp_context_final(void);
 ogs_pfcp_context_t *ogs_pfcp_self(void);
 int ogs_pfcp_context_parse_config(const char *local, const char *remote);
+
+void ogs_pfcp_sess_remove(ogs_pfcp_sess_t *sess);
 
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess);
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_by_id(
@@ -169,7 +169,7 @@ ogs_pfcp_qer_t *ogs_pfcp_qer_find_or_add(
 void ogs_pfcp_qer_remove(ogs_pfcp_qer_t *qer);
 void ogs_pfcp_qer_remove_all(ogs_pfcp_sess_t *sess);
 
-ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_far_t *far);
+ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_sess_t *sess);
 void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar);
 
 #ifdef __cplusplus

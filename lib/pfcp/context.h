@@ -135,7 +135,6 @@ void ogs_pfcp_context_final(void);
 ogs_pfcp_context_t *ogs_pfcp_self(void);
 int ogs_pfcp_context_parse_config(const char *local, const char *remote);
 
-int ogs_pfcp_sess_set(ogs_pfcp_sess_t *sess);
 void ogs_pfcp_sess_clear(ogs_pfcp_sess_t *sess);
 
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess);

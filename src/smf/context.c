@@ -638,6 +638,34 @@ static void *sess_hash_keygen(uint8_t *out, int *out_len,
     return out;
 }
 
+static int pfcp_sess_init(ogs_pfcp_sess_t *sess)
+{
+    ogs_pfcp_pdr_t *dl_pdr = NULL;
+    ogs_pfcp_pdr_t *ul_pdr = NULL;
+    ogs_pfcp_far_t *dl_far = NULL;
+    ogs_pfcp_far_t *ul_far = NULL;
+
+    ogs_assert(sess);
+
+    dl_pdr = ogs_pfcp_pdr_add(sess);
+    ogs_assert(dl_pdr);
+    dl_far = ogs_pfcp_far_add(dl_pdr);
+    ogs_assert(dl_far);
+
+    ul_pdr = ogs_pfcp_pdr_add(sess);
+    ogs_assert(ul_pdr);
+    ul_far = ogs_pfcp_far_add(ul_pdr);
+    ogs_assert(ul_far);
+
+    if (ogs_pfcp_self()->peer == NULL)
+        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
+
+    ogs_assert(ogs_pfcp_self()->peer);
+    OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->peer);
+
+    return OGS_OK;
+}
+
 smf_sess_t *smf_sess_add(
         uint8_t *imsi, int imsi_len, char *apn, 
         uint8_t pdn_type, uint8_t ebi, ogs_paa_t *paa)
@@ -663,16 +691,10 @@ smf_sess_t *smf_sess_add(
     sess->smf_s5c_teid = sess->index;
 
     /* Set PFCP Session */
-    rv = ogs_pfcp_sess_set(&sess->pfcp);
+    rv = pfcp_sess_init(&sess->pfcp);
     ogs_assert(rv == OGS_OK);
 
     sess->pfcp.local_n4_seid = sess->index;
-
-    if (ogs_pfcp_self()->peer == NULL)
-        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
-
-    ogs_assert(ogs_pfcp_self()->peer);
-    OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
 
     /* Set IMSI */
     sess->imsi_len = imsi_len;

@@ -403,28 +403,6 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
     return OGS_OK;
 }
 
-int ogs_pfcp_sess_set(ogs_pfcp_sess_t *sess)
-{
-    ogs_pfcp_pdr_t *dl_pdr = NULL;
-    ogs_pfcp_pdr_t *ul_pdr = NULL;
-    ogs_pfcp_far_t *dl_far = NULL;
-    ogs_pfcp_far_t *ul_far = NULL;
-
-    ogs_assert(sess);
-
-    dl_pdr = ogs_pfcp_pdr_add(sess);
-    ogs_assert(dl_pdr);
-    dl_far = ogs_pfcp_far_add(dl_pdr);
-    ogs_assert(dl_far);
-
-    ul_pdr = ogs_pfcp_pdr_add(sess);
-    ogs_assert(ul_pdr);
-    ul_far = ogs_pfcp_far_add(ul_pdr);
-    ogs_assert(ul_far);
-
-    return OGS_OK;
-}
-
 void ogs_pfcp_sess_clear(ogs_pfcp_sess_t *sess)
 {
     ogs_pfcp_pdr_remove_all(sess);

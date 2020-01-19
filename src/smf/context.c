@@ -642,6 +642,7 @@ smf_sess_t *smf_sess_add(
         uint8_t *imsi, int imsi_len, char *apn, 
         uint8_t pdn_type, uint8_t ebi, ogs_paa_t *paa)
 {
+    int rv;
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
     smf_sess_t *sess = NULL;
@@ -662,8 +663,16 @@ smf_sess_t *smf_sess_add(
     sess->smf_s5c_teid = sess->index;
 
     /* Set PFCP Session */
-    ogs_pfcp_sess_new(&sess->pfcp);
+    rv = ogs_pfcp_sess_set(&sess->pfcp);
+    ogs_assert(rv == OGS_OK);
+
     sess->pfcp.local_n4_seid = sess->index;
+
+    if (ogs_pfcp_self()->peer == NULL)
+        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
+
+    ogs_assert(ogs_pfcp_self()->peer);
+    OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
 
     /* Set IMSI */
     sess->imsi_len = imsi_len;
@@ -736,7 +745,7 @@ int smf_sess_remove(smf_sess_t *sess)
 
     ogs_list_remove(&ogs_pfcp_self()->sess_list, sess);
 
-    ogs_pfcp_sess_delete(&sess->pfcp);
+    ogs_pfcp_sess_clear(&sess->pfcp);
 
     OGS_TLV_CLEAR_DATA(&sess->ue_pco);
     OGS_TLV_CLEAR_DATA(&sess->ue_timezone);

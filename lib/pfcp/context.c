@@ -27,6 +27,7 @@ static OGS_POOL(ogs_pfcp_pdr_pool, ogs_pfcp_pdr_t);
 static OGS_POOL(ogs_pfcp_far_pool, ogs_pfcp_far_t);
 static OGS_POOL(ogs_pfcp_urr_pool, ogs_pfcp_urr_t);
 static OGS_POOL(ogs_pfcp_qer_pool, ogs_pfcp_qer_t);
+static OGS_POOL(ogs_pfcp_bar_pool, ogs_pfcp_bar_t);
 
 static int context_initiaized = 0;
 
@@ -70,6 +71,8 @@ void ogs_pfcp_context_init(void)
             ogs_config()->pool.sess * OGS_MAX_NUM_OF_URR);
     ogs_pool_init(&ogs_pfcp_qer_pool,
             ogs_config()->pool.sess * OGS_MAX_NUM_OF_QER);
+    ogs_pool_init(&ogs_pfcp_bar_pool,
+            ogs_config()->pool.sess * OGS_MAX_NUM_OF_BAR);
 
     ogs_list_init(&self.sess_list);
 
@@ -85,6 +88,7 @@ void ogs_pfcp_context_final(void)
     ogs_pool_final(&ogs_pfcp_far_pool);
     ogs_pool_final(&ogs_pfcp_urr_pool);
     ogs_pool_final(&ogs_pfcp_qer_pool);
+    ogs_pool_final(&ogs_pfcp_bar_pool);
 
     ogs_pfcp_node_remove_all(&ogs_pfcp_self()->n4_list);
 
@@ -417,6 +421,37 @@ ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess)
     return pdr;
 }
 
+ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_pdr_id_t id)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each(&sess->pdr_list, pdr) {
+        if (pdr->id == id) return pdr;
+    }
+
+    return NULL;
+}
+
+ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_or_add(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_pdr_id_t id)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    ogs_assert(sess);
+
+    pdr = ogs_pfcp_pdr_find_by_id(sess, id);
+    if (!pdr)
+        pdr = ogs_pfcp_pdr_add(sess);
+    ogs_assert(pdr);
+
+    pdr->id = id;
+
+    return pdr;
+}
+
 void ogs_pfcp_pdr_remove(ogs_pfcp_pdr_t *pdr)
 {
     ogs_assert(pdr);
@@ -435,13 +470,294 @@ void ogs_pfcp_pdr_remove_all(ogs_pfcp_sess_t *sess)
         ogs_pfcp_pdr_remove(pdr);
 }
 
-ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_by_id(ogs_pfcp_sess_t *sess, uint8_t id)
+ogs_pfcp_far_t *ogs_pfcp_far_add(ogs_pfcp_pdr_t *pdr)
 {
-    ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_pfcp_far_t *far = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
 
-    ogs_list_for_each(&sess->pdr_list, pdr) {
-        if (pdr->id == id) return pdr;
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    ogs_pool_alloc(&ogs_pfcp_far_pool, &far);
+    ogs_assert(far);
+    memset(far, 0, sizeof *far);
+
+    far->id = OGS_NEXT_ID(sess->far_id, 1, OGS_MAX_NUM_OF_FAR+1);
+
+    far->pdr = pdr;
+    pdr->far = far;
+
+    ogs_list_add(&sess->far_list, far);
+
+    return far;
+}
+
+ogs_pfcp_far_t *ogs_pfcp_far_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_far_id_t id)
+{
+    ogs_pfcp_far_t *far = NULL;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each(&sess->far_list, far) {
+        if (far->id == id) return far;
     }
 
     return NULL;
+}
+
+ogs_pfcp_far_t *ogs_pfcp_far_find_or_add(
+        ogs_pfcp_pdr_t *pdr, ogs_pfcp_far_id_t id)
+{
+    ogs_pfcp_far_t *far = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    far = ogs_pfcp_far_find_by_id(sess, id);
+    if (!far)
+        far = ogs_pfcp_far_add(pdr);
+    ogs_assert(far);
+
+    far->id = id;
+
+    return far;
+}
+
+void ogs_pfcp_far_remove(ogs_pfcp_far_t *far)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(far);
+    pdr = far->pdr;
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    far->pdr = NULL;
+    pdr->far = NULL;
+
+    ogs_list_remove(&sess->far_list, far);
+    ogs_pool_free(&ogs_pfcp_far_pool, far);
+}
+
+void ogs_pfcp_far_remove_all(ogs_pfcp_sess_t *sess)
+{
+    ogs_pfcp_far_t *far = NULL, *next_far = NULL;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each_safe(&sess->far_list, next_far, far)
+        ogs_pfcp_far_remove(far);
+}
+
+ogs_pfcp_urr_t *ogs_pfcp_urr_add(ogs_pfcp_pdr_t *pdr)
+{
+    ogs_pfcp_urr_t *urr = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    ogs_pool_alloc(&ogs_pfcp_urr_pool, &urr);
+    ogs_assert(urr);
+    memset(urr, 0, sizeof *urr);
+
+    urr->id = OGS_NEXT_ID(sess->urr_id, 1, OGS_MAX_NUM_OF_URR+1);
+
+    urr->pdr = pdr;
+    pdr->urrs[pdr->num_of_urr++] = urr;
+
+    ogs_list_add(&sess->urr_list, urr);
+
+    return urr;
+}
+
+ogs_pfcp_urr_t *ogs_pfcp_urr_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_urr_id_t id)
+{
+    ogs_pfcp_urr_t *urr = NULL;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each(&sess->urr_list, urr) {
+        if (urr->id == id) return urr;
+    }
+
+    return NULL;
+}
+
+ogs_pfcp_urr_t *ogs_pfcp_urr_find_or_add(
+        ogs_pfcp_pdr_t *pdr, ogs_pfcp_urr_id_t id)
+{
+    ogs_pfcp_urr_t *urr = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    urr = ogs_pfcp_urr_find_by_id(sess, id);
+    if (!urr)
+        urr = ogs_pfcp_urr_add(pdr);
+    ogs_assert(urr);
+
+    urr->id = id;
+
+    return urr;
+}
+
+void ogs_pfcp_urr_remove(ogs_pfcp_urr_t *urr)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(urr);
+    pdr = urr->pdr;
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    urr->pdr = NULL;
+    pdr->urrs[--pdr->num_of_urr] = NULL;
+
+    ogs_list_remove(&sess->urr_list, urr);
+    ogs_pool_free(&ogs_pfcp_urr_pool, urr);
+}
+
+void ogs_pfcp_urr_remove_all(ogs_pfcp_sess_t *sess)
+{
+    ogs_pfcp_urr_t *urr = NULL, *next_urr = NULL;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each_safe(&sess->urr_list, next_urr, urr)
+        ogs_pfcp_urr_remove(urr);
+}
+
+ogs_pfcp_qer_t *ogs_pfcp_qer_add(ogs_pfcp_pdr_t *pdr)
+{
+    ogs_pfcp_qer_t *qer = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    ogs_pool_alloc(&ogs_pfcp_qer_pool, &qer);
+    ogs_assert(qer);
+    memset(qer, 0, sizeof *qer);
+
+    qer->id = OGS_NEXT_ID(sess->qer_id, 1, OGS_MAX_NUM_OF_QER+1);
+
+    qer->pdr = pdr;
+    pdr->qers[pdr->num_of_qer++] = qer;
+
+    ogs_list_add(&sess->qer_list, qer);
+
+    return qer;
+}
+
+ogs_pfcp_qer_t *ogs_pfcp_qer_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_qer_id_t id)
+{
+    ogs_pfcp_qer_t *qer = NULL;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each(&sess->qer_list, qer) {
+        if (qer->id == id) return qer;
+    }
+
+    return NULL;
+}
+
+ogs_pfcp_qer_t *ogs_pfcp_qer_find_or_add(
+        ogs_pfcp_pdr_t *pdr, ogs_pfcp_qer_id_t id)
+{
+    ogs_pfcp_qer_t *qer = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    qer = ogs_pfcp_qer_find_by_id(sess, id);
+    if (!qer)
+        qer = ogs_pfcp_qer_add(pdr);
+    ogs_assert(qer);
+
+    qer->id = id;
+
+    return qer;
+}
+
+void ogs_pfcp_qer_remove(ogs_pfcp_qer_t *qer)
+{
+    ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+
+    ogs_assert(qer);
+    pdr = qer->pdr;
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    qer->pdr = NULL;
+    pdr->qers[--pdr->num_of_qer] = NULL;
+
+    ogs_list_remove(&sess->qer_list, qer);
+    ogs_pool_free(&ogs_pfcp_qer_pool, qer);
+}
+
+void ogs_pfcp_qer_remove_all(ogs_pfcp_sess_t *sess)
+{
+    ogs_pfcp_qer_t *qer = NULL, *next_qer = NULL;
+
+    ogs_assert(sess);
+
+    ogs_list_for_each_safe(&sess->qer_list, next_qer, qer)
+        ogs_pfcp_qer_remove(qer);
+}
+
+ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_far_t *far)
+{
+    ogs_pfcp_bar_t *bar = NULL;
+    ogs_pfcp_sess_t *sess = NULL;
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    ogs_assert(far);
+    pdr = far->pdr;
+    ogs_assert(pdr);
+    sess = pdr->sess;
+    ogs_assert(sess);
+
+    ogs_pool_alloc(&ogs_pfcp_bar_pool, &bar);
+    ogs_assert(bar);
+    memset(bar, 0, sizeof *bar);
+
+    bar->id = OGS_NEXT_ID(sess->bar_id, 1, OGS_MAX_NUM_OF_BAR+1);
+
+    bar->far = far;
+    far->bar = bar;
+
+    return bar;
+}
+
+void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar)
+{
+    ogs_pfcp_far_t *far = NULL;
+
+    ogs_assert(bar);
+    far = bar->far;
+
+    bar->far = NULL;
+    far->bar = NULL;
+
+    ogs_pool_free(&ogs_pfcp_bar_pool, bar);
 }

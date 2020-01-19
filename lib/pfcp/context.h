@@ -29,9 +29,10 @@ extern "C" {
 #endif
 
 #define OGS_MAX_NUM_OF_PDR      4
-#define OGS_MAX_NUM_OF_FAR      1
-#define OGS_MAX_NUM_OF_URR      1
-#define OGS_MAX_NUM_OF_QER      1
+#define OGS_MAX_NUM_OF_FAR      4
+#define OGS_MAX_NUM_OF_URR      2
+#define OGS_MAX_NUM_OF_QER      2
+#define OGS_MAX_NUM_OF_BAR      1
 
 typedef struct ogs_pfcp_context_s {
     uint32_t        pfcp_port;      /* PFCP local port */
@@ -51,65 +52,85 @@ typedef struct ogs_pfcp_context_s {
     ogs_list_t      sess_list;
 } ogs_pfcp_context_t;
 
+typedef struct ogs_pfcp_far_s ogs_pfcp_far_t;
+typedef struct ogs_pfcp_urr_s ogs_pfcp_urr_t;
+typedef struct ogs_pfcp_qer_s ogs_pfcp_qer_t;
+typedef struct ogs_pfcp_bar_s ogs_pfcp_bar_t;
+
+typedef uint16_t ogs_pfcp_pdr_id_t;
+typedef uint32_t ogs_pfcp_far_id_t;
+typedef uint32_t ogs_pfcp_urr_id_t;
+typedef uint32_t ogs_pfcp_qer_id_t;
+typedef uint8_t ogs_pfcp_bar_id_t;
+
 typedef struct ogs_pfcp_sess_s {
     uint64_t        local_n4_seid;  /* Local SEID is dervied from INDEX */
     uint64_t        remote_n4_seid; /* Remote SEID is received from Peer */
 
-    uint8_t         pdr_id;     /* ID Generator(1~MAX_NUM_OF_PDR) */
-    ogs_list_t      pdr_list;   /* PDR List */
+    ogs_pfcp_pdr_id_t   pdr_id;     /* ID Generator(1~MAX_NUM_OF_PDR) */
+    ogs_list_t          pdr_list;   /* PDR List */
 
-    uint8_t         far_id;     /* ID Generator(1~MAX_NUM_OF_FAR) */
-    ogs_list_t      far_list;   /* FAR List */
+    ogs_pfcp_far_id_t   far_id;     /* ID Generator(1~MAX_NUM_OF_FAR) */
+    ogs_list_t          far_list;   /* FAR List */
 
-    uint8_t         urr_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
-    ogs_list_t      urr_list;   /* URR List */
+    ogs_pfcp_urr_id_t   urr_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
+    ogs_list_t          urr_list;   /* URR List */
 
-    uint8_t         qer_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
-    ogs_list_t      qer_list;   /* QER List */
+    ogs_pfcp_qer_id_t   qer_id;     /* ID Generator(1~MAX_NUM_OF_URR) */
+    ogs_list_t          qer_list;   /* QER List */
+
+    ogs_pfcp_bar_id_t   bar_id;     /* ID Generator(1~MAX_NUM_OF_BAR) */
+    ogs_pfcp_bar_t      *bar;       /* BAR Item */
 
     /* Related Context */
     ogs_pfcp_node_t *node;
 } ogs_pfcp_sess_t;
 
-typedef struct ogs_pfcp_far_s ogs_pfcp_far_t;
-typedef struct ogs_pfcp_urr_s ogs_pfcp_urr_t;
-typedef struct ogs_pfcp_qer_s ogs_pfcp_qer_t;
-
 typedef struct ogs_pfcp_pdr_s {
-    ogs_lnode_t     lnode;
+    ogs_lnode_t         lnode;
 
-    uint16_t        id;
+    ogs_pfcp_pdr_id_t   id;
 
-    ogs_pfcp_far_t  *far;
-    ogs_pfcp_urr_t  *urr;
-    ogs_pfcp_qer_t  *qer;
+    ogs_pfcp_far_t      *far;
+    int                 num_of_urr;
+    ogs_pfcp_urr_t      *urrs[OGS_MAX_NUM_OF_URR];
+    int                 num_of_qer;
+    ogs_pfcp_qer_t      *qers[OGS_MAX_NUM_OF_QER];
 
-    ogs_pfcp_sess_t *sess;
+    ogs_pfcp_sess_t     *sess;
 } ogs_pfcp_pdr_t;
 
 typedef struct ogs_pfcp_far_s {
-    ogs_lnode_t     lnode;
+    ogs_lnode_t         lnode;
 
-    uint16_t        id;
+    ogs_pfcp_far_id_t   id;
 
-    ogs_pfcp_pdr_t  *pdr;
+    ogs_pfcp_bar_t      *bar;
+
+    ogs_pfcp_pdr_t      *pdr;
 } ogs_pfcp_far_t;
 
 typedef struct ogs_pfcp_urr_s {
-    ogs_lnode_t     lnode;
+    ogs_lnode_t         lnode;
 
-    uint16_t        id;
+    ogs_pfcp_urr_id_t   id;
 
-    ogs_pfcp_pdr_t  *pdr;
+    ogs_pfcp_pdr_t      *pdr;
 } ogs_pfcp_urr_t;
 
 typedef struct ogs_pfcp_qer_s {
-    ogs_lnode_t     lnode;
+    ogs_lnode_t         lnode;
 
-    uint16_t        id;
+    ogs_pfcp_qer_id_t   id;
 
-    ogs_pfcp_pdr_t  *pdr;
+    ogs_pfcp_pdr_t      *pdr;
 } ogs_pfcp_qer_t;
+
+typedef struct ogs_pfcp_bar_s {
+    ogs_pfcp_bar_id_t   id;
+
+    ogs_pfcp_far_t      *far;
+} ogs_pfcp_bar_t;
 
 void ogs_pfcp_context_init(void);
 void ogs_pfcp_context_final(void);
@@ -117,14 +138,39 @@ ogs_pfcp_context_t *ogs_pfcp_self(void);
 int ogs_pfcp_context_parse_config(const char *local, const char *remote);
 
 ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess);
+ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_pdr_id_t id);
+ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_or_add(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_pdr_id_t id);
 void ogs_pfcp_pdr_remove(ogs_pfcp_pdr_t *pdr);
 void ogs_pfcp_pdr_remove_all(ogs_pfcp_sess_t *sess);
-ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_by_id(ogs_pfcp_sess_t *sess, uint8_t id);
 
-ogs_pfcp_far_t *ogs_pfcp_far_add(ogs_pfcp_sess_t *sess);
+ogs_pfcp_far_t *ogs_pfcp_far_add(ogs_pfcp_pdr_t *pdr);
+ogs_pfcp_far_t *ogs_pfcp_far_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_far_id_t id);
+ogs_pfcp_far_t *ogs_pfcp_far_find_or_add(
+        ogs_pfcp_pdr_t *pdr, ogs_pfcp_far_id_t id);
 void ogs_pfcp_far_remove(ogs_pfcp_far_t *far);
 void ogs_pfcp_far_remove_all(ogs_pfcp_sess_t *sess);
-ogs_pfcp_far_t *ogs_pfcp_far_find_by_id(ogs_pfcp_sess_t *sess, uint8_t id);
+
+ogs_pfcp_urr_t *ogs_pfcp_urr_add(ogs_pfcp_pdr_t *pdr);
+ogs_pfcp_urr_t *ogs_pfcp_urr_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_urr_id_t id);
+ogs_pfcp_urr_t *ogs_pfcp_urr_find_or_add(
+        ogs_pfcp_pdr_t *pdr, ogs_pfcp_urr_id_t id);
+void ogs_pfcp_urr_remove(ogs_pfcp_urr_t *urr);
+void ogs_pfcp_urr_remove_all(ogs_pfcp_sess_t *sess);
+
+ogs_pfcp_qer_t *ogs_pfcp_qer_add(ogs_pfcp_pdr_t *pdr);
+ogs_pfcp_qer_t *ogs_pfcp_qer_find_by_id(
+        ogs_pfcp_sess_t *sess, ogs_pfcp_qer_id_t id);
+ogs_pfcp_qer_t *ogs_pfcp_qer_find_or_add(
+        ogs_pfcp_pdr_t *pdr, ogs_pfcp_qer_id_t id);
+void ogs_pfcp_qer_remove(ogs_pfcp_qer_t *qer);
+void ogs_pfcp_qer_remove_all(ogs_pfcp_sess_t *sess);
+
+ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_far_t *far);
+void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar);
 
 #ifdef __cplusplus
 }

@@ -57,6 +57,8 @@ typedef struct smf_context_s {
     ogs_sockaddr_t  *gtpc_addr;     /* SMF GTPC IPv4 Address */
     ogs_sockaddr_t  *gtpc_addr6;    /* SMF GTPC IPv6 Address */
 
+    uint8_t         function_features; /* CP Function Features */
+
     ogs_list_t      dev_list;       /* SMF Tun Device List */
     ogs_list_t      subnet_list;    /* SMF UE Subnet List */
 

@@ -44,8 +44,6 @@ typedef struct ogs_pfcp_context_s {
     ogs_sockaddr_t  *pfcp_addr6;    /* PFCP IPv6 Address */
 
     uint32_t        pfcp_started;   /* UTC time when the PFCP entity started */
-    uint8_t         cp_function_features; /* CP Function Features */
-    uint16_t        up_function_features; /* UP Function Features */
 
     ogs_list_t      n4_list;        /* PFCP Node List */
     ogs_pfcp_node_t *peer;          /* Iterator for Peer round-robin */
@@ -95,7 +93,6 @@ typedef struct ogs_pfcp_far_s {
     uint16_t        id;
 
     ogs_pfcp_pdr_t  *pdr;
-    ogs_pfcp_sess_t *sess;
 } ogs_pfcp_far_t;
 
 typedef struct ogs_pfcp_urr_s {
@@ -104,7 +101,6 @@ typedef struct ogs_pfcp_urr_s {
     uint16_t        id;
 
     ogs_pfcp_pdr_t  *pdr;
-    ogs_pfcp_sess_t *sess;
 } ogs_pfcp_urr_t;
 
 typedef struct ogs_pfcp_qer_s {
@@ -113,7 +109,6 @@ typedef struct ogs_pfcp_qer_s {
     uint16_t        id;
 
     ogs_pfcp_pdr_t  *pdr;
-    ogs_pfcp_sess_t *sess;
 } ogs_pfcp_qer_t;
 
 void ogs_pfcp_context_init(void);

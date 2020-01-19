@@ -660,6 +660,9 @@ smf_sess_t *smf_sess_add(
     ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
 
     sess->smf_s5c_teid = sess->index;
+
+    /* Set PFCP Session */
+    ogs_pfcp_sess_new(&sess->pfcp);
     sess->pfcp.local_n4_seid = sess->index;
 
     /* Set IMSI */
@@ -709,13 +712,6 @@ smf_sess_t *smf_sess_add(
     } else
         ogs_assert_if_reached();
 
-    /* Select PFCP Node */
-    if (ogs_pfcp_self()->peer == NULL)
-        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
-
-    ogs_assert(ogs_pfcp_self()->peer);
-    OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
-
     ogs_info("UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
 	    sess->imsi_bcd,
 	    apn,
@@ -740,7 +736,7 @@ int smf_sess_remove(smf_sess_t *sess)
 
     ogs_list_remove(&ogs_pfcp_self()->sess_list, sess);
 
-    ogs_pfcp_sess_remove(&sess->pfcp);
+    ogs_pfcp_sess_delete(&sess->pfcp);
 
     OGS_TLV_CLEAR_DATA(&sess->ue_pco);
     OGS_TLV_CLEAR_DATA(&sess->ue_timezone);

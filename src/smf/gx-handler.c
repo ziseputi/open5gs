@@ -51,24 +51,9 @@ void smf_gx_handle_cca_initial_request(
     ogs_gtp_header_t h;
     ogs_pkbuf_t *pkbuf = NULL;
 
-    ogs_pfcp_pdr_t *dl_pdr = NULL;
-    ogs_pfcp_pdr_t *ul_pdr = NULL;
-    ogs_pfcp_far_t *dl_far = NULL;
-    ogs_pfcp_far_t *ul_far = NULL;
-
     ogs_assert(sess);
     ogs_assert(gx_message);
     ogs_assert(xact);
-
-    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
-    ogs_assert(dl_pdr);
-    dl_far = ogs_pfcp_far_add(dl_pdr);
-    ogs_assert(dl_far);
-
-    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
-    ogs_assert(ul_pdr);
-    ul_far = ogs_pfcp_far_add(ul_pdr);
-    ogs_assert(ul_far);
 
     smf_pfcp_send_session_establishment_request(sess);
 #if 0

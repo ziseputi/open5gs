@@ -28,12 +28,6 @@
 extern "C" {
 #endif
 
-#define OGS_MAX_NUM_OF_PDR      4
-#define OGS_MAX_NUM_OF_FAR      4
-#define OGS_MAX_NUM_OF_URR      2
-#define OGS_MAX_NUM_OF_QER      2
-#define OGS_MAX_NUM_OF_BAR      1
-
 typedef struct ogs_pfcp_context_s {
     uint32_t        pfcp_port;      /* PFCP local port */
 

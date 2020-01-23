@@ -243,3 +243,45 @@ int ogs_pfcp_outer_hdr_to_ip(ogs_pfcp_outer_hdr_t *outer_hdr, ogs_ip_t *ip)
 
     return OGS_OK;
 }
+
+void ogs_pfcp_create_pdrs_in_session_establishment(
+    ogs_pfcp_tlv_create_pdr_t *create_pdrs[][OGS_MAX_NUM_OF_PDR],
+    ogs_pfcp_session_establishment_request_t *req)
+{
+    ogs_assert(create_pdrs);
+    ogs_assert(req);
+
+    (*create_pdrs)[0] = &req->create_pdr;
+    (*create_pdrs)[1] = &req->create_pdr1;
+}
+
+void ogs_pfcp_create_fars_in_session_establishment(
+    ogs_pfcp_tlv_create_far_t *create_fars[][OGS_MAX_NUM_OF_FAR],
+    ogs_pfcp_session_establishment_request_t *req)
+{
+    ogs_assert(create_fars);
+    ogs_assert(req);
+
+    (*create_fars)[0] = &req->create_far;
+    (*create_fars)[1] = &req->create_far1;
+}
+
+void ogs_pfcp_create_urrs_in_session_establishment(
+    ogs_pfcp_tlv_create_urr_t *create_urrs[][OGS_MAX_NUM_OF_URR],
+    ogs_pfcp_session_establishment_request_t *req)
+{
+    ogs_assert(create_urrs);
+    ogs_assert(req);
+
+    (*create_urrs)[0] = &req->create_urr;
+}
+
+void ogs_pfcp_create_qers_in_session_establishment(
+    ogs_pfcp_tlv_create_qer_t *create_qers[][OGS_MAX_NUM_OF_QER],
+    ogs_pfcp_session_establishment_request_t *req)
+{
+    ogs_assert(create_qers);
+    ogs_assert(req);
+
+    (*create_qers)[0] = &req->create_qer;
+}

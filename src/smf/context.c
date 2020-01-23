@@ -638,7 +638,7 @@ static void *sess_hash_keygen(uint8_t *out, int *out_len,
     return out;
 }
 
-static int pfcp_sess_init(ogs_pfcp_sess_t *sess)
+static int pfcp_sess_add(ogs_pfcp_sess_t *sess)
 {
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
@@ -691,7 +691,7 @@ smf_sess_t *smf_sess_add(
     sess->smf_s5c_teid = sess->index;
 
     /* Set PFCP Session */
-    rv = pfcp_sess_init(&sess->pfcp);
+    rv = pfcp_sess_add(&sess->pfcp);
     ogs_assert(rv == OGS_OK);
 
     sess->pfcp.local_n4_seid = sess->index;

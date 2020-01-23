@@ -136,6 +136,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         ogs_pfcp_tlv_create_pdr_t *message = create_pdrs[i];
         ogs_pfcp_pdr_t *context = pdr;
+        int j = 0;
 
         ogs_assert(message);
         ogs_assert(pdr);
@@ -143,6 +144,30 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->presence = 1;
         message->pdr_id.presence = 1;
         message->pdr_id.u16 = context->id;
+
+        if (pdr->far) {
+            message->far_id.presence = 1;
+            message->far_id.u32 = pdr->far->id;
+        }
+
+        for (j = 0; j < pdr->num_of_urr; j++) {
+            if (j == 0) {
+                message->urr_id.presence = 1;
+                ogs_assert(pdr->urrs[j]);
+                message->urr_id.u32 = pdr->urrs[j]->id;
+            } else {
+                ogs_error("[%d] PFCP should support multiple URR", j);
+            }
+        }
+        for (j = 0; j < pdr->num_of_qer; j++) {
+            if (j == 0) {
+                message->qer_id.presence = 1;
+                ogs_assert(pdr->qers[j]);
+                message->qer_id.u32 = pdr->qers[j]->id;
+            } else {
+                ogs_error("[%d] PFCP should support multiple URR", j);
+            }
+        }
 
         i++;
     }

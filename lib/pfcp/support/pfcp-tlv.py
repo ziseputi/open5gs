@@ -315,7 +315,7 @@ else:
 
                 if ie_name.find('Access Forwarding Action Information 2') != -1:
                     ie_idx = str(int(ie_type)+100)
-                    write_file(f, "ies = []\n")
+                    group_list[ie_name] = { "index" : ie_idx, "type" : ie_type, "ies" : ies }
                     write_file(f, "group_list[\"" + ie_name + "\"] = { \"index\" : \"" + ie_idx + "\", \"type\" : \"" + ie_type + "\", \"ies\" : ies }\n")
                     continue
                 

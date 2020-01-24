@@ -144,7 +144,6 @@ ies.append({ "ie_type" : "Weight", "ie_value" : "Weight", "presence" : "C", "ins
 ies.append({ "ie_type" : "Priority", "ie_value" : "Priority", "presence" : "C", "instance" : "0", "comment" : "This IE shall be present if the steering mode is set to Active-Standby or Priority-based. (NOTE 2)"})
 ies.append({ "ie_type" : "URR ID", "ie_value" : "URR ID", "presence" : "C", "instance" : "0", "comment" : "This IE shall uniquely identify the URR among all the URRs configured for the PFCP session. This enables the SMF to request separate usage reports for different FARs (i.e. different accesses) (NOTE 3)Several IEs within the same IE type may be present to represent a list of URRs to be associated to the FAR."})
 group_list["Access Forwarding Action Information 1"] = { "index" : "266", "type" : "166", "ies" : ies }
-ies = []
 group_list["Access Forwarding Action Information 2"] = { "index" : "267", "type" : "167", "ies" : ies }
 ies = []
 ies.append({ "ie_type" : "PDR ID", "ie_value" : "PDR ID", "presence" : "M", "instance" : "0", "comment" : ""})
@@ -291,7 +290,6 @@ ies.append({ "ie_type" : "Weight", "ie_value" : "Weight", "presence" : "C", "ins
 ies.append({ "ie_type" : "Priority", "ie_value" : "Priority", "presence" : "C", "instance" : "0", "comment" : "This IE shall be present if it is changed."})
 ies.append({ "ie_type" : "URR ID", "ie_value" : "URR ID", "presence" : "C", "instance" : "0", "comment" : "This IE shall be present if a measurement action shall be applied or no longer applied to packets for this access.When present, this IE shall contain the list of all the URR IDs to be associated to this access."})
 group_list["Update Access Forwarding Action Information 1"] = { "index" : "275", "type" : "175", "ies" : ies }
-ies = []
 group_list["Update Access Forwarding Action Information 2"] = { "index" : "276", "type" : "176", "ies" : ies }
 ies = []
 ies.append({ "ie_type" : "URR ID", "ie_value" : "URR ID", "presence" : "M", "instance" : "0", "comment" : "This IE shall identify the URR for which usage is reported."})

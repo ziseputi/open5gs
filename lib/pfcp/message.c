@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-24 11:55:15.562427 by acetcom
+ * Created on: 2020-01-24 14:40:06.234506 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -1401,17 +1401,6 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_deactivation_time_0 =
     { NULL }
 };
 
-ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_2_0 =
-{
-    OGS_TLV_VAR_STR,
-    "Access Forwarding Action Information 2",
-    OGS_PFCP_ACCESS_FORWARDING_ACTION_INFORMATION_2_TYPE,
-    0,
-    0,
-    sizeof(ogs_pfcp_tlv_access_forwarding_action_information_2_t),
-    { NULL }
-};
-
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_mar_id_0 =
 {
     OGS_TLV_VAR_STR,
@@ -1464,17 +1453,6 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_priority_0 =
     0,
     0,
     sizeof(ogs_pfcp_tlv_priority_t),
-    { NULL }
-};
-
-ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_2_0 =
-{
-    OGS_TLV_VAR_STR,
-    "Update Access Forwarding Action Information 2",
-    OGS_PFCP_UPDATE_ACCESS_FORWARDING_ACTION_INFORMATION_2_TYPE,
-    0,
-    0,
-    sizeof(ogs_pfcp_tlv_update_access_forwarding_action_information_2_t),
     { NULL }
 };
 
@@ -1965,6 +1943,23 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_1_0 =
     }
 };
 
+ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_2_0 =
+{
+    OGS_TLV_COMPOUND,
+    "Access Forwarding Action Information 2",
+    OGS_PFCP_ACCESS_FORWARDING_ACTION_INFORMATION_2_TYPE,
+    0,
+    0,
+    sizeof(ogs_pfcp_tlv_access_forwarding_action_information_2_t),
+    {
+        &ogs_pfcp_tlv_desc_far_id_0,
+        &ogs_pfcp_tlv_desc_weight_0,
+        &ogs_pfcp_tlv_desc_priority_0,
+        &ogs_pfcp_tlv_desc_urr_id_0,
+        NULL,
+    }
+};
+
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_1_0 =
 {
     OGS_TLV_COMPOUND,
@@ -1973,6 +1968,23 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_1_0
     0,
     0,
     sizeof(ogs_pfcp_tlv_update_access_forwarding_action_information_1_t),
+    {
+        &ogs_pfcp_tlv_desc_far_id_0,
+        &ogs_pfcp_tlv_desc_weight_0,
+        &ogs_pfcp_tlv_desc_priority_0,
+        &ogs_pfcp_tlv_desc_urr_id_0,
+        NULL,
+    }
+};
+
+ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_2_0 =
+{
+    OGS_TLV_COMPOUND,
+    "Update Access Forwarding Action Information 2",
+    OGS_PFCP_UPDATE_ACCESS_FORWARDING_ACTION_INFORMATION_2_TYPE,
+    0,
+    0,
+    sizeof(ogs_pfcp_tlv_update_access_forwarding_action_information_2_t),
     {
         &ogs_pfcp_tlv_desc_far_id_0,
         &ogs_pfcp_tlv_desc_weight_0,

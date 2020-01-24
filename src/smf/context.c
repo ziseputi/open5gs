@@ -79,6 +79,8 @@ void smf_context_init(void)
     ogs_pool_init(&smf_pf_pool, ogs_config()->pool.pf);
 
     self.sess_hash = ogs_hash_make();
+    self.ipv4_hash = ogs_hash_make();
+    self.ipv6_hash = ogs_hash_make();
 
     context_initiaized = 1;
 }
@@ -94,6 +96,10 @@ void smf_context_final(void)
 
     ogs_assert(self.sess_hash);
     ogs_hash_destroy(self.sess_hash);
+    ogs_assert(self.ipv4_hash);
+    ogs_hash_destroy(self.ipv4_hash);
+    ogs_assert(self.ipv6_hash);
+    ogs_hash_destroy(self.ipv6_hash);
 
     ogs_pool_final(&smf_bearer_pool);
     ogs_pool_final(&smf_sess_pool);
@@ -719,6 +725,7 @@ smf_sess_t *smf_sess_add(
         sess->ipv4 = smf_ue_ip_alloc(AF_INET, apn, (uint8_t *)&(paa->addr));
         ogs_assert(sess->ipv4);
         sess->pdn.paa.addr = sess->ipv4->addr[0];
+        ogs_hash_set(self.ipv4_hash, sess->ipv4->addr, OGS_IPV4_LEN, sess);
     } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
         sess->ipv6 = smf_ue_ip_alloc(AF_INET6, apn, (paa->addr6));
         ogs_assert(sess->ipv6);
@@ -728,6 +735,7 @@ smf_sess_t *smf_sess_add(
 
         sess->pdn.paa.len = subnet6->prefixlen;
         memcpy(sess->pdn.paa.addr6, sess->ipv6->addr, OGS_IPV6_LEN);
+        ogs_hash_set(self.ipv6_hash, sess->ipv6->addr, OGS_IPV6_LEN, sess);
     } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
         sess->ipv4 = smf_ue_ip_alloc(AF_INET, apn, (uint8_t *)&(paa->both.addr));
         ogs_assert(sess->ipv4);
@@ -740,6 +748,8 @@ smf_sess_t *smf_sess_add(
         sess->pdn.paa.both.addr = sess->ipv4->addr[0];
         sess->pdn.paa.both.len = subnet6->prefixlen;
         memcpy(sess->pdn.paa.both.addr6, sess->ipv6->addr, OGS_IPV6_LEN);
+        ogs_hash_set(self.ipv4_hash, sess->ipv4->addr, OGS_IPV4_LEN, sess);
+        ogs_hash_set(self.ipv6_hash, sess->ipv6->addr, OGS_IPV6_LEN, sess);
     } else
         ogs_assert_if_reached();
 
@@ -774,10 +784,14 @@ int smf_sess_remove(smf_sess_t *sess)
 
     ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, NULL);
 
-    if (sess->ipv4)
+    if (sess->ipv4) {
+        ogs_hash_set(self.ipv4_hash, sess->ipv4->addr, OGS_IPV4_LEN, NULL);
         smf_ue_ip_free(sess->ipv4);
-    if (sess->ipv6)
+    }
+    if (sess->ipv6) {
+        ogs_hash_set(self.ipv6_hash, sess->ipv6->addr, OGS_IPV6_LEN, NULL);
         smf_ue_ip_free(sess->ipv6);
+    }
 
     smf_bearer_remove_all(sess);
 
@@ -822,6 +836,19 @@ smf_sess_t *smf_sess_find_by_imsi_apn(
 
     sess_hash_keygen(keybuf, &keylen, imsi, imsi_len, apn);
     return (smf_sess_t *)ogs_hash_get(self.sess_hash, keybuf, keylen);
+}
+
+smf_sess_t *smf_sess_find_by_ipv4(uint32_t addr)
+{
+    ogs_assert(self.ipv4_hash);
+    return (smf_sess_t *)ogs_hash_get(self.ipv4_hash, &addr, OGS_IPV4_LEN);
+}
+
+smf_sess_t *smf_sess_find_by_ipv6(uint32_t *addr6)
+{
+    ogs_assert(self.ipv6_hash);
+    ogs_assert(addr6);
+    return (smf_sess_t *)ogs_hash_get(self.ipv6_hash, addr6, OGS_IPV6_LEN);
 }
 
 smf_sess_t *smf_sess_add_by_message(ogs_gtp_message_t *message)

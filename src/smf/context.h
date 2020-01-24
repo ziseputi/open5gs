@@ -83,6 +83,8 @@ typedef struct smf_context_s {
     ogs_list_t      ip_pool_list;
 
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
+    ogs_hash_t      *ipv4_hash;     /* hash table (IPv4 Address) */
+    ogs_hash_t      *ipv6_hash;     /* hash table (IPv6 Address) */
 } smf_context_t;
 
 typedef struct smf_subnet_s smf_subnet_t;
@@ -241,6 +243,8 @@ smf_sess_t *smf_sess_find(uint32_t index);
 smf_sess_t *smf_sess_find_by_teid(uint32_t teid);
 smf_sess_t *smf_sess_find_by_seid(uint64_t seid);
 smf_sess_t *smf_sess_find_by_imsi_apn(uint8_t *imsi, int imsi_len, char *apn);
+smf_sess_t *smf_sess_find_by_ipv4(uint32_t addr);
+smf_sess_t *smf_sess_find_by_ipv6(uint32_t *addr6);
 
 smf_bearer_t *smf_bearer_add(smf_sess_t *sess);
 int smf_bearer_remove(smf_bearer_t *bearer);

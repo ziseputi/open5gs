@@ -364,8 +364,6 @@ for key in msg_list.keys():
             document = Document(filename)
             f = open(cachefile, 'w') 
 
-            ies = []
-            write_file(f, "ies = []\n")
             table = document.tables[msg_list[key]["table"]]
             if key.find('Association') != -1:
                 start_i = 1
@@ -374,20 +372,25 @@ for key in msg_list.keys():
             else:
                 start_i = 2
             
+            ies = []
+            write_file(f, "ies = []\n")
             if key != "PFCP Session Deletion Request" and key != "PFCP Version Not Supported Response":
                 for row in table.rows[start_i:]:
                     cells = get_cells(row.cells)
                     if cells is None:
                         continue
-    
-                    if (cells["ie_type"] == 'Create PDR' or cells["ie_type"] == 'Create FAR'):
-                        cells["instance"] = '0' 
-                        ies.append(cells)
-                        write_cells_to_file("ies", cells)
-                    cells = get_cells(row.cells)
 
-                    ies.append(cells)
-                    write_cells_to_file("ies", cells)
+                    for instance in range(0, int(cells["instance"])+1):
+                        item = {
+                            "ie_type" : cells["ie_type"],
+                            "ie_value" : cells["ie_value"],
+                            "presence" : cells["presence"],
+                            "instance" : str(instance),
+                            "comment" : cells["comment"]
+                            }
+                        ies.append(item)
+                        write_cells_to_file("ies", item)
+
             msg_list[key]["ies"] = ies
             write_file(f, "msg_list[key][\"ies\"] = ies\n")
             f.close()
@@ -572,7 +575,6 @@ for (k, v) in sorted_msg_list:
     if "ies" in msg_list[k]:
         f.write("typedef struct ogs_" + v_lower(k) + "_s {\n")
         for ies in msg_list[k]["ies"]:
-            # 0403 modify
             if ies["instance"] != "0":
                 f.write("    ogs_pfcp_tlv_" + v_lower(ies["ie_type"]) + "_t " + \
                     v_lower(ies["ie_value"]) + ies["instance"] + ";\n")

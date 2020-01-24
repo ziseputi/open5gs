@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-24 10:41:52.827661 by acetcom
+ * Created on: 2020-01-24 11:06:08.181693 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -430,7 +430,6 @@ extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_create_urr_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_create_qer_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_created_pdr_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_pdr_0;
-extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_pdr_1;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_bar_pfcp_session_report_response_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_urr_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_qer_0;
@@ -1223,7 +1222,6 @@ typedef struct ogs_pfcp_session_modification_request_s {
     ogs_pfcp_tlv_create_bar_t create_bar;
     ogs_pfcp_tlv_create_traffic_endpoint_t create_traffic_endpoint;
     ogs_pfcp_tlv_update_pdr_t update_pdr;
-    ogs_pfcp_tlv_update_pdr_t update_pdr1;
     ogs_pfcp_tlv_update_far_t update_far;
     ogs_pfcp_tlv_update_urr_t update_urr;
     ogs_pfcp_tlv_update_qer_t update_qer;

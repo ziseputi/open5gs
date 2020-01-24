@@ -144,7 +144,7 @@ def get_cells(cells):
         ie_value = ie_value[:len(ie_value)-1]
 
     instance = "0"  # PFCP has no instance
-    if ie_type == 'Create PDR' or ie_type == 'Create FAR' or ie_type == 'Update PDR':
+    if ie_type == 'Create PDR' or ie_type == 'Create FAR':
         instance = "1"
 
     if int(instance) > int(type_list[ie_type]["max_instance"]):
@@ -380,9 +380,8 @@ for key in msg_list.keys():
                     if cells is None:
                         continue
     
-                    if (cells["ie_type"] == 'Create PDR' or cells["ie_type"] == 'Create FAR' or cells["ie_type"] == 'Update PDR'):
+                    if (cells["ie_type"] == 'Create PDR' or cells["ie_type"] == 'Create FAR'):
                         cells["instance"] = '0' 
-                        cells["presence"] = 'O'
                         ies.append(cells)
                         write_cells_to_file("ies", cells)
                     cells = get_cells(row.cells)

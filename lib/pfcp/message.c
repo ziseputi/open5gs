@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-24 10:41:52.838866 by acetcom
+ * Created on: 2020-01-24 11:06:08.192517 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -1947,30 +1947,6 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_pdr_0 =
     }
 };
 
-ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_pdr_1 =
-{
-    OGS_TLV_COMPOUND,
-    "Update PDR",
-    OGS_PFCP_UPDATE_PDR_TYPE,
-    0,
-    1,
-    sizeof(ogs_pfcp_tlv_update_pdr_t),
-    {
-        &ogs_pfcp_tlv_desc_pdr_id_0,
-        &ogs_pfcp_tlv_desc_outer_header_removal_0,
-        &ogs_pfcp_tlv_desc_precedence_0,
-        &ogs_pfcp_tlv_desc_pdi_0,
-        &ogs_pfcp_tlv_desc_far_id_0,
-        &ogs_pfcp_tlv_desc_urr_id_0,
-        &ogs_pfcp_tlv_desc_qer_id_0,
-        &ogs_pfcp_tlv_desc_activate_predefined_rules_0,
-        &ogs_pfcp_tlv_desc_deactivate_predefined_rules_0,
-        &ogs_pfcp_tlv_desc_activation_time_0,
-        &ogs_pfcp_tlv_desc_deactivation_time_0,
-        NULL,
-    }
-};
-
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_bar_pfcp_session_report_response_0 =
 {
     OGS_TLV_COMPOUND,
@@ -2684,7 +2660,6 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcp_session_modification_request =
         &ogs_pfcp_tlv_desc_create_bar_0,
         &ogs_pfcp_tlv_desc_create_traffic_endpoint_0,
         &ogs_pfcp_tlv_desc_update_pdr_0,
-        &ogs_pfcp_tlv_desc_update_pdr_1,
         &ogs_pfcp_tlv_desc_update_far_0,
         &ogs_pfcp_tlv_desc_update_urr_0,
         &ogs_pfcp_tlv_desc_update_qer_0,

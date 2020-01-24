@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-02 20:57:58.203455 by acetcom
+ * Created on: 2020-01-24 10:41:52.827661 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -396,11 +396,13 @@ extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcpsrreq_flags_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfcpaureq_flags_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_activation_time_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_deactivation_time_0;
+extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_mar_id_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_steering_functionality_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_steering_mode_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_weight_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_priority_0;
+extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_ue_ip_address_pool_identity_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_alternative_smf_ip_address_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_packet_replication_and_detection_carry_on_information_0;
@@ -423,9 +425,7 @@ extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_pfd_context_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_application_id_s_pfds_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_ethernet_traffic_information_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_1_0;
-extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_1_0;
-extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_update_access_forwarding_action_information_2_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_create_urr_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_create_qer_0;
 extern ogs_tlv_desc_t ogs_pfcp_tlv_desc_created_pdr_0;
@@ -609,11 +609,13 @@ typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfcpsrreq_flags_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfcpaureq_flags_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_activation_time_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_deactivation_time_t;
+typedef ogs_tlv_octet_t ogs_pfcp_tlv_access_forwarding_action_information_2_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_mar_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_steering_functionality_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_steering_mode_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_weight_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_priority_t;
+typedef ogs_tlv_octet_t ogs_pfcp_tlv_update_access_forwarding_action_information_2_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_ue_ip_address_pool_identity_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_alternative_smf_ip_address_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_packet_replication_and_detection_carry_on_information_t;
@@ -753,10 +755,6 @@ typedef struct ogs_pfcp_tlv_access_forwarding_action_information_1_s {
     ogs_pfcp_tlv_urr_id_t urr_id;
 } ogs_pfcp_tlv_access_forwarding_action_information_1_t;
 
-typedef struct ogs_pfcp_tlv_access_forwarding_action_information_2_s {
-    ogs_tlv_presence_t presence;
-} ogs_pfcp_tlv_access_forwarding_action_information_2_t;
-
 typedef struct ogs_pfcp_tlv_update_access_forwarding_action_information_1_s {
     ogs_tlv_presence_t presence;
     ogs_pfcp_tlv_far_id_t far_id;
@@ -764,10 +762,6 @@ typedef struct ogs_pfcp_tlv_update_access_forwarding_action_information_1_s {
     ogs_pfcp_tlv_priority_t priority;
     ogs_pfcp_tlv_urr_id_t urr_id;
 } ogs_pfcp_tlv_update_access_forwarding_action_information_1_t;
-
-typedef struct ogs_pfcp_tlv_update_access_forwarding_action_information_2_s {
-    ogs_tlv_presence_t presence;
-} ogs_pfcp_tlv_update_access_forwarding_action_information_2_t;
 
 typedef struct ogs_pfcp_tlv_create_urr_s {
     ogs_tlv_presence_t presence;
@@ -1160,6 +1154,12 @@ typedef struct ogs_pfcp_node_report_response_s {
 typedef struct ogs_pfcp_session_set_deletion_request_s {
     ogs_pfcp_tlv_node_id_t node_id;
     ogs_pfcp_tlv_fq_csid_t sgw_c_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t pgw_c_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t sgw_u_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t pgw_u_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t twan_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t epdg_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t mme_fq_csid;
 } ogs_pfcp_session_set_deletion_request_t;
 
 typedef struct ogs_pfcp_session_set_deletion_response_s {
@@ -1181,6 +1181,10 @@ typedef struct ogs_pfcp_session_establishment_request_s {
     ogs_pfcp_tlv_create_traffic_endpoint_t create_traffic_endpoint;
     ogs_pfcp_tlv_pdn_type_t pdn_type;
     ogs_pfcp_tlv_fq_csid_t sgw_c_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t mme_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t pgw_c_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t epdg_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t twan_fq_csid;
     ogs_pfcp_tlv_user_plane_inactivity_timer_t user_plane_inactivity_timer;
     ogs_pfcp_tlv_user_id_t user_id;
     ogs_pfcp_tlv_trace_information_t trace_information;
@@ -1197,6 +1201,7 @@ typedef struct ogs_pfcp_session_establishment_response_s {
     ogs_pfcp_tlv_load_control_information_t load_control_information;
     ogs_pfcp_tlv_overload_control_information_t overload_control_information;
     ogs_pfcp_tlv_fq_csid_t sgw_u_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t pgw_u_fq_csid;
     ogs_pfcp_tlv_failed_rule_id_t failed_rule_id;
     ogs_pfcp_tlv_created_traffic_endpoint_t created_traffic_endpoint;
 } ogs_pfcp_session_establishment_response_t;
@@ -1227,6 +1232,10 @@ typedef struct ogs_pfcp_session_modification_request_s {
     ogs_pfcp_tlv_pfcpsmreq_flags_t pfcpsmreq_flags;
     ogs_pfcp_tlv_query_urr_t query_urr;
     ogs_pfcp_tlv_fq_csid_t pgw_c_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t sgw_c_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t mme_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t epdg_fq_csid;
+    ogs_pfcp_tlv_fq_csid_t twan_fq_csid;
     ogs_pfcp_tlv_user_plane_inactivity_timer_t user_plane_inactivity_timer;
     ogs_pfcp_tlv_query_urr_reference_t query_urr_reference;
     ogs_pfcp_tlv_trace_information_t trace_information;

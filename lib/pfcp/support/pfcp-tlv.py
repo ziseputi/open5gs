@@ -96,10 +96,6 @@ def v_lower(v):
     return re.sub('3gpp', '', re.sub('\'', '_', re.sub('/', '_', re.sub('-', '_', re.sub(' ', '_', v)))).lower())
 
 def get_cells(cells):
-    #instance = cells[4].text.encode('ascii', 'ignore')
-    #if instance.isdigit() is not True:
-    #    return None
-    instance = "0"  # PFCP has no instance
     note = cells[0].text.encode('ascii', 'ignore')
     if note.find('NOTE') != -1:
         return None
@@ -147,6 +143,7 @@ def get_cells(cells):
     if ie_value[len(ie_value)-1] == ' ':
         ie_value = ie_value[:len(ie_value)-1]
 
+    instance = "0"  # PFCP has no instance
     if ie_type == 'Create PDR' or ie_type == 'Create FAR' or ie_type == 'Update PDR':
         instance = "1"
 
@@ -324,13 +321,8 @@ else:
                         if cells is None:
                             continue
 
-                        ies_is_added = True
-                        for ie in ies:
-                            if (cells["ie_type"], cells["instance"]) == (ie["ie_type"], ie["instance"]):
-                                ies_is_added = False
-                        if ies_is_added is True:
-                            ies.append(cells)
-                            write_cells_to_file("ies", cells)
+                        ies.append(cells)
+                        write_cells_to_file("ies", cells)
 
                     ie_idx = str(int(ie_type)+100)
                     group_list[ie_name] = { "index" : ie_idx, "type" : ie_type, "ies" : ies }
@@ -395,13 +387,8 @@ for key in msg_list.keys():
                         write_cells_to_file("ies", cells)
                     cells = get_cells(row.cells)
 
-                    ies_is_added = True
-                    for ie in ies:
-                        if (cells["ie_type"], cells["instance"]) == (ie["ie_type"], ie["instance"]):
-                            ies_is_added = False
-                    if ies_is_added is True:
-                        ies.append(cells)
-                        write_cells_to_file("ies", cells)
+                    ies.append(cells)
+                    write_cells_to_file("ies", cells)
             msg_list[key]["ies"] = ies
             write_file(f, "msg_list[key][\"ies\"] = ies\n")
             f.close()

@@ -91,6 +91,8 @@ typedef struct upf_context_s {
     ogs_list_t      ip_pool_list;
 
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
+    ogs_hash_t      *ipv4_hash;     /* hash table (IPv4 Address) */
+    ogs_hash_t      *ipv6_hash;     /* hash table (IPv6 Address) */
 } upf_context_t;
 
 typedef struct upf_subnet_s upf_subnet_t;
@@ -250,6 +252,8 @@ upf_sess_t *upf_sess_find(uint32_t index);
 upf_sess_t *upf_sess_find_by_teid(uint32_t teid);
 upf_sess_t *upf_sess_find_by_seid(uint64_t seid);
 upf_sess_t *upf_sess_find_by_imsi_apn(uint8_t *imsi, int imsi_len, char *apn);
+upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr);
+upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6);
 
 upf_bearer_t *upf_bearer_add(upf_sess_t *sess);
 int upf_bearer_remove(upf_bearer_t *bearer);

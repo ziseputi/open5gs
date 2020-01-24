@@ -449,7 +449,7 @@ smf_bearer_t *smf_bearer_find_by_packet(ogs_pkbuf_t *pkt)
 
         return (bearer ? bearer : default_bearer);
     } else {
-        ogs_debug("[PGW] No Session");
+        ogs_debug("[SMF] No Session");
     }
 
     return NULL;

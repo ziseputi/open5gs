@@ -581,7 +581,7 @@ for (k, v) in sorted_msg_list:
     if "ies" in msg_list[k]:
         f.write("typedef struct ogs_" + v_lower(k) + "_s {\n")
         for ies in msg_list[k]["ies"]:
-            if ies["instance"] != "0":
+            if type_list[ies["ie_type"]]["max_instance"] != "0":
                 f.write("    ogs_pfcp_tlv_" + v_lower(ies["ie_type"]) + "_t " + \
                     v_lower(ies["ie_value"]) + ies["instance"] + ";\n")
             else:

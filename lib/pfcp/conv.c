@@ -251,8 +251,10 @@ void ogs_pfcp_create_pdrs_in_session_establishment(
     ogs_assert(create_pdrs);
     ogs_assert(req);
 
-    (*create_pdrs)[0] = &req->create_pdr;
+    (*create_pdrs)[0] = &req->create_pdr0;
     (*create_pdrs)[1] = &req->create_pdr1;
+    (*create_pdrs)[2] = &req->create_pdr2;
+    (*create_pdrs)[3] = &req->create_pdr3;
 }
 
 void ogs_pfcp_create_fars_in_session_establishment(
@@ -262,8 +264,10 @@ void ogs_pfcp_create_fars_in_session_establishment(
     ogs_assert(create_fars);
     ogs_assert(req);
 
-    (*create_fars)[0] = &req->create_far;
+    (*create_fars)[0] = &req->create_far0;
     (*create_fars)[1] = &req->create_far1;
+    (*create_fars)[2] = &req->create_far2;
+    (*create_fars)[3] = &req->create_far3;
 }
 
 void ogs_pfcp_create_urrs_in_session_establishment(
@@ -273,7 +277,8 @@ void ogs_pfcp_create_urrs_in_session_establishment(
     ogs_assert(create_urrs);
     ogs_assert(req);
 
-    (*create_urrs)[0] = &req->create_urr;
+    (*create_urrs)[0] = &req->create_urr0;
+    (*create_urrs)[1] = &req->create_urr1;
 }
 
 void ogs_pfcp_create_qers_in_session_establishment(
@@ -283,5 +288,6 @@ void ogs_pfcp_create_qers_in_session_establishment(
     ogs_assert(create_qers);
     ogs_assert(req);
 
-    (*create_qers)[0] = &req->create_qer;
+    (*create_qers)[0] = &req->create_qer0;
+    (*create_qers)[1] = &req->create_qer1;
 }

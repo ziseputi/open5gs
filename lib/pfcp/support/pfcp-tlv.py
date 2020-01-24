@@ -144,7 +144,13 @@ def get_cells(cells):
         ie_value = ie_value[:len(ie_value)-1]
 
     instance = "0"  # PFCP has no instance
-    if ie_type == 'Create PDR' or ie_type == 'Create FAR':
+    if ie_type == 'Create PDR' or ie_type == 'Update PDR' or ie_type == "Remove PDR":
+        instance = "3"
+    if ie_type == 'Create FAR' or ie_type == 'Update FAR' or ie_type == "Remove FAR":
+        instance = "3"
+    if ie_type == 'Create URR' or ie_type == 'Update URR' or ie_type == "Remove URR":
+        instance = "1"
+    if ie_type == 'Create QER' or ie_type == 'Update QER' or ie_type == "Remove QER":
         instance = "1"
 
     if int(instance) > int(type_list[ie_type]["max_instance"]):

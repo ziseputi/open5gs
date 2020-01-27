@@ -43,6 +43,9 @@ int ogs_pfcp_sockaddr_to_f_teid(
     ogs_sockaddr_t *addr1, ogs_sockaddr_t *addr2,
     ogs_pfcp_f_teid_t *f_teid, int *len);
 
+int ogs_pfcp_paa_to_ue_ip_addr(ogs_paa_t *paa,
+        ogs_pfcp_ue_ip_addr_t *ue_ip_addr, int *len);
+
 int ogs_pfcp_outer_hdr_to_ip(ogs_pfcp_outer_hdr_t *outer_hdr, ogs_ip_t *ip);
 
 void ogs_pfcp_create_pdrs_in_session_establishment(

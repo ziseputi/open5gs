@@ -242,6 +242,44 @@ int ogs_pfcp_sockaddr_to_f_teid(
     return sockaddr_to_f_teid(addr, addr6, f_teid, len);
 }
 
+#define OGS_PFCP_UE_IP_ADDR_HDR_LEN   1
+#define OGS_PFCP_UE_IP_ADDR_IPV4_LEN  \
+    (OGS_IPV4_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN)
+#define OGS_PFCP_UE_IP_ADDR_IPV6_LEN  \
+    (OGS_IPV6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN)
+#define OGS_PFCP_UE_IP_ADDR_IPV4V6_LEN \
+    (OGS_IPV4V6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN)
+
+int ogs_pfcp_paa_to_ue_ip_addr(ogs_paa_t *paa,
+        ogs_pfcp_ue_ip_addr_t *ue_ip_addr, int *len)
+{
+    ogs_assert(paa);
+    ogs_assert(ue_ip_addr);
+
+    memset(ue_ip_addr, 0, sizeof *ue_ip_addr);
+
+    if (paa->pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
+        ue_ip_addr->ipv4 = 1;
+        ue_ip_addr->both.addr = paa->both.addr;
+        ue_ip_addr->ipv6 = 1;
+        memcpy(ue_ip_addr->both.addr6, paa->both.addr6, OGS_IPV6_LEN);
+        *len = OGS_PFCP_UE_IP_ADDR_IPV4V6_LEN;
+    } else if (paa->pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
+        ue_ip_addr->ipv4 = 1;
+        ue_ip_addr->ipv6 = 0;
+        ue_ip_addr->addr = paa->addr;
+        *len = OGS_PFCP_UE_IP_ADDR_IPV4_LEN;
+    } else if (paa->pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
+        ue_ip_addr->ipv4 = 0;
+        ue_ip_addr->ipv6 = 1;
+        memcpy(ue_ip_addr->addr6, paa->addr6, OGS_IPV6_LEN);
+        *len = OGS_PFCP_UE_IP_ADDR_IPV6_LEN;
+    } else
+        ogs_assert_if_reached();
+
+    return OGS_OK;
+}
+
 int ogs_pfcp_outer_hdr_to_ip(ogs_pfcp_outer_hdr_t *outer_hdr, ogs_ip_t *ip)
 {
     ogs_assert(ip);

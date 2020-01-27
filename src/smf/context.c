@@ -757,6 +757,10 @@ smf_sess_t *smf_sess_add(
     dl_pdr->precedence = dl_pdr->id; /* TODO : it will be fixed */
     dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
 
+    ogs_pfcp_paa_to_ue_ip_addr(
+            &sess->pdn.paa, &dl_pdr->ue_ip_addr, &dl_pdr->ue_ip_addr_len);
+    dl_pdr->ue_ip_addr.sd = OGS_PFCP_UE_IP_ADDR_DST;
+
     dl_pdr->outer_header_removal.presence = 1;
     if (pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
         dl_pdr->outer_header_removal.description =

@@ -218,14 +218,6 @@ ED5(uint8_t       spare:4;,
     };
 } __attribute__ ((packed)) ogs_pfcp_f_teid_t;
 
-#define OGS_PFCP_UE_IP_ADDR_HDR_LEN                         1
-#define OGS_PFCP_UE_IP_ADDR_IPV4_LEN  \
-    OGS_IPV4_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
-#define OGS_PFCP_UE_IP_ADDR_IPV6_LEN  \
-    OGS_IPV6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
-#define OGS_PFCP_UE_IP_ADDR_IPV4V6_LEN \
-    OGS_IPV4V6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
-
 /*
  * 8.2.62 UE IP Address
  *
@@ -257,7 +249,9 @@ ED5(uint8_t       spare:4;,
  */
 typedef struct ogs_pfcp_ue_ip_addr_s {
 ED4(uint8_t       spare:5;,
-    uint8_t       sd:1;,  /* source or destination*/
+#define OGS_PFCP_UE_IP_ADDR_SRC     0
+#define OGS_PFCP_UE_IP_ADDR_DST     1
+    uint8_t       sd:1;,
     uint8_t       ipv4:1;,
     uint8_t       ipv6:1;)
     union {

@@ -670,7 +670,9 @@ smf_sess_t *smf_sess_add(
     sess->index = ogs_pool_index(&smf_sess_pool, sess);
     ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
 
+    /* Set TEID & SEID */
     sess->smf_s5c_teid = sess->index;
+    sess->pfcp.local_n4_seid = sess->index;
 
     /* Set IMSI */
     sess->imsi_len = imsi_len;
@@ -735,8 +737,6 @@ smf_sess_t *smf_sess_add(
     ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, sess);
 
     /* Setup PFCP Session */
-    sess->pfcp.local_n4_seid = sess->index;
-
     if (ogs_pfcp_self()->peer == NULL)
         ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
 
@@ -772,6 +772,13 @@ smf_sess_t *smf_sess_add(
 
     ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
     ogs_assert(ul_pdr);
+
+#if 0
+    ogs_pfcp_sockaddr_to_f_teid(
+            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
+            &ul_pdr->f_teid, &ul_pdr->f_seid_len);
+    ul_f_teid.teid = htobe32(bearer->upf_s5u_teid);
+#endif
 
     ul_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     ul_pdr->precedence = ul_pdr->id; /* TODO : it will be fixed */
@@ -960,7 +967,7 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
 
     ogs_list_init(&bearer->pf_list);
 
-    bearer->smf_s5u_teid = bearer->index;
+    bearer->upf_s5u_teid = bearer->index;
     
     bearer->sess = sess;
 

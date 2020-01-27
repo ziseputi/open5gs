@@ -170,8 +170,8 @@ typedef struct smf_bearer_s {
 
     uint8_t         ebi;
 
-    uint32_t        smf_s5u_teid;   /* SMF_S5U is derived from INDEX */
-    uint32_t        sgw_s5u_teid;   /* SGW_S5U is received from SGW */
+    uint32_t        upf_s5u_teid;   /* UPF_S5U can be allocated by SMF or UPF */
+    uint32_t        sgw_s5u_teid;   /* SGW_S5U is allocated by SGW */
 
     char            *name;          /* PCC Rule Name */
     ogs_qos_t       qos;            /* QoS Infomration */

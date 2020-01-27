@@ -82,6 +82,7 @@ typedef struct ogs_pfcp_pdr_s {
     ogs_pfcp_interface_t    src_if;
 
     ogs_pfcp_outer_header_removal_t outer_header_removal;
+    ogs_pfcp_f_teid_t       f_teid;
 
     ogs_pfcp_far_t          *far;
     int                     num_of_urr;

@@ -23,16 +23,6 @@
 #define OGS_PFCP_NODE_ID_IPV4_LEN   (OGS_IPV4_LEN + OGS_PFCP_NODE_ID_HDR_LEN)
 #define OGS_PFCP_NODE_ID_IPV6_LEN   (OGS_IPV6_LEN + OGS_PFCP_NODE_ID_HDR_LEN)
 
-#define OGS_PFCP_F_TEID_HDR_LEN     5
-#define OGS_PFCP_F_TEID_IPV4_LEN    (OGS_IPV4_LEN + OGS_PFCP_F_TEID_HDR_LEN)
-#define OGS_PFCP_F_TEID_IPV6_LEN    (OGS_IPV6_LEN + OGS_PFCP_F_TEID_HDR_LEN)
-#define OGS_PFCP_F_TEID_IPV4V6_LEN  (OGS_IPV4V6_LEN + OGS_PFCP_F_TEID_HDR_LEN)
-
-#define OGS_PFCP_F_SEID_HDR_LEN     9
-#define OGS_PFCP_F_SEID_IPV4_LEN    (OGS_IPV4_LEN + OGS_PFCP_F_SEID_HDR_LEN)
-#define OGS_PFCP_F_SEID_IPV6_LEN    (OGS_IPV6_LEN + OGS_PFCP_F_SEID_HDR_LEN)
-#define OGS_PFCP_F_SEID_IPV4V6_LEN  (OGS_IPV4V6_LEN + OGS_PFCP_F_SEID_HDR_LEN)
-
 int ogs_pfcp_sockaddr_to_node_id(
     ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6, int prefer_ipv4,
     ogs_pfcp_node_id_t *node_id, int *len)
@@ -87,6 +77,11 @@ int ogs_pfcp_sockaddr_to_node_id(
 
     return OGS_OK;
 }
+
+#define OGS_PFCP_F_SEID_HDR_LEN     9
+#define OGS_PFCP_F_SEID_IPV4_LEN    (OGS_IPV4_LEN + OGS_PFCP_F_SEID_HDR_LEN)
+#define OGS_PFCP_F_SEID_IPV6_LEN    (OGS_IPV6_LEN + OGS_PFCP_F_SEID_HDR_LEN)
+#define OGS_PFCP_F_SEID_IPV4V6_LEN  (OGS_IPV4V6_LEN + OGS_PFCP_F_SEID_HDR_LEN)
 
 int ogs_pfcp_f_seid_to_sockaddr(
     ogs_pfcp_f_seid_t *f_seid, uint16_t port, ogs_sockaddr_t **list)
@@ -187,6 +182,11 @@ int ogs_pfcp_f_seid_to_ip(ogs_pfcp_f_seid_t *f_seid, ogs_ip_t *ip)
 
     return OGS_OK;
 }
+
+#define OGS_PFCP_F_TEID_HDR_LEN     5
+#define OGS_PFCP_F_TEID_IPV4_LEN    (OGS_IPV4_LEN + OGS_PFCP_F_TEID_HDR_LEN)
+#define OGS_PFCP_F_TEID_IPV6_LEN    (OGS_IPV6_LEN + OGS_PFCP_F_TEID_HDR_LEN)
+#define OGS_PFCP_F_TEID_IPV4V6_LEN  (OGS_IPV4V6_LEN + OGS_PFCP_F_TEID_HDR_LEN)
 
 int ogs_pfcp_sockaddr_to_f_teid(
     ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6,

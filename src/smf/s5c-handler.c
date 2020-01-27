@@ -104,8 +104,8 @@ void smf_s5c_handle_create_session_request(
 
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_S5C_TEID[0x%x]",
             sess->sgw_s5c_teid, sess->smf_s5c_teid);
-    ogs_debug("    SGW_S5U_TEID[%d] SMF_S5U_TEID[%d]",
-            bearer->sgw_s5u_teid, bearer->smf_s5u_teid);
+    ogs_debug("    SGW_S5U_TEID[%d] UPF_S5U_TEID[%d]",
+            bearer->sgw_s5u_teid, bearer->upf_s5u_teid);
 
 #if 0
     sgw = ogs_gtp_node_find_by_f_teid(&smf_self()->sgw_s5u_list, sgw_s5u_teid);

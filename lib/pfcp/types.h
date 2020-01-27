@@ -48,30 +48,62 @@ extern "C" {
 
 const char *ogs_pfcp_cause_get_name(uint8_t cause);
 
-#define OGS_PFCP_FAR_APPLY_ACTION_DROP                      1
-#define OGS_PFCP_FAR_APPLY_ACTION_FORW                      2
-#define OGS_PFCP_FAR_APPLY_ACTION_BUFF                      4
-#define OGS_PFCP_FAR_APPLY_ACTION_NOCP                      8
-#define OGS_PFCP_FAR_APPLY_ACTION_DUPL                      16
+/*
+ * 8.2.2 Source Interface
+ * NOTE 1: The "Access" and "Core" values denote an uplink and downlink
+ * traffic direction respectively.
+ * NOTE 2: For indirect data forwarding, the Source Interface in the PDR and
+ * the Destination Interface in the FAR shall both be set to "Access",
+ * in the forwarding SGW(s). The Interface value does not infer any
+ * traffic direction, in PDRs and FARs set up for indirect data
+ * forwarding, i.e. with both the Source and Destination Interfaces set
+ * to Access.
+ *
+ * 8.2.24 Destination Interface
+ * NOTE 1: The "Access" and "Core" values denote a downlink and uplink
+ * traffic direction respectively.
+ * NOTE 2: LI Function may denote an SX3LIF or an LMISF. See clause 5.7.
+ * NOTE 3: For indirect data forwarding, the Source Interface in the PDR and
+ * the Destination Interface in the FAR shall both be set to "Access",
+ * in the forwarding SGW(s). The Interface value does not infer any
+ * traffic direction, in PDRs and FARs set up for indirect data
+ * forwarding, i.e. with both the Source and Destination Interfaces set
+ * to Access.
+ * NOTE 4: For a HTTP redirection, the Source Interface in the PDR to match
+ * the uplink packets to be redirected and the Destination Interface in
+ * the FAR to enable the HTTP redirection shall both be set to "Access".
+ */
+#define OGS_PFCP_INTERFACE_ACCESS                           0
+#define OGS_PFCP_INTERFACE_CORE                             1
+#define OGS_PFCP_INTERFACE_SGI_N6_LAN                       2
+#define OGS_PFCP_INTERFACE_CP_FUNCTION                      3
+#define OGS_PFCP_INTERFACE_LI_FUNCTION                      4
 
-#define OGS_PFCP_FAR_DEST_INTF_ACCESS                       0   //$ DL traffic
-#define OGS_PFCP_FAR_DEST_INTF_CORE                         1   //$ UL traffic
-#define OGS_PFCP_FAR_DEST_INTF_SGILAN                       2   //$ SGi-LAN
-#define OGS_PFCP_FAR_DEST_INTF_CPF                          3   //$ CP-Function
-#define OGS_PFCP_FAR_DEST_INTF_LIF                          4   //$ LI Function
-
-#define OGS_PGWC_PRECEDENCE_BASE                            31
-
-#define OGS_PFCP_OUTER_HDR_RMV_DESC_GTPU_IP4                0
-#define OGS_PFCP_OUTER_HDR_RMV_DESC_GTPU_IP6                1
-#define OGS_PFCP_OUTER_HDR_RMV_DESC_UDP_IP4                 2
-#define OGS_PFCP_OUTER_HDR_RMV_DESC_UDP_IP6                 3
-#define OGS_PFCP_OUTER_HDR_RMV_DESC_NULL                    0xFF
-
-#define OGS_PFCP_SRC_INTF_ACCESS                            0  //$ UL traffic
-#define OGS_PFCP_SRC_INTF_CORE                              1  //$ DL traffic
-#define OGS_PFCP_SRC_INTF_SGILAN                            2  //$ SGi-LAN
-#define OGS_PFCP_SRC_INTF_CP_F                              3  //$ CP-function
+/* 
+ * 8.2.26 Apply Action
+ *
+ * Bit 1 – DROP (Drop): when set to 1, this indicates a request
+ * to drop the packets.
+ * Bit 2 – FORW (Forward): when set to 1, this indicates a request
+ * to forward the packets.
+ * Bit 3 – BUFF (Buffer): when set to 1, this indicates a request
+ * to buffer the packets.
+ * Bit 4 – NOCP (Notify the CP function): when set to 1,
+ * this indicates a request to notify the CP function about the
+ * arrival of a first downlink packet being buffered.
+ * Bit 5 – DUPL (Duplicate): when set to 1, this indicates a request
+ * to duplicate the packets.
+ * Bit 6 to 8 – Spare, for future use and set to 0.
+ *
+ * One and only one of the DROP, FORW and BUFF flags shall be set to 1.
+ * The NOCP flag may only be set if the BUFF flag is set.
+ * The DUPL flag may be set with any of the DROP, FORW, BUFF and NOCP flags.
+ */
+#define OGS_PFCP_APPLY_ACTION_DROP                          1
+#define OGS_PFCP_APPLY_ACTION_FORW                          2
+#define OGS_PFCP_APPLY_ACTION_BUFF                          4
+#define OGS_PFCP_APPLY_ACTION_NOCP                          8
+#define OGS_PFCP_APPLY_ACTION_DUPL                          16
 
 #define OGS_PFCP_PDN_TYPE_IPV4                              1
 #define OGS_PFCP_PDN_TYPE_IPV6                              2
@@ -85,9 +117,6 @@ const char *ogs_pfcp_cause_get_name(uint8_t cause);
     OGS_IPV6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
 #define OGS_PFCP_UE_IP_ADDR_IPV4V6_LEN \
     OGS_IPV4V6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
-
-#define OGS_PFCP_UE_IP_ADDR_SOURCE                          0
-#define OGS_PFCP_UE_IP_ADDR_DESITINATION                    1
 
 typedef struct ogs_pfcp_ue_ip_addr_s {
 ED4(uint8_t       spare:5;,

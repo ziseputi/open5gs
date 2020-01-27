@@ -145,6 +145,13 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->pdr_id.presence = 1;
         message->pdr_id.u16 = context->id;
 
+        message->precedence.presence = 1;
+        message->precedence.u32 = context->precedence;
+
+        message->pdi.presence = 1;
+        message->pdi.source_interface.presence = 1;
+        message->pdi.source_interface.u8 = context->src_if;
+
         if (pdr->far) {
             message->far_id.presence = 1;
             message->far_id.u32 = pdr->far->id;
@@ -185,6 +192,14 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->presence = 1;
         message->far_id.presence = 1;
         message->far_id.u32 = context->id;
+
+        message->apply_action.presence = 1;
+        message->apply_action.u8 = context->apply_action;
+
+        message->forwarding_parameters.presence = 1;
+        message->forwarding_parameters.destination_interface.presence = 1;
+        message->forwarding_parameters.destination_interface.u8 =
+            context->dst_if;
 
         i++;
     }

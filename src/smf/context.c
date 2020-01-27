@@ -656,24 +656,28 @@ static int pfcp_sess_add(ogs_pfcp_sess_t *sess)
     dl_pdr = ogs_pfcp_pdr_add(sess);
     ogs_assert(dl_pdr);
 
+    dl_pdr->id = OGS_NEXT_ID(sess->pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     dl_pdr->precedence = dl_pdr->id; /* TODO : it will be fixed */
     dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
 
     dl_far = ogs_pfcp_far_add(dl_pdr);
     ogs_assert(dl_far);
 
+    dl_far->id = OGS_NEXT_ID(sess->far_id, 1, OGS_MAX_NUM_OF_FAR+1);
     dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
 
     ul_pdr = ogs_pfcp_pdr_add(sess);
     ogs_assert(ul_pdr);
 
+    ul_pdr->id = OGS_NEXT_ID(sess->pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     ul_pdr->precedence = ul_pdr->id; /* TODO : it will be fixed */
     ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS;
 
     ul_far = ogs_pfcp_far_add(ul_pdr);
     ogs_assert(ul_far);
 
+    ul_far->id = OGS_NEXT_ID(sess->far_id, 1, OGS_MAX_NUM_OF_FAR+1);
     ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
 

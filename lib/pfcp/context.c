@@ -422,7 +422,6 @@ ogs_pfcp_pdr_t *ogs_pfcp_pdr_add(ogs_pfcp_sess_t *sess)
     ogs_assert(pdr);
     memset(pdr, 0, sizeof *pdr);
 
-    pdr->id = OGS_NEXT_ID(sess->pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     pdr->sess = sess;
 
     ogs_list_add(&sess->pdr_list, pdr);
@@ -455,8 +454,6 @@ ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_or_add(
     if (!pdr)
         pdr = ogs_pfcp_pdr_add(sess);
     ogs_assert(pdr);
-
-    pdr->id = id;
 
     return pdr;
 }
@@ -491,8 +488,6 @@ ogs_pfcp_far_t *ogs_pfcp_far_add(ogs_pfcp_pdr_t *pdr)
     ogs_pool_alloc(&ogs_pfcp_far_pool, &far);
     ogs_assert(far);
     memset(far, 0, sizeof *far);
-
-    far->id = OGS_NEXT_ID(sess->far_id, 1, OGS_MAX_NUM_OF_FAR+1);
 
     far->pdr = pdr;
     pdr->far = far;
@@ -530,8 +525,6 @@ ogs_pfcp_far_t *ogs_pfcp_far_find_or_add(
     if (!far)
         far = ogs_pfcp_far_add(pdr);
     ogs_assert(far);
-
-    far->id = id;
 
     return far;
 }
@@ -577,8 +570,6 @@ ogs_pfcp_urr_t *ogs_pfcp_urr_add(ogs_pfcp_pdr_t *pdr)
     ogs_assert(urr);
     memset(urr, 0, sizeof *urr);
 
-    urr->id = OGS_NEXT_ID(sess->urr_id, 1, OGS_MAX_NUM_OF_URR+1);
-
     urr->pdr = pdr;
     pdr->urrs[pdr->num_of_urr++] = urr;
 
@@ -615,8 +606,6 @@ ogs_pfcp_urr_t *ogs_pfcp_urr_find_or_add(
     if (!urr)
         urr = ogs_pfcp_urr_add(pdr);
     ogs_assert(urr);
-
-    urr->id = id;
 
     return urr;
 }
@@ -662,8 +651,6 @@ ogs_pfcp_qer_t *ogs_pfcp_qer_add(ogs_pfcp_pdr_t *pdr)
     ogs_assert(qer);
     memset(qer, 0, sizeof *qer);
 
-    qer->id = OGS_NEXT_ID(sess->qer_id, 1, OGS_MAX_NUM_OF_QER+1);
-
     qer->pdr = pdr;
     pdr->qers[pdr->num_of_qer++] = qer;
 
@@ -700,8 +687,6 @@ ogs_pfcp_qer_t *ogs_pfcp_qer_find_or_add(
     if (!qer)
         qer = ogs_pfcp_qer_add(pdr);
     ogs_assert(qer);
-
-    qer->id = id;
 
     return qer;
 }
@@ -744,8 +729,6 @@ ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_sess_t *sess)
     ogs_pool_alloc(&ogs_pfcp_bar_pool, &bar);
     ogs_assert(bar);
     memset(bar, 0, sizeof *bar);
-
-    bar->id = 1; /* Always BAR_ID is 1 */
 
     bar->sess = sess;
     sess->bar = bar;

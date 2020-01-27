@@ -269,7 +269,7 @@ typedef struct ogs_pdn_s {
 #define OGS_DIAM_PDN_TYPE_IPV6                      1
 #define OGS_DIAM_PDN_TYPE_IPV4V6                    2
 #define OGS_DIAM_PDN_TYPE_IPV4_OR_IPV6              3
-    int             pdn_type;
+    uint8_t         pdn_type;
 
     ogs_qos_t       qos;
     ogs_bitrate_t   ambr; /* APN-AMBR */

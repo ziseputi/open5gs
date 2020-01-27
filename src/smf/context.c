@@ -644,70 +644,20 @@ static void *sess_hash_keygen(uint8_t *out, int *out_len,
     return out;
 }
 
-static int pfcp_sess_build(smf_sess_t *sess)
-{
-    ogs_pfcp_pdr_t *dl_pdr = NULL;
-    ogs_pfcp_pdr_t *ul_pdr = NULL;
-    ogs_pfcp_far_t *dl_far = NULL;
-    ogs_pfcp_far_t *ul_far = NULL;
-
-    ogs_assert(sess);
-
-    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
-    ogs_assert(dl_pdr);
-
-    dl_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
-    dl_pdr->precedence = dl_pdr->id; /* TODO : it will be fixed */
-    dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
-
-    if (sess->ipv4 && sess->ipv6) {
-        dl_pdr->outer_header_removal.presence = 1;
-        dl_pdr->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
-    } else if (sess->ipv4) {
-        dl_pdr->outer_header_removal.presence = 1;
-        dl_pdr->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
-    } else if (sess->ipv6) {
-        dl_pdr->outer_header_removal.presence = 1;
-        dl_pdr->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
-    }
-
-    dl_far = ogs_pfcp_far_add(dl_pdr);
-    ogs_assert(dl_far);
-
-    dl_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
-    dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
-    dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-
-    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
-    ogs_assert(ul_pdr);
-
-    ul_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
-    ul_pdr->precedence = ul_pdr->id; /* TODO : it will be fixed */
-    ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS;
-
-    ul_far = ogs_pfcp_far_add(ul_pdr);
-    ogs_assert(ul_far);
-
-    ul_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
-    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
-    ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
-
-    return OGS_OK;
-}
-
 smf_sess_t *smf_sess_add(
         uint8_t *imsi, int imsi_len, char *apn, 
         uint8_t pdn_type, uint8_t ebi, ogs_paa_t *paa)
 {
-    int rv;
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
     smf_sess_t *sess = NULL;
     smf_bearer_t *bearer = NULL;
     smf_subnet_t *subnet6 = NULL;
+
+    ogs_pfcp_pdr_t *dl_pdr = NULL;
+    ogs_pfcp_pdr_t *ul_pdr = NULL;
+    ogs_pfcp_far_t *dl_far = NULL;
+    ogs_pfcp_far_t *ul_far = NULL;
 
     ogs_assert(imsi);
     ogs_assert(apn);
@@ -739,7 +689,7 @@ smf_sess_t *smf_sess_add(
     bearer->ebi = ebi;
 
     sess->pdn.paa.pdn_type = pdn_type;
-    ogs_assert(pdn_type == paa->pdn_type);
+    ogs_expect(pdn_type == paa->pdn_type);
 
     if (pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
         sess->ipv4 = smf_ue_ip_alloc(AF_INET, apn, (uint8_t *)&(paa->addr));
@@ -793,8 +743,46 @@ smf_sess_t *smf_sess_add(
     ogs_assert(ogs_pfcp_self()->peer);
     OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
 
-    rv = pfcp_sess_build(sess);
-    ogs_assert(rv == OGS_OK);
+    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
+    ogs_assert(dl_pdr);
+
+    dl_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
+    dl_pdr->precedence = dl_pdr->id; /* TODO : it will be fixed */
+    dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
+
+    dl_far = ogs_pfcp_far_add(dl_pdr);
+    ogs_assert(dl_far);
+
+    dl_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
+    dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+    dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+
+    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
+    ogs_assert(ul_pdr);
+
+    ul_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
+    ul_pdr->precedence = ul_pdr->id; /* TODO : it will be fixed */
+    ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS;
+
+    ul_far = ogs_pfcp_far_add(ul_pdr);
+    ogs_assert(ul_far);
+
+    ul_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+    ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
+
+    dl_pdr->outer_header_removal.presence = 1;
+    if (pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
+        dl_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
+    } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
+        dl_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
+    } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
+        dl_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
+    } else
+        ogs_assert_if_reached();
 
     ogs_list_add(&ogs_pfcp_self()->sess_list, sess);
     
@@ -953,8 +941,6 @@ smf_sess_t *smf_sess_add_by_message(ogs_gtp_message_t *message)
     sess = smf_sess_add(req->imsi.data, req->imsi.len, apn,
                     req->pdn_type.u8,
                     req->bearer_contexts_to_be_created.eps_bearer_id.u8, paa);
-    ogs_assert(sess);
-
     return sess;
 }
 

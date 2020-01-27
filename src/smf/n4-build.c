@@ -251,6 +251,10 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         i++;
     }
 
+    /* PDN Type */
+    req->pdn_type.presence = 1;
+    req->pdn_type.u8 = sess->pdn.paa.pdn_type;
+
     pfcp_message.h.type = type;
     return ogs_pfcp_build_msg(&pfcp_message);
 }

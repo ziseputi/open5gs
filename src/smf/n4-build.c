@@ -255,6 +255,8 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
             ogs_assert(bearer->gnode);
             ogs_pfcp_ip_to_outer_header_creation(
                     &bearer->gnode->ip, &outer_header_creation[i], &len);
+            outer_header_creation[i].teid = htobe32(bearer->sgw_s5u_teid);
+
             message->forwarding_parameters.outer_header_creation.presence = 1;
             message->forwarding_parameters.outer_header_creation.data =
                 &outer_header_creation[i];

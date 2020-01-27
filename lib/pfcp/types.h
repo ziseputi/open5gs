@@ -170,19 +170,24 @@ typedef struct ogs_pfcp_outer_header_removal_s {
     uint8_t gtpu_extheader_deletion;
 } ogs_pfcp_outer_header_removal_t;
 
-#define OGS_PFCP_UE_IP_ADDR_HDR_LEN                         1
-#define OGS_PFCP_UE_IP_ADDR_IPV4_LEN  \
-    OGS_IPV4_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
-#define OGS_PFCP_UE_IP_ADDR_IPV6_LEN  \
-    OGS_IPV6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
-#define OGS_PFCP_UE_IP_ADDR_IPV4V6_LEN \
-    OGS_IPV4V6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
+#define OGS_PFCP_NODE_ID_IPV4   0
+#define OGS_PFCP_NODE_ID_IPV6   1
+#define OGS_PFCP_NODE_ID_FQDN   2
+typedef struct ogs_pfcp_node_id_s {
+ED2(uint8_t spare:4;,
+    uint8_t type:4;)
+    union {
+        uint32_t addr;
+        uint8_t addr6[OGS_IPV6_LEN];
+        char fqdn[OGS_MAX_FQDN_LEN];
+    };
+} __attribute__ ((packed)) ogs_pfcp_node_id_t;
 
-typedef struct ogs_pfcp_ue_ip_addr_s {
-ED4(uint8_t       spare:5;,
-    uint8_t       sd:1;,  /* source or destination*/
+typedef struct ogs_pfcp_f_seid_s {
+ED3(uint8_t       spare:6;,
     uint8_t       ipv4:1;,
     uint8_t       ipv6:1;)
+    uint64_t      seid;
     union {
         uint32_t addr;
         uint8_t addr6[OGS_IPV6_LEN];
@@ -191,7 +196,7 @@ ED4(uint8_t       spare:5;,
             uint8_t addr6[OGS_IPV6_LEN];
         } both;
     };
-} __attribute__ ((packed)) ogs_pfcp_ue_ip_addr_t;
+} __attribute__ ((packed)) ogs_pfcp_f_seid_t;
 
 typedef struct ogs_pfcp_f_teid_s {
 ED5(uint8_t       spare:4;,
@@ -213,11 +218,48 @@ ED5(uint8_t       spare:4;,
     };
 } __attribute__ ((packed)) ogs_pfcp_f_teid_t;
 
-typedef struct ogs_pfcp_f_seid_s {
-ED3(uint8_t       spare:6;,
+#define OGS_PFCP_UE_IP_ADDR_HDR_LEN                         1
+#define OGS_PFCP_UE_IP_ADDR_IPV4_LEN  \
+    OGS_IPV4_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
+#define OGS_PFCP_UE_IP_ADDR_IPV6_LEN  \
+    OGS_IPV6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
+#define OGS_PFCP_UE_IP_ADDR_IPV4V6_LEN \
+    OGS_IPV4V6_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN
+
+/*
+ * 8.2.62 UE IP Address
+ *
+ * - Bit 1 – V6: If this bit is set to "1", then the IPv6 address field
+ *   shall be present in the UE IP Address, otherwise the IPv6 address field
+ *   shall not be present.
+ * - Bit 2 – V4: If this bit is set to "1", then the IPv4 address field
+ *   shall be present in the UE IP Address, otherwise the IPv4 address field
+ *   shall not be present.
+ * - Bit 3 – S/D: This bit is only applicable to the UE IP Address IE
+ *   in the PDI IE. It shall be set to "0" and ignored by the receiver
+ *   in IEs other than PDI IE. In the PDI IE, if this bit is set to "0",
+ *   this indicates a Source IP address; if this bit is set to "1",
+ *   this indicates a Destination IP address.
+ * - Bit 4 – IPv6D: This bit is only applicable to the UE IP address IE
+ *   in the PDI IE and whhen V6 bit is set to "1". If this bit is set to "1",
+ *   then the IPv6 Prefix Delegation Bits field shall be present,
+ *   otherwise the UP function shall consider IPv6 prefix is default /64.
+ * - Bit 5 to 8 Spare, for future use and set to 0.
+ *
+ * Octets "m to (m+3)" or "p to (p+15)" (IPv4 address / IPv6 address fields),
+ * if present, shall contain the address value.
+ *
+ * Octet r, if present, shall contain the number of bits is allocated
+ * for IPv6 prefix delegation, e.g. if /60 prefix is used, the value
+ * is set to "4". When using UE IP address IE in a PDI to match the packets,
+ * the UP function shall only use the IPv6 prefix part and
+ * ignore the interface identifier part.
+ */
+typedef struct ogs_pfcp_ue_ip_addr_s {
+ED4(uint8_t       spare:5;,
+    uint8_t       sd:1;,  /* source or destination*/
     uint8_t       ipv4:1;,
     uint8_t       ipv6:1;)
-    uint64_t      seid;
     union {
         uint32_t addr;
         uint8_t addr6[OGS_IPV6_LEN];
@@ -226,20 +268,7 @@ ED3(uint8_t       spare:6;,
             uint8_t addr6[OGS_IPV6_LEN];
         } both;
     };
-} __attribute__ ((packed)) ogs_pfcp_f_seid_t;
-
-#define OGS_PFCP_NODE_ID_IPV4   0
-#define OGS_PFCP_NODE_ID_IPV6   1
-#define OGS_PFCP_NODE_ID_FQDN   2
-typedef struct ogs_pfcp_node_id_s {
-ED2(uint8_t spare:4;,
-    uint8_t type:4;)
-    union {
-        uint32_t addr;
-        uint8_t addr6[OGS_IPV6_LEN];
-        char fqdn[OGS_MAX_FQDN_LEN];
-    };
-} __attribute__ ((packed)) ogs_pfcp_node_id_t;
+} __attribute__ ((packed)) ogs_pfcp_ue_ip_addr_t;
 
 typedef struct ogs_pfcp_outer_hdr_s {
 ED5(uint8_t       spare:4;,

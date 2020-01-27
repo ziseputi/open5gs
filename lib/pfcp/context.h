@@ -85,6 +85,7 @@ typedef struct ogs_pfcp_pdr_s {
     ogs_pfcp_f_teid_t       f_teid;
     int                     f_teid_len;
     char                    apn[OGS_MAX_APN_LEN];
+    ogs_pfcp_ue_ip_addr_t   ue_ip_addr;
 
     ogs_pfcp_far_t          *far;
     int                     num_of_urr;

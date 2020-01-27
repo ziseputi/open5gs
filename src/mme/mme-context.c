@@ -1683,7 +1683,7 @@ mme_sgw_t *mme_sgw_find_by_addr(ogs_sockaddr_t *addr)
 
     ogs_list_for_each(&self.sgw_list, sgw) {
         ogs_assert(sgw->gnode);
-        if (ogs_sockaddr_is_equal(&sgw->gnode->remote_addr, addr) == true)
+        if (ogs_sockaddr_is_equal(&sgw->gnode->addr, addr) == true)
             break;
     }
 

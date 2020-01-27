@@ -173,6 +173,17 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
             message->pdi.ue_ip_address.data = &ue_ip_addr[i];
             message->pdi.ue_ip_address.len = len;
 
+        } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS &&
+                    far->dst_if == OGS_PFCP_INTERFACE_CORE) {
+            ogs_pfcp_sockaddr_to_f_teid(
+                    &sess->pfcp.node->addr, NULL,
+                    &f_teid[i], &len);
+            f_teid[i].teid = htobe32(bearer->upf_s5u_teid);
+
+            message->pdi.local_f_teid.presence = 1;
+            message->pdi.local_f_teid.data = &f_teid[i];
+            message->pdi.local_f_teid.len = len;
+
             if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
                 outer_header_removal[i].description =
                     OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
@@ -189,17 +200,6 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
             message->outer_header_removal.data =
                 &outer_header_removal[i].description;
             message->outer_header_removal.len = 1;
-
-        } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS &&
-                    far->dst_if == OGS_PFCP_INTERFACE_CORE) {
-            ogs_pfcp_sockaddr_to_f_teid(
-                    &sess->pfcp.node->addr, NULL,
-                    &f_teid[i], &len);
-            f_teid[i].teid = htobe32(bearer->upf_s5u_teid);
-
-            message->pdi.local_f_teid.presence = 1;
-            message->pdi.local_f_teid.data = &f_teid[i];
-            message->pdi.local_f_teid.len = len;
         }
             
         if (pdr->far) {
@@ -234,6 +234,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     i = 0;
     ogs_list_for_each(&sess->pfcp.far_list, far) {
         ogs_pfcp_tlv_create_far_t *message = create_fars[i];
+        ogs_pfcp_pdr_t *pdr = far->pdr;
 
         ogs_assert(message);
         ogs_assert(far);
@@ -248,6 +249,17 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->forwarding_parameters.presence = 1;
         message->forwarding_parameters.destination_interface.presence = 1;
         message->forwarding_parameters.destination_interface.u8 = far->dst_if;
+
+        if (pdr->src_if == OGS_PFCP_INTERFACE_CORE &&
+            far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
+            ogs_assert(bearer->gnode);
+            ogs_pfcp_ip_to_outer_header_creation(
+                    &bearer->gnode->ip, &outer_header_creation[i], &len);
+            message->forwarding_parameters.outer_header_creation.presence = 1;
+            message->forwarding_parameters.outer_header_creation.data =
+                &outer_header_creation[i];
+            message->forwarding_parameters.outer_header_creation.len = len;
+        }
 
         i++;
     }

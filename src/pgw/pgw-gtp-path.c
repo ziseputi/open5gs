@@ -428,7 +428,7 @@ static int pgw_gtp_send_to_bearer(pgw_bearer_t *bearer, ogs_pkbuf_t *sendbuf)
 
     /* Send to SGW */
     ogs_debug("[PGW] SEND GPU-U to SGW[%s] : TEID[0x%x]",
-        OGS_ADDR(&bearer->gnode->remote_addr, buf),
+        OGS_ADDR(&bearer->gnode->addr, buf),
         bearer->sgw_s5u_teid);
     rv =  ogs_gtp_sendto(bearer->gnode, sendbuf);
 

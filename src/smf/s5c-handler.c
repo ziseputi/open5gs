@@ -30,7 +30,6 @@ void smf_s5c_handle_create_session_request(
         smf_sess_t *sess, ogs_gtp_xact_t *xact,
         ogs_gtp_create_session_request_t *req)
 {
-    int rv;
     uint8_t cause_value = 0;
     ogs_gtp_f_teid_t *sgw_s5c_teid, *sgw_s5u_teid;
     ogs_gtp_node_t *sgw = NULL;
@@ -107,7 +106,6 @@ void smf_s5c_handle_create_session_request(
     ogs_debug("    SGW_S5U_TEID[%d] UPF_S5U_TEID[%d]",
             bearer->sgw_s5u_teid, bearer->upf_s5u_teid);
 
-#if 0
     sgw = ogs_gtp_node_find_by_f_teid(&smf_self()->sgw_s5u_list, sgw_s5u_teid);
     if (!sgw) {
         sgw = ogs_gtp_node_add_by_f_teid(
@@ -116,14 +114,9 @@ void smf_s5c_handle_create_session_request(
             ogs_config()->parameter.no_ipv6,
             ogs_config()->parameter.prefer_ipv4);
         ogs_assert(sgw);
-
-        rv = ogs_gtp_connect(
-                smf_self()->gtpu_sock, smf_self()->gtpu_sock6, sgw);
-        ogs_assert(rv == OGS_OK);
     }
     /* Setup GTP Node */
     OGS_SETUP_GTP_NODE(bearer, sgw);
-#endif
 
     decoded = ogs_gtp_parse_bearer_qos(&bearer_qos,
         &req->bearer_contexts_to_be_created.bearer_level_qos);

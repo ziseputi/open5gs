@@ -48,6 +48,7 @@ typedef struct smf_context_s {
     ogs_diam_config_t   *diam_config;     /* SMF Diameter config */
 
     uint32_t        gtpc_port;      /* Default: SMF GTP-C local port */
+    uint32_t        gtpu_port;      /* Default: UPF GTP-U local port */
     const char      *tun_ifname;    /* Default: ogstun */
 
     ogs_list_t      gtpc_list;      /* SMF GTPC IPv4 Server List */

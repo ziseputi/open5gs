@@ -347,7 +347,7 @@ void sgw_s11_handle_modify_bearer_request(ogs_gtp_xact_t *s11_xact,
         ogs_assert(s1u_tunnel->gnode->sock);
 
         ogs_debug("[SGW] SEND End Marker to ENB[%s]: TEID[0x%x]",
-            OGS_ADDR(&s1u_tunnel->gnode->remote_addr, buf),
+            OGS_ADDR(&s1u_tunnel->gnode->addr, buf),
             s1u_tunnel->remote_teid);
         sgw_gtp_send_end_marker(s1u_tunnel);
     }

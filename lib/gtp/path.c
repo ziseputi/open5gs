@@ -59,7 +59,7 @@ int ogs_gtp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_gtp_node_t *gnode)
                     OGS_ADDR(addr, buf), OGS_PORT(addr));
 
             gnode->sock = sock;
-            memcpy(&gnode->remote_addr, addr, sizeof gnode->remote_addr);
+            memcpy(&gnode->addr, addr, sizeof gnode->addr);
             break;
         }
 
@@ -105,7 +105,7 @@ int ogs_gtp_sendto(ogs_gtp_node_t *gnode, ogs_pkbuf_t *pkbuf)
     ogs_assert(pkbuf);
     sock = gnode->sock;
     ogs_assert(sock);
-    addr = &gnode->remote_addr;
+    addr = &gnode->addr;
     ogs_assert(addr);
 
     sent = ogs_sendto(sock->fd, pkbuf->data, pkbuf->len, 0, addr);

@@ -764,6 +764,7 @@ smf_sess_t *smf_sess_add(
     dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
 
     dl_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
+    dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
 
     ul_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
@@ -771,6 +772,7 @@ smf_sess_t *smf_sess_add(
     ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS;
 
     ul_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
 
     ogs_list_add(&ogs_pfcp_self()->sess_list, sess);

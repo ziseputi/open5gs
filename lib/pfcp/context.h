@@ -81,11 +81,6 @@ typedef struct ogs_pfcp_pdr_s {
     ogs_pfcp_precedence_t   precedence;
     ogs_pfcp_interface_t    src_if;
 
-    ogs_pfcp_outer_header_removal_t outer_header_removal;
-    ogs_pfcp_f_teid_t       f_teid;
-    int                     f_teid_len;
-    ogs_pfcp_ue_ip_addr_t   ue_ip_addr;
-
     ogs_pfcp_far_t          *far;
     int                     num_of_urr;
     ogs_pfcp_urr_t          *urrs[OGS_MAX_NUM_OF_URR];

@@ -103,9 +103,12 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     int i;
 
     ogs_pfcp_node_id_t node_id;
-    int node_id_len = 0;
     ogs_pfcp_f_seid_t f_seid;
-    int f_seid_len = 0;
+    ogs_pfcp_ue_ip_addr_t ue_ip_addr[OGS_MAX_NUM_OF_PDR];
+    ogs_pfcp_outer_header_removal_t outer_header_removal[OGS_MAX_NUM_OF_PDR];
+    ogs_pfcp_f_teid_t f_teid[OGS_MAX_NUM_OF_PDR];
+    ogs_pfcp_outer_header_creation_t outer_header_creation[OGS_MAX_NUM_OF_FAR];
+    int len;
 
     smf_bearer_t *bearer = NULL;
 
@@ -122,19 +125,19 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     ogs_pfcp_sockaddr_to_node_id(
             ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             ogs_config()->parameter.prefer_ipv4,
-            &node_id, &node_id_len);
+            &node_id, &len);
     req->node_id.presence = 1;
     req->node_id.data = &node_id;
-    req->node_id.len = node_id_len;
+    req->node_id.len = len;
 
     /* F-SEID */
     ogs_pfcp_sockaddr_to_f_seid(
             ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
-            &f_seid, &f_seid_len);
+            &f_seid, &len);
     f_seid.seid = htobe64(sess->pfcp.local_n4_seid);
     req->cp_f_seid.presence = 1;
     req->cp_f_seid.data = &f_seid;
-    req->cp_f_seid.len = f_seid_len;
+    req->cp_f_seid.len = len;
 
     /* Create PDR */
     ogs_pfcp_create_pdrs_in_session_establishment(&create_pdrs, req);
@@ -163,42 +166,40 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE &&
             far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
             ogs_pfcp_paa_to_ue_ip_addr(
-                    &sess->pdn.paa, &pdr->ue_ip_addr, &len);
-            pdr->ue_ip_addr.sd = OGS_PFCP_UE_IP_ADDR_DST;
+                    &sess->pdn.paa, &ue_ip_addr[i], &len);
+            ue_ip_addr[i].sd = OGS_PFCP_UE_IP_ADDR_DST;
 
             message->pdi.ue_ip_address.presence = 1;
-            message->pdi.ue_ip_address.data = &pdr->ue_ip_addr;
+            message->pdi.ue_ip_address.data = &ue_ip_addr[i];
             message->pdi.ue_ip_address.len = len;
 
-            pdr->outer_header_removal.presence = 1;
             if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
-                pdr->outer_header_removal.description =
+                outer_header_removal[i].description =
                     OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
             } else if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
-                pdr->outer_header_removal.description =
+                outer_header_removal[i].description =
                     OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
             } else if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
-                pdr->outer_header_removal.description =
+                outer_header_removal[i].description =
                     OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
             } else
                 ogs_assert_if_reached();
 
-            message->outer_header_removal.presence =
-                pdr->outer_header_removal.presence;
+            message->outer_header_removal.presence = 1;
             message->outer_header_removal.data =
-                &pdr->outer_header_removal.description;
+                &outer_header_removal[i].description;
             message->outer_header_removal.len = 1;
 
         } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS &&
                     far->dst_if == OGS_PFCP_INTERFACE_CORE) {
             ogs_pfcp_sockaddr_to_f_teid(
                     &sess->pfcp.node->addr, NULL,
-                    &pdr->f_teid, &pdr->f_teid_len);
-            pdr->f_teid.teid = htobe32(bearer->upf_s5u_teid);
+                    &f_teid[i], &len);
+            f_teid[i].teid = htobe32(bearer->upf_s5u_teid);
 
             message->pdi.local_f_teid.presence = 1;
-            message->pdi.local_f_teid.data = &pdr->f_teid;
-            message->pdi.local_f_teid.len = pdr->f_teid_len;
+            message->pdi.local_f_teid.data = &f_teid[i];
+            message->pdi.local_f_teid.len = len;
         }
             
         if (pdr->far) {
@@ -241,14 +242,12 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->far_id.presence = 1;
         message->far_id.u32 = far->id;
 
-        far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
         message->apply_action.presence = 1;
         message->apply_action.u8 = far->apply_action;
 
         message->forwarding_parameters.presence = 1;
         message->forwarding_parameters.destination_interface.presence = 1;
-        message->forwarding_parameters.destination_interface.u8 =
-            far->dst_if;
+        message->forwarding_parameters.destination_interface.u8 = far->dst_if;
 
         i++;
     }
@@ -258,14 +257,13 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     i = 0;
     ogs_list_for_each(&sess->pfcp.urr_list, urr) {
         ogs_pfcp_tlv_create_urr_t *message = create_urrs[i];
-        ogs_pfcp_urr_t *context = urr;
 
         ogs_assert(message);
         ogs_assert(urr);
 
         message->presence = 1;
         message->urr_id.presence = 1;
-        message->urr_id.u32 = context->id;
+        message->urr_id.u32 = urr->id;
 
         i++;
     }
@@ -275,14 +273,13 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     i = 0;
     ogs_list_for_each(&sess->pfcp.qer_list, qer) {
         ogs_pfcp_tlv_create_qer_t *message = create_qers[i];
-        ogs_pfcp_qer_t *context = qer;
 
         ogs_assert(message);
         ogs_assert(qer);
 
         message->presence = 1;
         message->qer_id.presence = 1;
-        message->qer_id.u32 = context->id;
+        message->qer_id.u32 = qer->id;
 
         i++;
     }

@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-24 14:52:53.764217 by acetcom
+ * Created on: 2020-01-27 12:33:15.233392 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -583,7 +583,7 @@ typedef ogs_tlv_uint32_t ogs_pfcp_tlv_qer_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_oci_flags_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_pfcp_association_release_request_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_graceful_release_period_t;
-typedef ogs_tlv_octet_t ogs_pfcp_tlv_pdn_type_t;
+typedef ogs_tlv_uint8_t ogs_pfcp_tlv_pdn_type_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_failed_rule_id_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_time_quota_mechanism_t;
 typedef ogs_tlv_octet_t ogs_pfcp_tlv_user_plane_ip_resource_information_t;

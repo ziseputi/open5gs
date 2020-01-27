@@ -116,16 +116,20 @@ ED3(uint8_t       ipv4:1;,
 
 /**************************************************
  * 8.14 PDN Address Allocation (PAA) */
-#define OGS_PAA_IPV4_LEN                                    5
-#define OGS_PAA_IPV6_LEN                                    18
-#define OGS_PAA_IPV4V6_LEN                                  22
+#define OGS_PAA_IPV4_LEN                                5
+#define OGS_PAA_IPV6_LEN                                18
+#define OGS_PAA_IPV4V6_LEN                              22
 typedef struct ogs_paa_s {
-/* 8.34 PDN Type  */
-#define OGS_GTP_PDN_TYPE_IPV4                               1
-#define OGS_GTP_PDN_TYPE_IPV6                               2
-#define OGS_GTP_PDN_TYPE_IPV4V6                             3
-#define OGS_GTP_PDN_TYPE_NON_IP                             4
 ED2(uint8_t spare:5;,
+/* 8.34 PDN Type  */
+#define OGS_GTP_PDN_TYPE_IPV4                           1
+#define OGS_GTP_PDN_TYPE_IPV6                           2
+#define OGS_GTP_PDN_TYPE_IPV4V6                         3
+#define OGS_GTP_PDN_TYPE_NON_IP                         4
+#define OGS_PFCP_PDN_TYPE_IPV4                          OGS_GTP_PDN_TYPE_IPV4
+#define OGS_PFCP_PDN_TYPE_IPV6                          OGS_GTP_PDN_TYPE_IPV6
+#define OGS_PFCP_PDN_TYPE_IPV4V6                        OGS_GTP_PDN_TYPE_IPV4V6
+#define OGS_PFCP_PDN_TYPE_NONIP                         OGS_GTP_PDN_TYPE_NONIP
     uint8_t pdn_type:3;)
     union {
         /* GTP_PDN_TYPE_IPV4 */

@@ -170,12 +170,6 @@ typedef struct ogs_pfcp_outer_header_removal_s {
     uint8_t gtpu_extheader_deletion;
 } ogs_pfcp_outer_header_removal_t;
 
-
-#define OGS_PFCP_PDN_TYPE_IPV4                              1
-#define OGS_PFCP_PDN_TYPE_IPV6                              2
-#define OGS_PFCP_PDN_TYPE_IPV4V6                            3
-#define OGS_PFCP_PDN_TYPE_NONIP                             4
-
 #define OGS_PFCP_UE_IP_ADDR_HDR_LEN                         1
 #define OGS_PFCP_UE_IP_ADDR_IPV4_LEN  \
     OGS_IPV4_LEN + OGS_PFCP_UE_IP_ADDR_HDR_LEN

@@ -418,6 +418,7 @@ type_list["CP Function Features"]["size"] = 1               # Type 89
 type_list["Recovery Time Stamp"]["size"] = 4                # Type 96
 type_list["FAR ID"]["size"] = 4                             # Type 108
 type_list["QER ID"]["size"] = 4                             # Type 109
+type_list["PDN Type"]["size"] = 1                           # Type 113
 
 f = open(outdir + 'message.h', 'w')
 output_header_to_file(f)

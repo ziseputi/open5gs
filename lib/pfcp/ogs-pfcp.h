@@ -22,7 +22,7 @@
 
 #include "ogs-core.h"
 
-#define OGS_PFCP_UDP_PORT            8805
+#define OGS_PFCP_UDP_PORT           8805
 
 #define OGS_MAX_NUM_OF_PDR          4
 #define OGS_MAX_NUM_OF_FAR          4

@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-01-24 14:52:53.782156 by acetcom
+ * Created on: 2020-01-27 12:33:15.245018 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -886,10 +886,10 @@ ogs_tlv_desc_t ogs_pfcp_tlv_desc_graceful_release_period_0 =
 
 ogs_tlv_desc_t ogs_pfcp_tlv_desc_pdn_type_0 =
 {
-    OGS_TLV_VAR_STR,
+    OGS_TLV_UINT8,
     "PDN Type",
     OGS_PFCP_PDN_TYPE_TYPE,
-    0,
+    1,
     0,
     sizeof(ogs_pfcp_tlv_pdn_type_t),
     { NULL }

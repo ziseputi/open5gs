@@ -752,52 +752,25 @@ smf_sess_t *smf_sess_add(
     /* Set PFCP Context */
     dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
     ogs_assert(dl_pdr);
+    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
+    ogs_assert(ul_pdr);
+    dl_far = ogs_pfcp_far_add(dl_pdr);
+    ogs_assert(dl_far);
+    ul_far = ogs_pfcp_far_add(ul_pdr);
+    ogs_assert(ul_far);
 
     dl_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     dl_pdr->precedence = dl_pdr->id; /* TODO : it will be fixed */
     dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
 
-    ogs_pfcp_paa_to_ue_ip_addr(
-            &sess->pdn.paa, &dl_pdr->ue_ip_addr, &dl_pdr->ue_ip_addr_len);
-    dl_pdr->ue_ip_addr.sd = OGS_PFCP_UE_IP_ADDR_DST;
-
-    dl_pdr->outer_header_removal.presence = 1;
-    if (pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
-        dl_pdr->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
-    } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
-        dl_pdr->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
-    } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
-        dl_pdr->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
-    } else
-        ogs_assert_if_reached();
-
-    dl_far = ogs_pfcp_far_add(dl_pdr);
-    ogs_assert(dl_far);
-
     dl_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
-    dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-
-    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
-    ogs_assert(ul_pdr);
-
-    ogs_pfcp_sockaddr_to_f_teid(
-            &sess->pfcp.node->addr, NULL,
-            &ul_pdr->f_teid, &ul_pdr->f_teid_len);
-    ul_pdr->f_teid.teid = htobe32(bearer->upf_s5u_teid);
 
     ul_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     ul_pdr->precedence = ul_pdr->id; /* TODO : it will be fixed */
     ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS;
 
-    ul_far = ogs_pfcp_far_add(ul_pdr);
-    ogs_assert(ul_far);
-
     ul_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
-    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
 
     ogs_list_add(&ogs_pfcp_self()->sess_list, sess);

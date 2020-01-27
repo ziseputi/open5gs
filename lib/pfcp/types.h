@@ -319,7 +319,7 @@ ED4(uint8_t       spare:5;,
  * tag to set in the Service-VLAN tag header of the outgoing packet.
  */
 
-typedef struct ogs_pfcp_outer_hdr_c_s {
+typedef struct ogs_pfcp_outer_header_creation_s {
 ED8(uint8_t       stag:1;,
     uint8_t       ctag:1;,
     uint8_t       ip6:1;,
@@ -338,7 +338,7 @@ ED8(uint8_t       stag:1;,
             uint8_t addr6[OGS_IPV6_LEN];
         } both;
     };
-} __attribute__ ((packed)) ogs_pfcp_outer_hdr_c_t;
+} __attribute__ ((packed)) ogs_pfcp_outer_header_creation_t;
 
 typedef struct ogs_pfcp_report_type_s {
 ED5(uint8_t       spare0:4;,

@@ -84,9 +84,7 @@ typedef struct ogs_pfcp_pdr_s {
     ogs_pfcp_outer_header_removal_t outer_header_removal;
     ogs_pfcp_f_teid_t       f_teid;
     int                     f_teid_len;
-    char                    apn[OGS_MAX_APN_LEN];
     ogs_pfcp_ue_ip_addr_t   ue_ip_addr;
-    int                     ue_ip_addr_len;
 
     ogs_pfcp_far_t          *far;
     int                     num_of_urr;
@@ -103,6 +101,8 @@ typedef struct ogs_pfcp_far_s {
     ogs_pfcp_far_id_t       id;
     ogs_pfcp_apply_action_t apply_action;
     ogs_pfcp_interface_t    dst_if;
+    ogs_pfcp_outer_header_creation_t outer_header_creation;
+    int                     outer_header_creation_len;
 
     ogs_pfcp_pdr_t          *pdr;
 } ogs_pfcp_far_t;

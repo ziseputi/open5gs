@@ -107,8 +107,13 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     ogs_pfcp_f_seid_t f_seid;
     int f_seid_len = 0;
 
+    smf_bearer_t *bearer = NULL;
+
     ogs_debug("[SMF] Session Establishment Request");
     ogs_assert(sess);
+
+    bearer = smf_default_bearer_in_sess(sess);
+    ogs_assert(bearer);
 
     req = &pfcp_message.pfcp_session_establishment_request;
     memset(&pfcp_message, 0, sizeof(ogs_pfcp_message_t));
@@ -136,40 +141,66 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     i = 0;
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         ogs_pfcp_tlv_create_pdr_t *message = create_pdrs[i];
-        ogs_pfcp_pdr_t *context = pdr;
+        ogs_pfcp_far_t *far = pdr->far;
         int j = 0;
+        int len = 0;
 
         ogs_assert(message);
         ogs_assert(pdr);
+        ogs_assert(far);
 
         message->presence = 1;
         message->pdr_id.presence = 1;
-        message->pdr_id.u16 = context->id;
+        message->pdr_id.u16 = pdr->id;
 
         message->precedence.presence = 1;
-        message->precedence.u32 = context->precedence;
+        message->precedence.u32 = pdr->precedence;
 
         message->pdi.presence = 1;
         message->pdi.source_interface.presence = 1;
-        message->pdi.source_interface.u8 = context->src_if;
+        message->pdi.source_interface.u8 = pdr->src_if;
 
-        if (context->f_teid_len) {
-            message->pdi.local_f_teid.presence = 1;
-            message->pdi.local_f_teid.data = &context->f_teid;
-            message->pdi.local_f_teid.len = context->f_teid_len;
-        }
+        if (pdr->src_if == OGS_PFCP_INTERFACE_CORE &&
+            far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
+            ogs_pfcp_paa_to_ue_ip_addr(
+                    &sess->pdn.paa, &pdr->ue_ip_addr, &len);
+            pdr->ue_ip_addr.sd = OGS_PFCP_UE_IP_ADDR_DST;
 
-        message->pdi.network_instance.presence = 1;
-        message->pdi.network_instance.len = ogs_fqdn_build(
-                    context->apn, sess->pdn.apn, strlen(sess->pdn.apn));
-        message->pdi.network_instance.data = context->apn;
-
-        if (context->ue_ip_addr_len) {
             message->pdi.ue_ip_address.presence = 1;
-            message->pdi.ue_ip_address.data = &context->ue_ip_addr;
-            message->pdi.ue_ip_address.len = context->ue_ip_addr_len;
-        }
+            message->pdi.ue_ip_address.data = &pdr->ue_ip_addr;
+            message->pdi.ue_ip_address.len = len;
 
+            pdr->outer_header_removal.presence = 1;
+            if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
+                pdr->outer_header_removal.description =
+                    OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
+            } else if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
+                pdr->outer_header_removal.description =
+                    OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
+            } else if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
+                pdr->outer_header_removal.description =
+                    OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
+            } else
+                ogs_assert_if_reached();
+
+            message->outer_header_removal.presence =
+                pdr->outer_header_removal.presence;
+            message->outer_header_removal.data =
+                &pdr->outer_header_removal.description;
+            message->outer_header_removal.len = 1;
+
+        } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS &&
+                    far->dst_if == OGS_PFCP_INTERFACE_CORE) {
+            ogs_pfcp_sockaddr_to_f_teid(
+                    &sess->pfcp.node->addr, NULL,
+                    &pdr->f_teid, &pdr->f_teid_len);
+            pdr->f_teid.teid = htobe32(bearer->upf_s5u_teid);
+
+            message->pdi.local_f_teid.presence = 1;
+            message->pdi.local_f_teid.data = &pdr->f_teid;
+            message->pdi.local_f_teid.len = pdr->f_teid_len;
+        }
+            
         if (pdr->far) {
             message->far_id.presence = 1;
             message->far_id.u32 = pdr->far->id;
@@ -202,22 +233,22 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     i = 0;
     ogs_list_for_each(&sess->pfcp.far_list, far) {
         ogs_pfcp_tlv_create_far_t *message = create_fars[i];
-        ogs_pfcp_far_t *context = far;
 
         ogs_assert(message);
         ogs_assert(far);
 
         message->presence = 1;
         message->far_id.presence = 1;
-        message->far_id.u32 = context->id;
+        message->far_id.u32 = far->id;
 
+        far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
         message->apply_action.presence = 1;
-        message->apply_action.u8 = context->apply_action;
+        message->apply_action.u8 = far->apply_action;
 
         message->forwarding_parameters.presence = 1;
         message->forwarding_parameters.destination_interface.presence = 1;
         message->forwarding_parameters.destination_interface.u8 =
-            context->dst_if;
+            far->dst_if;
 
         i++;
     }

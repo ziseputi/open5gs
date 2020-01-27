@@ -280,15 +280,16 @@ int ogs_pfcp_paa_to_ue_ip_addr(ogs_paa_t *paa,
     return OGS_OK;
 }
 
-int ogs_pfcp_outer_hdr_to_ip(ogs_pfcp_outer_hdr_t *outer_hdr, ogs_ip_t *ip)
+#if 0
+int ogs_pfcp_outer_hdr_c_to_ip(ogs_pfcp_outer_hdr_c_t *outer_hdr, ogs_ip_t *ip)
 {
     ogs_assert(ip);
     ogs_assert(outer_hdr);
 
     memset(ip, 0, sizeof *ip);
 
-    ip->ipv4 = outer_hdr->gtpu_ipv4;
-    ip->ipv6 = outer_hdr->gtpu_ipv6;
+    ip->ipv4 = outer_hdr->gtpu4;
+    ip->ipv6 = outer_hdr->gtpu6;
 
     if (ip->ipv4 && ip->ipv6) {
         ip->both.addr = outer_hdr->both.addr;
@@ -305,6 +306,7 @@ int ogs_pfcp_outer_hdr_to_ip(ogs_pfcp_outer_hdr_t *outer_hdr, ogs_ip_t *ip)
 
     return OGS_OK;
 }
+#endif
 
 OGS_STATIC_ASSERT(OGS_MAX_NUM_OF_PDR > 3);
 void ogs_pfcp_create_pdrs_in_session_establishment(

@@ -30,6 +30,12 @@ extern "C" {
 
 #define OGS_PFCP_VERSION                                    1
 
+typedef uint16_t ogs_pfcp_pdr_id_t;
+typedef uint32_t ogs_pfcp_far_id_t;
+typedef uint32_t ogs_pfcp_urr_id_t;
+typedef uint32_t ogs_pfcp_qer_id_t;
+typedef uint8_t  ogs_pfcp_bar_id_t;
+
 #define OGS_PFCP_CAUSE_REQUEST_ACCEPTED                     1
 #define OGS_PFCP_CAUSE_REQUEST_REJECTED                     64
 #define OGS_PFCP_CAUSE_SESSION_CONTEXT_NOT_FOUND            65
@@ -47,6 +53,15 @@ extern "C" {
 #define OGS_PFCP_CAUSE_SYSTEM_FAILURE                       77
 
 const char *ogs_pfcp_cause_get_name(uint8_t cause);
+
+/*
+ * 8.2.11 Precedence
+ *
+ * The Precedence value shall be encoded as an Unsigned32 binary integer value. The lower precedence values
+ * indicate higher precedence of the PDR, and the higher precedence values
+ * indicate lower precedence of the PDR when matching a packet.
+ */
+typedef uint32_t ogs_pfcp_precedence_t;
 
 /*
  * 8.2.2 Source Interface
@@ -78,6 +93,7 @@ const char *ogs_pfcp_cause_get_name(uint8_t cause);
 #define OGS_PFCP_INTERFACE_SGI_N6_LAN                       2
 #define OGS_PFCP_INTERFACE_CP_FUNCTION                      3
 #define OGS_PFCP_INTERFACE_LI_FUNCTION                      4
+typedef uint8_t  ogs_pfcp_interface_t;
 
 /* 
  * 8.2.26 Apply Action
@@ -104,6 +120,56 @@ const char *ogs_pfcp_cause_get_name(uint8_t cause);
 #define OGS_PFCP_APPLY_ACTION_BUFF                          4
 #define OGS_PFCP_APPLY_ACTION_NOCP                          8
 #define OGS_PFCP_APPLY_ACTION_DUPL                          16
+typedef uint8_t  ogs_pfcp_apply_action_t;
+
+/*
+ * 8.2.64 Outer Header Remaval
+ *
+ * NOTE 1: The SGW-U/I-UPF shall store GTP-U extension header(s) required
+ * to be forwarded for this packet (as required by the comprehension rules
+ * of Figure 5.2.1-2 of 3GPP TS 29.281 [3]) that are not requested
+ * to be deleted by the GTP-U Extension Header Deletion field.
+ * NOTE 2: The SGW-U/I-UPF shall store the GTP-U message type
+ * for a GTP-U signalling message which is required to be forwarded,
+ * e.g. for an End Marker message.
+ * NOTE 3: This value may apply to DL packets received by a PGW-U
+ * for non-IP PDN connections with SGi tunnelling based
+ * on UDP/IP encapsulation (see clause 4.3.17.8.3.3.2 of 3GPP TS 23.401 [14]).
+ * NOTE 4: The CP function shall use this value to instruct UP function
+ * to remove the GTP-U/UDP/IP header regardless it is IPv4 or IPv6.
+ * NOTE 5: This value may apply to DL packets received by a UPF over N6 for
+ * Ethernet PDU sessions over (see clause 5.8.2.11.3 of 3GPP TS 23.501 [28]).
+ * NOTE 6: This value may apply e.g. to DL packets received by a UPF
+ * (PDU Session Anchor) over N6, when explicit N6 traffic routing information
+ * is provided to the SMF (see clause 5.6.7 of 3GPP TS 23.501 [28]).
+ *
+ * The GTP-U Extension Header Deletion field (octet 6) shall be present
+ * if it is required to delete GTP-U extension header(s) from incoming GTP-PDUs.
+ * Octet 6 shall be absent if all GTP-U extension headers required
+ * to be forwarded shall be stored as indicated in NOTE 1 of Table 8.2.64-1.
+ *
+ * The GTP-U Extension Header Deletion field, when present, shall be encoded
+ * as specified in Table 8.2.64-2. It takes the form of a bitmask where each bit
+ * provides instructions on the information to be deleted from the incoming
+ * GTP-PDU packet. Spare bits shall be ignored by the receiver.
+ */
+typedef struct ogs_pfcp_outer_header_removal_s {
+    int presence;
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4         0
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6         1
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_UDP_IPV4              2
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_UDP_IPV6              3
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_IPV4                  4
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_IPV6                  5
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP           6
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_VLAN_STAG             7
+#define OGS_PFCP_OUTER_HEADER_REMOVAL_SLAN_CTAG             8
+    uint8_t description;
+
+#define OGS_PFCP_PDU_SESSION_CONTAINER_TO_BE_DELETED        1
+    uint8_t gtpu_extheader_deletion;
+} ogs_pfcp_outer_header_removal_t;
+
 
 #define OGS_PFCP_PDN_TYPE_IPV4                              1
 #define OGS_PFCP_PDN_TYPE_IPV6                              2

@@ -51,19 +51,9 @@ typedef struct ogs_pfcp_urr_s ogs_pfcp_urr_t;
 typedef struct ogs_pfcp_qer_s ogs_pfcp_qer_t;
 typedef struct ogs_pfcp_bar_s ogs_pfcp_bar_t;
 
-typedef uint16_t ogs_pfcp_pdr_id_t;
-typedef uint32_t ogs_pfcp_far_id_t;
-typedef uint32_t ogs_pfcp_urr_id_t;
-typedef uint32_t ogs_pfcp_qer_id_t;
-typedef uint8_t  ogs_pfcp_bar_id_t;
-
-typedef uint32_t ogs_pfcp_precedence_t;
-typedef uint8_t  ogs_pfcp_interface_t;
-typedef uint8_t  ogs_pfcp_apply_action_t;
-
 typedef struct ogs_pfcp_sess_s {
-    uint64_t        local_n4_seid;  /* Local SEID is dervied from INDEX */
-    uint64_t        remote_n4_seid; /* Remote SEID is received from Peer */
+    uint64_t            local_n4_seid;  /* Local SEID is dervied from INDEX */
+    uint64_t            remote_n4_seid; /* Remote SEID is received from Peer */
 
     ogs_pfcp_pdr_id_t   pdr_id;     /* ID Generator(1~MAX_NUM_OF_PDR) */
     ogs_list_t          pdr_list;   /* PDR List */
@@ -81,34 +71,17 @@ typedef struct ogs_pfcp_sess_s {
     ogs_pfcp_bar_t      *bar;       /* BAR Item */
 
     /* Related Context */
-    ogs_pfcp_node_t *node;
+    ogs_pfcp_node_t     *node;
 } ogs_pfcp_sess_t;
 
 typedef struct ogs_pfcp_pdr_s {
     ogs_lnode_t             lnode;
 
     ogs_pfcp_pdr_id_t       id;
-/*
- * 8.2.11 Precedence
- *
- * The Precedence value shall be encoded as an Unsigned32 binary integer value. The lower precedence values
- * indicate higher precedence of the PDR, and the higher precedence values
- * indicate lower precedence of the PDR when matching a packet.
- */
     ogs_pfcp_precedence_t   precedence;
-/*
- * 8.2.2 Source Interface
- *
- * NOTE 1: The "Access" and "Core" values denote an uplink and downlink
- * traffic direction respectively.
- * NOTE 2: For indirect data forwarding, the Source Interface in the PDR and
- * the Destination Interface in the FAR shall both be set to "Access",
- * in the forwarding SGW(s). The Interface value does not infer any
- * traffic direction, in PDRs and FARs set up for indirect data
- * forwarding, i.e. with both the Source and Destination Interfaces set
- * to Access.
- */
     ogs_pfcp_interface_t    src_if;
+
+    ogs_pfcp_outer_header_removal_t outer_header_removal;
 
     ogs_pfcp_far_t          *far;
     int                     num_of_urr;
@@ -123,45 +96,7 @@ typedef struct ogs_pfcp_far_s {
     ogs_lnode_t             lnode;
 
     ogs_pfcp_far_id_t       id;
-
-/*
- * 8.2.26 Apply Action
- *
- * Bit 1 – DROP (Drop): when set to 1, this indicates a request
- * to drop the packets.
- * Bit 2 – FORW (Forward): when set to 1, this indicates a request
- * to forward the packets.
- * Bit 3 – BUFF (Buffer): when set to 1, this indicates a request
- * to buffer the packets.
- * Bit 4 – NOCP (Notify the CP function): when set to 1,
- * this indicates a request to notify the CP function about the
- * arrival of a first downlink packet being buffered.
- * Bit 5 – DUPL (Duplicate): when set to 1, this indicates a request
- * to duplicate the packets.
- * Bit 6 to 8 – Spare, for future use and set to 0.
- *
- * One and only one of the DROP, FORW and BUFF flags shall be set to 1.
- * The NOCP flag may only be set if the BUFF flag is set.
- * The DUPL flag may be set with any of the DROP, FORW, BUFF and NOCP flags.
- */
     ogs_pfcp_apply_action_t apply_action;
-
-/*
- * 8.2.24 Destination Interface
- *
- * NOTE 1: The "Access" and "Core" values denote a downlink and uplink
- * traffic direction respectively.
- * NOTE 2: LI Function may denote an SX3LIF or an LMISF. See clause 5.7.
- * NOTE 3: For indirect data forwarding, the Source Interface in the PDR and
- * the Destination Interface in the FAR shall both be set to "Access",
- * in the forwarding SGW(s). The Interface value does not infer any
- * traffic direction, in PDRs and FARs set up for indirect data
- * forwarding, i.e. with both the Source and Destination Interfaces set
- * to Access.
- * NOTE 4: For a HTTP redirection, the Source Interface in the PDR to match
- * the uplink packets to be redirected and the Destination Interface in
- * the FAR to enable the HTTP redirection shall both be set to "Access".
- */
     ogs_pfcp_interface_t    dst_if;
 
     ogs_pfcp_pdr_t          *pdr;

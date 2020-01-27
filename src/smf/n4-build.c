@@ -126,6 +126,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     ogs_pfcp_sockaddr_to_f_seid(
             ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
             &f_seid, &f_seid_len);
+    f_seid.seid = htobe64(sess->pfcp.local_n4_seid);
     req->cp_f_seid.presence = 1;
     req->cp_f_seid.data = &f_seid;
     req->cp_f_seid.len = f_seid_len;
@@ -152,6 +153,18 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->pdi.source_interface.presence = 1;
         message->pdi.source_interface.u8 = context->src_if;
 
+        if (context->outer_header_removal.presence) {
+            message->outer_header_removal.presence = 1;
+            message->outer_header_removal.data =
+                &context->outer_header_removal.description;
+            message->outer_header_removal.len =
+                sizeof(context->outer_header_removal.description);
+            if (context->outer_header_removal.gtpu_extheader_deletion) {
+                message->outer_header_removal.len +=
+                sizeof(context->outer_header_removal.gtpu_extheader_deletion);
+            }
+        }
+
         if (pdr->far) {
             message->far_id.presence = 1;
             message->far_id.u32 = pdr->far->id;
@@ -163,7 +176,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
                 ogs_assert(pdr->urrs[j]);
                 message->urr_id.u32 = pdr->urrs[j]->id;
             } else {
-                ogs_error("[%d] PFCP should support multiple URR", j);
+                ogs_error("[%d] No support multiple URR", j);
             }
         }
         for (j = 0; j < pdr->num_of_qer; j++) {
@@ -172,7 +185,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
                 ogs_assert(pdr->qers[j]);
                 message->qer_id.u32 = pdr->qers[j]->id;
             } else {
-                ogs_error("[%d] PFCP should support multiple URR", j);
+                ogs_error("[%d] No support multiple QER", j);
             }
         }
 

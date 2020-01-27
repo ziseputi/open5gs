@@ -644,7 +644,7 @@ static void *sess_hash_keygen(uint8_t *out, int *out_len,
     return out;
 }
 
-static int pfcp_sess_add(ogs_pfcp_sess_t *sess)
+static int pfcp_sess_build(smf_sess_t *sess)
 {
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
@@ -653,39 +653,47 @@ static int pfcp_sess_add(ogs_pfcp_sess_t *sess)
 
     ogs_assert(sess);
 
-    dl_pdr = ogs_pfcp_pdr_add(sess);
+    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
     ogs_assert(dl_pdr);
 
-    dl_pdr->id = OGS_NEXT_ID(sess->pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
+    dl_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     dl_pdr->precedence = dl_pdr->id; /* TODO : it will be fixed */
     dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
+
+    if (sess->ipv4 && sess->ipv6) {
+        dl_pdr->outer_header_removal.presence = 1;
+        dl_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
+    } else if (sess->ipv4) {
+        dl_pdr->outer_header_removal.presence = 1;
+        dl_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
+    } else if (sess->ipv6) {
+        dl_pdr->outer_header_removal.presence = 1;
+        dl_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
+    }
 
     dl_far = ogs_pfcp_far_add(dl_pdr);
     ogs_assert(dl_far);
 
-    dl_far->id = OGS_NEXT_ID(sess->far_id, 1, OGS_MAX_NUM_OF_FAR+1);
+    dl_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
     dl_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
 
-    ul_pdr = ogs_pfcp_pdr_add(sess);
+    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
     ogs_assert(ul_pdr);
 
-    ul_pdr->id = OGS_NEXT_ID(sess->pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
+    ul_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     ul_pdr->precedence = ul_pdr->id; /* TODO : it will be fixed */
     ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS;
 
     ul_far = ogs_pfcp_far_add(ul_pdr);
     ogs_assert(ul_far);
 
-    ul_far->id = OGS_NEXT_ID(sess->far_id, 1, OGS_MAX_NUM_OF_FAR+1);
+    ul_far->id = OGS_NEXT_ID(sess->pfcp.far_id, 1, OGS_MAX_NUM_OF_FAR+1);
     ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
-
-    if (ogs_pfcp_self()->peer == NULL)
-        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
-
-    ogs_assert(ogs_pfcp_self()->peer);
-    OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->peer);
 
     return OGS_OK;
 }
@@ -713,12 +721,6 @@ smf_sess_t *smf_sess_add(
     ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
 
     sess->smf_s5c_teid = sess->index;
-
-    /* Set PFCP Session */
-    rv = pfcp_sess_add(&sess->pfcp);
-    ogs_assert(rv == OGS_OK);
-
-    sess->pfcp.local_n4_seid = sess->index;
 
     /* Set IMSI */
     sess->imsi_len = imsi_len;
@@ -781,6 +783,18 @@ smf_sess_t *smf_sess_add(
     sess_hash_keygen(sess->hash_keybuf, &sess->hash_keylen,
             imsi, imsi_len, apn);
     ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, sess);
+
+    /* Set PFCP Session */
+    sess->pfcp.local_n4_seid = sess->index;
+
+    if (ogs_pfcp_self()->peer == NULL)
+        ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
+
+    ogs_assert(ogs_pfcp_self()->peer);
+    OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
+
+    rv = pfcp_sess_build(sess);
+    ogs_assert(rv == OGS_OK);
 
     ogs_list_add(&ogs_pfcp_self()->sess_list, sess);
     

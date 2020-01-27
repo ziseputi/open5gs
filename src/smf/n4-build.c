@@ -159,6 +159,11 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
             message->pdi.local_f_teid.len = context->f_teid_len;
         }
 
+        message->pdi.network_instance.presence = 1;
+        message->pdi.network_instance.len = ogs_fqdn_build(
+                    context->apn, sess->pdn.apn, strlen(sess->pdn.apn));
+        message->pdi.network_instance.data = context->apn;
+
         if (context->outer_header_removal.presence) {
             message->outer_header_removal.presence = 1;
             message->outer_header_removal.data =

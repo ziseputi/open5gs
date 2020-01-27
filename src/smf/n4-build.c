@@ -164,17 +164,13 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
                     context->apn, sess->pdn.apn, strlen(sess->pdn.apn));
         message->pdi.network_instance.data = context->apn;
 
-        if (context->outer_header_removal.presence) {
-            message->outer_header_removal.presence = 1;
-            message->outer_header_removal.data =
-                &context->outer_header_removal.description;
-            message->outer_header_removal.len =
-                sizeof(context->outer_header_removal.description);
-            if (context->outer_header_removal.gtpu_extheader_deletion) {
-                message->outer_header_removal.len +=
-                sizeof(context->outer_header_removal.gtpu_extheader_deletion);
-            }
+        if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
+        } else if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
+        } else if (sess->pdn.paa.pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
         }
+        message->pdi.ue_ip_address.presence = 1;
+        message->pdi.ue_ip_address.data = &context->ue_ip_addr;
+        message->pdi.ue_ip_address.len = context->ue_ip_addr_len;
 
         if (pdr->far) {
             message->far_id.presence = 1;

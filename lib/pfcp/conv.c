@@ -188,12 +188,12 @@ int ogs_pfcp_f_seid_to_ip(ogs_pfcp_f_seid_t *f_seid, ogs_ip_t *ip)
 #define OGS_PFCP_F_TEID_IPV6_LEN    (OGS_IPV6_LEN + OGS_PFCP_F_TEID_HDR_LEN)
 #define OGS_PFCP_F_TEID_IPV4V6_LEN  (OGS_IPV4V6_LEN + OGS_PFCP_F_TEID_HDR_LEN)
 
-int ogs_pfcp_sockaddr_to_f_teid(
+static int sockaddr_to_f_teid(
     ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6,
     ogs_pfcp_f_teid_t *f_teid, int *len)
 {
+    ogs_assert(addr == NULL || addr6 == NULL);
     ogs_assert(f_teid);
-
     memset(f_teid, 0, sizeof *f_teid);
 
     if (addr && addr6) {
@@ -216,6 +216,30 @@ int ogs_pfcp_sockaddr_to_f_teid(
         ogs_assert_if_reached();
 
     return OGS_OK;
+}
+
+int ogs_pfcp_sockaddr_to_f_teid(
+    ogs_sockaddr_t *a, ogs_sockaddr_t *b,
+    ogs_pfcp_f_teid_t *f_teid, int *len)
+{
+    ogs_sockaddr_t *addr = NULL, *addr6 = NULL;
+
+    if (a && a->sin.sin_family == AF_INET) {
+        addr = a;
+    }
+    if (a && a->sin.sin_family == AF_INET6) {
+        addr6 = a;
+    }
+    if (b && b->sin.sin_family == AF_INET) {
+        ogs_assert(addr);
+        addr = b;
+    }
+    if (b && b->sin.sin_family == AF_INET6) {
+        ogs_assert(addr6);
+        addr6 = b;
+    }
+
+    return sockaddr_to_f_teid(addr, addr6, f_teid, len);
 }
 
 int ogs_pfcp_outer_hdr_to_ip(ogs_pfcp_outer_hdr_t *outer_hdr, ogs_ip_t *ip)

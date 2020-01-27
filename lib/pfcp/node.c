@@ -100,21 +100,21 @@ ogs_pfcp_node_t *ogs_pfcp_node_add_by_f_seid(
 ogs_pfcp_node_t *ogs_pfcp_node_add_by_addr(
         ogs_list_t *list, ogs_sockaddr_t *addr)
 {
-    ogs_pfcp_node_t *gnode = NULL;
+    ogs_pfcp_node_t *node = NULL;
     ogs_sockaddr_t *new = NULL;
 
     ogs_assert(list);
     ogs_assert(addr);
 
     ogs_copyaddrinfo(&new, addr);
-    gnode = ogs_pfcp_node_new(new);
+    node = ogs_pfcp_node_new(new);
 
-    ogs_assert(gnode);
-    memcpy(&gnode->addr, new, sizeof gnode->addr);
+    ogs_assert(node);
+    memcpy(&node->addr, new, sizeof node->addr);
 
-    ogs_list_add(list, gnode);
+    ogs_list_add(list, node);
 
-    return gnode;
+    return node;
 }
 
 void ogs_pfcp_node_remove(ogs_list_t *list, ogs_pfcp_node_t *node)

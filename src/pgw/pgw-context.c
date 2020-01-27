@@ -849,10 +849,9 @@ pgw_sess_t *pgw_sess_add(
         ogs_assert_if_reached();
 
     ogs_info("UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
-	    sess->imsi_bcd,
-	    apn,
-            sess->ipv4 ?  INET_NTOP(&sess->ipv4->addr, buf1) : "",
-            sess->ipv6 ?  INET6_NTOP(&sess->ipv6->addr, buf2) : "");
+	    sess->imsi_bcd, apn,
+        sess->ipv4 ? INET_NTOP(&sess->ipv4->addr, buf1) : "",
+        sess->ipv6 ? INET6_NTOP(&sess->ipv6->addr, buf2) : "");
 
     /* Generate Hash Key : IMSI + APN */
     sess_hash_keygen(sess->hash_keybuf, &sess->hash_keylen,

@@ -153,6 +153,12 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->pdi.source_interface.presence = 1;
         message->pdi.source_interface.u8 = context->src_if;
 
+        if (context->f_teid_len) {
+            message->pdi.local_f_teid.presence = 1;
+            message->pdi.local_f_teid.data = &context->f_teid;
+            message->pdi.local_f_teid.len = context->f_teid_len;
+        }
+
         if (context->outer_header_removal.presence) {
             message->outer_header_removal.presence = 1;
             message->outer_header_removal.data =

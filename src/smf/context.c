@@ -18,6 +18,7 @@
  */
 
 #include "context.h"
+#include "smf-sm.h"
 
 static smf_context_t self;
 static ogs_diam_config_t g_diam_conf;
@@ -726,23 +727,29 @@ smf_sess_t *smf_sess_add(
         ogs_assert_if_reached();
 
     ogs_info("UE IMSI:[%s] APN:[%s] IPv4:[%s] IPv6:[%s]",
-	    sess->imsi_bcd,
-	    apn,
-            sess->ipv4 ?  INET_NTOP(&sess->ipv4->addr, buf1) : "",
-            sess->ipv6 ?  INET6_NTOP(&sess->ipv6->addr, buf2) : "");
+	    sess->imsi_bcd, apn,
+        sess->ipv4 ? INET_NTOP(&sess->ipv4->addr, buf1) : "",
+        sess->ipv6 ? INET6_NTOP(&sess->ipv6->addr, buf2) : "");
 
     /* Generate Hash Key : IMSI + APN */
     sess_hash_keygen(sess->hash_keybuf, &sess->hash_keylen,
             imsi, imsi_len, apn);
     ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, sess);
 
-    /* Setup PFCP Session */
+    /* Select UPF with round-robin manner */
     if (ogs_pfcp_self()->peer == NULL)
         ogs_pfcp_self()->peer = ogs_list_first(&ogs_pfcp_self()->n4_list);
 
-    ogs_assert(ogs_pfcp_self()->peer);
-    OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
+    for (; ogs_pfcp_self()->peer;
+            ogs_pfcp_self()->peer = ogs_list_next(ogs_pfcp_self()->peer)) {
+        if (OGS_FSM_CHECK(
+                &ogs_pfcp_self()->peer->sm, smf_pfcp_state_associated)) {
+            OGS_SETUP_PFCP_NODE(&sess->pfcp, ogs_pfcp_self()->peer);
+            break;
+        }
+    }
 
+    /* Set PFCP Context */
     dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
     ogs_assert(dl_pdr);
 
@@ -773,12 +780,10 @@ smf_sess_t *smf_sess_add(
     ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
     ogs_assert(ul_pdr);
 
-#if 0
     ogs_pfcp_sockaddr_to_f_teid(
-            ogs_pfcp_self()->pfcp_addr, ogs_pfcp_self()->pfcp_addr6,
-            &ul_pdr->f_teid, &ul_pdr->f_seid_len);
-    ul_f_teid.teid = htobe32(bearer->upf_s5u_teid);
-#endif
+            &sess->pfcp.node->addr, NULL,
+            &ul_pdr->f_teid, &ul_pdr->f_teid_len);
+    ul_pdr->f_teid.teid = htobe32(bearer->upf_s5u_teid);
 
     ul_pdr->id = OGS_NEXT_ID(sess->pfcp.pdr_id, 1, OGS_MAX_NUM_OF_PDR+1);
     ul_pdr->precedence = ul_pdr->id; /* TODO : it will be fixed */

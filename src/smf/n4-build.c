@@ -108,6 +108,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     ogs_pfcp_outer_header_removal_t outer_header_removal[OGS_MAX_NUM_OF_PDR];
     ogs_pfcp_f_teid_t f_teid[OGS_MAX_NUM_OF_PDR];
     ogs_pfcp_outer_header_creation_t outer_header_creation[OGS_MAX_NUM_OF_FAR];
+    char apn[OGS_MAX_NUM_OF_PDR][OGS_MAX_APN_LEN];
     int len;
 
     smf_bearer_t *bearer = NULL;
@@ -162,6 +163,11 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->pdi.presence = 1;
         message->pdi.source_interface.presence = 1;
         message->pdi.source_interface.u8 = pdr->src_if;
+
+        message->pdi.network_instance.presence = 1;
+        message->pdi.network_instance.len = ogs_fqdn_build(
+            apn[i], sess->pdn.apn, strlen(sess->pdn.apn));
+        message->pdi.network_instance.data = apn[i];
 
         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE &&
             far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {

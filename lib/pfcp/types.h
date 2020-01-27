@@ -264,13 +264,71 @@ ED4(uint8_t       spare:5;,
     };
 } __attribute__ ((packed)) ogs_pfcp_ue_ip_addr_t;
 
-typedef struct ogs_pfcp_outer_hdr_s {
-ED5(uint8_t       spare:4;,
-    uint8_t       udp_ipv6:1;,
-    uint8_t       udp_ipv4:1;,
-    uint8_t       gtpu_ipv6:1;,
-    uint8_t       gtpu_ipv4:1;)
-    uint8_t       void0;
+/*
+ * 8.2.56 Outer Header Creation
+ *
+ * NOTE 1: The SGW-U/I-UPF shall also create GTP-U extension header(s)
+ * if any has been stored for this packet, during a previous outer header
+ * removal (see clause 8.2.64).
+ * NOTE 2: This value may apply to UL packets sent by a PGW-U
+ * for non-IP PDN connections with SGi tunnelling based on UDP/IP encapsulation
+ * (see clause 4.3.17.8.3.3.2 of 3GPP TS 23.401 [14]).
+ * NOTE 3: The SGW-U/I-UPF shall set the GTP-U message type
+ * to the value stored during the previous outer header removal.
+ * NOTE 4: This value may apply to UL packets sent by a UPF
+ * for Ethernet PDU sessions over N6
+ * (see clause 5.8.2.11.6 of 3GPP TS 23.501 [28]).
+ * NOTE 5: This value may apply e.g. to UL packets sent by a UPF
+ * (PDU Session Anchor) over N6, when explicit N6 traffic routing information is provided to the SMF (see clause 5.6.7 of 3GPP TS 23.501 [28]).
+ *
+ * At least one bit of the Outer Header Creation Description field
+ * shall be set to 1. Bits 5/1 and 5/2 may both be set to 1 if an F-TEID
+ * with both an IPv4 and IPv6 addresses has been assigned by the GTP-U peer.
+ * In this case, the UP function shall send the outgoing packet
+ * towards the IPv4 or IPv6 address.
+ *
+ * The TEID field shall be present if the Outer Header Creation Description
+ * requests the creation of a GTP-U header. Otherwise it shall not be present.
+ * When present, it shall contain the destination GTP-U TEID to set
+ * in the GTP-U header of the outgoing packet.
+ *
+ * The IPv4 Address field shall be present if the Outer Header Creation
+ * Description requests the creation of an IPv4 header. Otherwise it shall
+ * not be present. When present, it shall contain the destination IPv4 address
+ * to set in the IPv4 header of the outgoing packet.
+ *
+ * The IPv6 Address field shall be present if the Outer Header Creation
+ * Description requests the creation of an IPv6 header. Otherwise it shall
+ * not be present. When present, it shall contain the destination IPv6 address
+ * to set in the IPv6 header of the outgoing packet.
+ *
+ * The Port Number field shall be present if the Outer Header Creation
+ * Description requests the creation of a UDP/IP header
+ * (i.e. it is set to the value 4). Otherwise it shall not be present.
+ * When present, it shall contain the destination Port Number to set
+ * in the UDP header of the outgoing packet.
+ *
+ * The C-TAG field shall be present if the Outer Header Creation Description
+ * requests the setting of the C-Tag in Ethernet packet. Otherwise it shall
+ * not be present. When present, it shall contain the destination Customer-VLAN
+ * tag to set in the Customer-VLAN tag header of the outgoing packet.
+ *
+ * The S-TAG field shall be present if the Outer Header Creation Description
+ * requests the setting of the S-Tag in Ethernet packet. Otherwise it shall
+ * not be present. When present, it shall contain the destination Service-VLAN
+ * tag to set in the Service-VLAN tag header of the outgoing packet.
+ */
+
+typedef struct ogs_pfcp_outer_hdr_c_s {
+ED8(uint8_t       stag:1;,
+    uint8_t       ctag:1;,
+    uint8_t       ip6:1;,
+    uint8_t       ip4:1;,
+    uint8_t       udp6:1;,
+    uint8_t       udp4:1;,
+    uint8_t       gtpu6:1;,
+    uint8_t       gtpu4:1;)
+    uint8_t       spare;
     uint32_t      teid;
     union {
         uint32_t addr;
@@ -280,7 +338,7 @@ ED5(uint8_t       spare:4;,
             uint8_t addr6[OGS_IPV6_LEN];
         } both;
     };
-} __attribute__ ((packed)) ogs_pfcp_outer_hdr_t;
+} __attribute__ ((packed)) ogs_pfcp_outer_hdr_c_t;
 
 typedef struct ogs_pfcp_report_type_s {
 ED5(uint8_t       spare0:4;,

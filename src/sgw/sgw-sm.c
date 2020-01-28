@@ -99,7 +99,7 @@ void sgw_state_operational(ogs_fsm_t *s, sgw_event_t *e)
         switch(message.h.type) {
         case OGS_GTP_CREATE_SESSION_REQUEST_TYPE:
             if (message.h.teid == 0) {
-                ogs_assert(!sgw_ue);
+                ogs_expect(!sgw_ue);
                 sgw_ue = sgw_ue_add_by_message(&message);
                 if (sgw_ue)
                     OGS_SETUP_GTP_NODE(sgw_ue, gnode);

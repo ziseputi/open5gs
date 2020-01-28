@@ -240,7 +240,7 @@ upf_context_t *upf_self(void);
 
 int upf_context_parse_config(void);
 
-upf_sess_t *upf_sess_add_by_message(ogs_gtp_message_t *message);
+upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message);
 
 upf_sess_t *upf_sess_add(
         uint8_t *imsi, int imsi_len, char *apn,

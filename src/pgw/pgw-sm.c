@@ -126,7 +126,7 @@ void pgw_state_operational(ogs_fsm_t *s, pgw_event_t *e)
         switch(gtp_message.h.type) {
         case OGS_GTP_CREATE_SESSION_REQUEST_TYPE:
             if (gtp_message.h.teid == 0) {
-                ogs_assert(!sess);
+                ogs_expect(!sess);
                 sess = pgw_sess_add_by_message(&gtp_message);
                 if (sess)
                     OGS_SETUP_GTP_NODE(sess, gnode);

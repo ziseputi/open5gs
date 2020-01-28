@@ -227,6 +227,14 @@ void upf_pfcp_state_associated(ogs_fsm_t *s, upf_event_t *e)
         case OGS_PFCP_SESSION_SET_DELETION_RESPONSE_TYPE:
             break;
         case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
+            if (message->h.seid_presence && message->h.seid == 0) {
+                ogs_expect(!sess);
+                sess = upf_sess_add_by_message(message);
+                if (sess)
+                    OGS_SETUP_PFCP_NODE(&sess->pfcp, pnode);
+            }
+            upf_n4_handle_session_establishment_request(
+                sess, xact, &message->pfcp_session_establishment_request);
             break;
         case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
             break;

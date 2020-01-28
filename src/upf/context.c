@@ -47,7 +47,6 @@ void stats_remove_session(void) {
 
 void upf_context_init(void)
 {
-    struct timeval tv;
     ogs_assert(context_initiaized == 0);
 
     /* Initial FreeDiameter Config */
@@ -490,14 +489,18 @@ upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6)
     return (upf_sess_t *)ogs_hash_get(self.ipv6_hash, addr6, OGS_IPV6_LEN);
 }
 
-upf_sess_t *upf_sess_add_by_message(ogs_gtp_message_t *message)
+upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
 {
     upf_sess_t *sess = NULL;
+#if 0
     ogs_paa_t *paa = NULL;
     char apn[OGS_MAX_APN_LEN];
+#endif
 
-    ogs_gtp_create_session_request_t *req = &message->create_session_request;
+    ogs_pfcp_session_establishment_request_t *req =
+        &message->pfcp_session_establishment_request;;
 
+#if 0
     if (req->imsi.presence == 0) {
         ogs_error("No IMSI");
         return NULL;
@@ -561,6 +564,7 @@ upf_sess_t *upf_sess_add_by_message(ogs_gtp_message_t *message)
                     req->pdn_type.u8,
                     req->bearer_contexts_to_be_created.eps_bearer_id.u8, paa);
     ogs_assert(sess);
+#endif
 
     return sess;
 }

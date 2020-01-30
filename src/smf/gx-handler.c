@@ -360,6 +360,13 @@ static void bearer_binding(smf_sess_t *sess, ogs_diam_gx_message_t *gx_message)
             bearer = smf_bearer_find_by_name(sess, pcc_rule->name);
             ogs_assert(bearer);
 
+            if (!bearer) {
+                ogs_warn("No need to send 'Delete Bearer Request'");
+                ogs_warn("  - Bearer[Name:%s] has already been removed.",
+                        pcc_rule->name);
+                return;
+            }
+
             memset(&h, 0, sizeof(ogs_gtp_header_t));
             h.type = OGS_GTP_DELETE_BEARER_REQUEST_TYPE;
             h.teid = sess->sgw_s5c_teid;

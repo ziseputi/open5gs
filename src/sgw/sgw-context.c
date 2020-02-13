@@ -45,6 +45,11 @@ void sgw_context_init(void)
     ogs_list_init(&self.gtpc_list6);
     ogs_list_init(&self.gtpu_list);
     ogs_list_init(&self.gtpu_list6);
+    ogs_list_init(&self.adv_gtpu_list);
+    ogs_list_init(&self.adv_gtpu_list6);
+
+    self.adv_gtpu_hash = ogs_hash_make();
+    self.adv_gtpu_hash6 = ogs_hash_make();
 
     ogs_gtp_node_init(512);
     ogs_list_init(&self.mme_s11_list);
@@ -72,6 +77,11 @@ void sgw_context_final(void)
 
     ogs_assert(self.imsi_ue_hash);
     ogs_hash_destroy(self.imsi_ue_hash);
+
+    ogs_assert(self.adv_gtpu_hash);
+    ogs_hash_destroy(self.adv_gtpu_hash);
+    ogs_assert(self.adv_gtpu_hash6);
+    ogs_hash_destroy(self.adv_gtpu_hash6);
 
     ogs_pool_final(&sgw_tunnel_pool);
     ogs_pool_final(&sgw_bearer_pool);
@@ -182,7 +192,8 @@ int sgw_context_parse_config(void)
                             } else if (!strcmp(gtpc_key, "addr") ||
                                     !strcmp(gtpc_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&gtpc_iter, &hostname_iter);
+                                ogs_yaml_iter_recurse(&gtpc_iter,
+                                        &hostname_iter);
                                 ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
                                     YAML_MAPPING_NODE);
 
@@ -267,10 +278,13 @@ int sgw_context_parse_config(void)
                     do {
                         int family = AF_UNSPEC;
                         int i, num = 0;
+                        int adv_num = 0;
                         const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
+                        const char *adv_hostname[OGS_MAX_NUM_OF_HOSTNAME];
                         uint16_t port = self.gtpu_port;
                         const char *dev = NULL;
                         ogs_sockaddr_t *addr = NULL;
+                        ogs_sockaddr_t *adv_addr = NULL;
 
                         if (ogs_yaml_iter_type(&gtpu_array) == 
                                 YAML_MAPPING_NODE) {
@@ -296,7 +310,8 @@ int sgw_context_parse_config(void)
                                 if (v) family = atoi(v);
                                 if (family != AF_UNSPEC &&
                                     family != AF_INET && family != AF_INET6) {
-                                    ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
                                         "AF_INET(%d), AF_INET6(%d) ", 
                                         family, AF_UNSPEC, AF_INET, AF_INET6);
                                     family = AF_UNSPEC;
@@ -304,7 +319,8 @@ int sgw_context_parse_config(void)
                             } else if (!strcmp(gtpu_key, "addr") ||
                                     !strcmp(gtpu_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&gtpu_iter, &hostname_iter);
+                                ogs_yaml_iter_recurse(&gtpu_iter,
+                                        &hostname_iter);
                                 ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
                                     YAML_MAPPING_NODE);
 
@@ -329,8 +345,53 @@ int sgw_context_parse_config(void)
                                 }
                             } else if (!strcmp(gtpu_key, "dev")) {
                                 dev = ogs_yaml_iter_value(&gtpu_iter);
+                            } else if (!strcmp(gtpu_key, "advertise_addr") ||
+                                    !strcmp(gtpu_key, "advertise_name")) {
+                                ogs_yaml_iter_t adv_hostname_iter;
+                                ogs_yaml_iter_recurse(&gtpu_iter,
+                                        &adv_hostname_iter);
+                                ogs_assert(ogs_yaml_iter_type(
+                                    &adv_hostname_iter) != YAML_MAPPING_NODE);
+
+                                do {
+                                    if (ogs_yaml_iter_type(
+                                            &adv_hostname_iter) ==
+                                                YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(
+                                                &adv_hostname_iter))
+                                            break;
+                                    }
+
+                                    ogs_assert(adv_num <=
+                                            OGS_MAX_NUM_OF_HOSTNAME);
+                                    adv_hostname[adv_num++] =
+                                        ogs_yaml_iter_value(&adv_hostname_iter);
+                                } while (
+                                    ogs_yaml_iter_type(&adv_hostname_iter) ==
+                                        YAML_SEQUENCE_NODE);
                             } else
                                 ogs_warn("unknown key `%s`", gtpu_key);
+                        }
+
+                        adv_addr = NULL;
+                        for (i = 0; i < adv_num; i++) {
+                            rv = ogs_addaddrinfo(&adv_addr,
+                                    family, adv_hostname[i], port, 0);
+                            ogs_assert(rv == OGS_OK);
+                        }
+                        if (adv_addr) {
+                            ogs_sockaddr_t *dup = NULL;
+                            rv = ogs_copyaddrinfo(&dup, adv_addr);
+                            ogs_assert(rv == OGS_OK);
+                             if (ogs_config()->parameter.no_ipv4 == 0) {
+                                ogs_socknode_add(
+                                        &self.adv_gtpu_list, AF_INET, dup);
+                            }
+
+                            if (ogs_config()->parameter.no_ipv6 == 0) {
+                                ogs_socknode_add(
+                                        &self.adv_gtpu_list6, AF_INET6, dup);
+                            }
                         }
 
                         addr = NULL;
@@ -339,7 +400,6 @@ int sgw_context_parse_config(void)
                                     family, hostname[i], port, 0);
                             ogs_assert(rv == OGS_OK);
                         }
-
                         if (addr) {
                             if (ogs_config()->parameter.no_ipv4 == 0) {
                                 ogs_sockaddr_t *dup = NULL;
@@ -368,6 +428,33 @@ int sgw_context_parse_config(void)
                                         NULL : &self.gtpu_list6,
                                     dev, self.gtpu_port);
                             ogs_assert(rv == OGS_OK);
+                        }
+
+                        if (adv_addr) {
+                            ogs_socknode_t *node = NULL;
+                            ogs_list_for_each(&self.gtpu_list, node) {
+                                ogs_socknode_t *adv_node =
+                                    ogs_list_first(&self.adv_gtpu_list);
+                                if (!adv_node)
+                                    continue;
+
+                                ogs_hash_set(self.adv_gtpu_hash,
+                                    &node->addr->sin.sin_addr,
+                                    sizeof(node->addr->sin.sin_addr),
+                                    adv_node->addr);
+                            }
+                            ogs_list_for_each(&self.gtpu_list6, node) {
+                                ogs_socknode_t *adv_node =
+                                    ogs_list_first(&self.adv_gtpu_list6);
+                                if (!adv_node)
+                                    continue;
+
+                                ogs_hash_set(self.adv_gtpu_hash6,
+                                    &node->addr->sin6.sin6_addr,
+                                    sizeof(node->addr->sin6.sin6_addr),
+                                    adv_node->addr);
+                            }
+                            ogs_freeaddrinfo(adv_addr);
                         }
 
                     } while (ogs_yaml_iter_type(&gtpu_array) ==

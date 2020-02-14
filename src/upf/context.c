@@ -783,100 +783,6 @@ upf_pf_t *upf_pf_next(upf_pf_t *pf)
     return ogs_list_next(pf);
 }
 
-int upf_ue_pool_generate(void)
-{
-    int i, rv;
-    upf_subnet_t *subnet = NULL;
-
-    for (subnet = upf_subnet_first(); 
-        subnet; subnet = upf_subnet_next(subnet)) {
-        int maxbytes = 0;
-        int lastindex = 0;
-        uint32_t start[4], end[4], broadcast[4];
-        int rangeindex, num_of_range;
-        int poolindex;
-        int inc;
-
-        if (subnet->family == AF_INET) {
-            maxbytes = 4;
-            lastindex = 0;
-        }
-        else if (subnet->family == AF_INET6) {
-            maxbytes = 16;
-            lastindex = 3;
-        }
-
-        for (i = 0; i < 4; i++) {
-            broadcast[i] = subnet->sub.sub[i] + ~subnet->sub.mask[i];
-        }
-
-        num_of_range = subnet->num_of_range;
-        if (!num_of_range) num_of_range = 1;
-
-        poolindex = 0;
-        for (rangeindex = 0; rangeindex < num_of_range; rangeindex++) {
-
-            if (subnet->num_of_range &&
-                subnet->range[rangeindex].low) {
-                ogs_ipsubnet_t low;
-                rv = ogs_ipsubnet(
-                        &low, subnet->range[rangeindex].low, NULL);
-                ogs_assert(rv == OGS_OK);
-                memcpy(start, low.sub, maxbytes);
-            } else {
-                memcpy(start, subnet->sub.sub, maxbytes);
-            }
-
-            if (subnet->num_of_range &&
-                subnet->range[rangeindex].high) {
-                ogs_ipsubnet_t high;
-                rv = ogs_ipsubnet(
-                        &high, subnet->range[rangeindex].high, NULL);
-                ogs_assert(rv == OGS_OK);
-                high.sub[lastindex] += htobe32(1);
-                memcpy(end, high.sub, maxbytes);
-            } else {
-                memcpy(end, broadcast, maxbytes);
-            }
-
-            inc = 0;
-            while(poolindex < ogs_config()->pool.sess) {
-                upf_ue_ip_t *ue_ip = NULL;
-
-                ue_ip = &subnet->pool.array[poolindex];
-                ogs_assert(ue_ip);
-                memset(ue_ip, 0, sizeof *ue_ip);
-                ue_ip->subnet = subnet;
-
-                memcpy(ue_ip->addr, start, maxbytes);
-                ue_ip->addr[lastindex] += htobe32(inc);
-                inc++;
-
-                if (memcmp(ue_ip->addr, end, maxbytes) == 0)
-                    break;
-
-                /* Exclude Network Address */
-                if (memcmp(ue_ip->addr, subnet->sub.sub, maxbytes) == 0)
-                    continue;
-
-                /* Exclude TUN IP Address */
-                if (memcmp(ue_ip->addr, subnet->gw.sub, maxbytes) == 0)
-                    continue;
-
-                ogs_trace("[%d] - %x:%x:%x:%x",
-                        poolindex,
-                        ue_ip->addr[0], ue_ip->addr[1],
-                        ue_ip->addr[2], ue_ip->addr[3]);
-
-                poolindex++;
-            }
-        }
-        subnet->pool.size = subnet->pool.avail = poolindex;
-    }
-
-    return OGS_OK;
-}
-
 static upf_subnet_t *find_subnet(int family, const char *apn)
 {
     upf_subnet_t *subnet = NULL;
@@ -932,18 +838,12 @@ upf_ue_ip_t *upf_ue_ip_alloc(int family, const char *apn, uint8_t *addr)
         ogs_assert_if_reached();
     }
 
-    // if assigning a static IP, do so. If not, assign dynamically!
-    if (memcmp(addr, zero, maxbytes) != 0) {
-        ue_ip = ogs_calloc(1, sizeof(upf_ue_ip_t));
-
-        ue_ip->subnet = subnet;
-        ue_ip->static_ip = true;
-        memcpy(ue_ip->addr, addr, maxbytes);
-    } else {
-        ogs_pool_alloc(&subnet->pool, &ue_ip);
-    }
-
+    ue_ip = ogs_calloc(1, sizeof(upf_ue_ip_t));
     ogs_assert(ue_ip);
+
+    ue_ip->subnet = subnet;
+    memcpy(ue_ip->addr, addr, maxbytes);
+
     return ue_ip;
 }
 
@@ -953,14 +853,9 @@ int upf_ue_ip_free(upf_ue_ip_t *ue_ip)
 
     ogs_assert(ue_ip);
     subnet = ue_ip->subnet;
-
     ogs_assert(subnet);
 
-    if (ue_ip->static_ip) {
-        ogs_free(ue_ip);
-    } else {
-        ogs_pool_free(&subnet->pool, ue_ip);
-    }
+    ogs_free(ue_ip);
 
     return OGS_OK;
 }

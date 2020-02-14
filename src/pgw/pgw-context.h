@@ -291,7 +291,6 @@ pgw_subnet_t *pgw_subnet_next(pgw_subnet_t *subnet);
 int pgw_subnet_remove(pgw_subnet_t *subnet);
 void pgw_subnet_remove_all(void);
 pgw_subnet_t *pgw_subnet_first(void);
-pgw_subnet_t *gw_subnet_next(pgw_subnet_t *subnet);
 
 void stats_add_session(void);
 void stats_remove_session(void);

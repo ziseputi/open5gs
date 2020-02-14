@@ -98,7 +98,6 @@ typedef struct upf_context_s {
 typedef struct upf_subnet_s upf_subnet_t;
 typedef struct upf_ue_ip_s {
     uint32_t        addr[4];
-    bool            static_ip;
 
     /* Related Context */
     upf_subnet_t    *subnet;
@@ -296,7 +295,6 @@ upf_subnet_t *upf_subnet_next(upf_subnet_t *subnet);
 int upf_subnet_remove(upf_subnet_t *subnet);
 void upf_subnet_remove_all(void);
 upf_subnet_t *upf_subnet_first(void);
-upf_subnet_t *gw_subnet_next(upf_subnet_t *subnet);
 
 void stats_add_session(void);
 void stats_remove_session(void);

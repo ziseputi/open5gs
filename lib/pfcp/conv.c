@@ -230,31 +230,30 @@ int ogs_pfcp_sockaddr_to_f_teid(
     return sockaddr_to_f_teid(addr, addr6, f_teid, len);
 }
 
-int ogs_pfcp_paa_to_ue_ip_addr(ogs_paa_t *paa,
-        ogs_pfcp_ue_ip_addr_t *ue_ip_addr, int *len)
+int ogs_pfcp_paa_to_ue_ip(ogs_paa_t *paa, ogs_pfcp_ue_ip_t *addr, int *len)
 {
     const int hdr_len = 1;
 
     ogs_assert(paa);
-    ogs_assert(ue_ip_addr);
+    ogs_assert(addr);
 
-    memset(ue_ip_addr, 0, sizeof *ue_ip_addr);
+    memset(addr, 0, sizeof *addr);
 
     if (paa->pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
-        ue_ip_addr->ipv4 = 1;
-        ue_ip_addr->both.addr = paa->both.addr;
-        ue_ip_addr->ipv6 = 1;
-        memcpy(ue_ip_addr->both.addr6, paa->both.addr6, OGS_IPV6_LEN);
+        addr->ipv4 = 1;
+        addr->both.addr = paa->both.addr;
+        addr->ipv6 = 1;
+        memcpy(addr->both.addr6, paa->both.addr6, OGS_IPV6_LEN);
         *len = OGS_IPV4V6_LEN + hdr_len;
     } else if (paa->pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
-        ue_ip_addr->ipv4 = 1;
-        ue_ip_addr->ipv6 = 0;
-        ue_ip_addr->addr = paa->addr;
+        addr->ipv4 = 1;
+        addr->ipv6 = 0;
+        addr->addr = paa->addr;
         *len = OGS_IPV4_LEN + hdr_len;
     } else if (paa->pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
-        ue_ip_addr->ipv4 = 0;
-        ue_ip_addr->ipv6 = 1;
-        memcpy(ue_ip_addr->addr6, paa->addr6, OGS_IPV6_LEN);
+        addr->ipv4 = 0;
+        addr->ipv6 = 1;
+        memcpy(addr->addr6, paa->addr6, OGS_IPV6_LEN);
         *len = OGS_IPV6_LEN + hdr_len;
     } else
         ogs_assert_if_reached();

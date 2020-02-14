@@ -288,7 +288,6 @@ smf_subnet_t *smf_subnet_next(smf_subnet_t *subnet);
 int smf_subnet_remove(smf_subnet_t *subnet);
 void smf_subnet_remove_all(void);
 smf_subnet_t *smf_subnet_first(void);
-smf_subnet_t *gw_subnet_next(smf_subnet_t *subnet);
 
 void stats_add_session(void);
 void stats_remove_session(void);

@@ -47,9 +47,6 @@ int upf_initialize()
             ogs_config()->logger.domain, ogs_config()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    rv = upf_ue_pool_generate();
-    if (rv != OGS_OK) return rv;
-
     thread = ogs_thread_create(upf_main, NULL);
     if (!thread) return OGS_ERROR;
 

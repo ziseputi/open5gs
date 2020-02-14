@@ -37,12 +37,14 @@ static int context_initiaized = 0;
 int num_sessions = 0;
 void stats_add_session(void) {
     num_sessions = num_sessions + 1;
-    ogs_info("Added a session. Number of active sessions is now %d", num_sessions);
+    ogs_info("Added a session. Number of active sessions is now %d",
+            num_sessions);
 }
 
 void stats_remove_session(void) {
     num_sessions = num_sessions - 1;
-    ogs_info("Removed a session. Number of active sessions is now %d", num_sessions);
+    ogs_info("Removed a session. Number of active sessions is now %d",
+            num_sessions);
 }
 
 void pgw_context_init(void)
@@ -249,7 +251,8 @@ int pgw_context_parse_config(void)
                                             conf = ogs_yaml_iter_value(
                                                     &ext_iter);
                                         } else
-                                            ogs_warn("unknown key `%s`", ext_key);
+                                            ogs_warn("unknown key `%s`",
+                                                    ext_key);
                                     }
 
                                     if (module) {
@@ -302,7 +305,8 @@ int pgw_context_parse_config(void)
                                                 ogs_yaml_iter_value(&conn_iter);
                                             if (v) port = atoi(v);
                                         } else
-                                            ogs_warn("unknown key `%s`", conn_key);
+                                            ogs_warn("unknown key `%s`",
+                                                    conn_key);
                                     }
 
                                     if (identity && addr) {
@@ -358,7 +362,8 @@ int pgw_context_parse_config(void)
                                 if (v) family = atoi(v);
                                 if (family != AF_UNSPEC &&
                                     family != AF_INET && family != AF_INET6) {
-                                    ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
                                         "AF_INET(%d), AF_INET6(%d) ", 
                                         family, AF_UNSPEC, AF_INET, AF_INET6);
                                     family = AF_UNSPEC;
@@ -366,7 +371,8 @@ int pgw_context_parse_config(void)
                             } else if (!strcmp(gtpc_key, "addr") ||
                                     !strcmp(gtpc_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&gtpc_iter, &hostname_iter);
+                                ogs_yaml_iter_recurse(&gtpc_iter,
+                                        &hostname_iter);
                                 ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
                                     YAML_MAPPING_NODE);
 
@@ -483,7 +489,8 @@ int pgw_context_parse_config(void)
                                 if (v) family = atoi(v);
                                 if (family != AF_UNSPEC &&
                                     family != AF_INET && family != AF_INET6) {
-                                    ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
                                         "AF_INET(%d), AF_INET6(%d) ", 
                                         family, AF_UNSPEC, AF_INET, AF_INET6);
                                     family = AF_UNSPEC;
@@ -491,7 +498,8 @@ int pgw_context_parse_config(void)
                             } else if (!strcmp(gtpu_key, "addr") ||
                                     !strcmp(gtpu_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&gtpu_iter, &hostname_iter);
+                                ogs_yaml_iter_recurse(&gtpu_iter,
+                                        &hostname_iter);
                                 ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
                                     YAML_MAPPING_NODE);
 

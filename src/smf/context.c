@@ -151,6 +151,11 @@ static int smf_context_validation(void)
                 ogs_config()->file);
         return OGS_ERROR;
     }
+    if (ogs_list_first(&self.subnet_list) == NULL) {
+        ogs_error("No smf.ue_pool in '%s'",
+                ogs_config()->file);
+        return OGS_ERROR;
+    }
     if (self.dns[0] == NULL && self.dns6[0] == NULL) {
         ogs_error("No smf.dns in '%s'",
                 ogs_config()->file);

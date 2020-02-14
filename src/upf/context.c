@@ -143,6 +143,11 @@ static int upf_context_validation(void)
                 ogs_config()->file);
         return OGS_ERROR;
     }
+    if (ogs_list_first(&self.subnet_list) == NULL) {
+        ogs_error("No upf.subnet in '%s'",
+                ogs_config()->file);
+        return OGS_ERROR;
+    }
     return OGS_OK;
 }
 
@@ -290,6 +295,64 @@ int upf_context_parse_config(void)
                                 NULL, self.gtpu_port);
                         ogs_assert(rv == OGS_OK);
                     }
+                } else if (!strcmp(upf_key, "subnet")) {
+                    ogs_yaml_iter_t subnet_array, subnet_iter;
+                    ogs_yaml_iter_recurse(&upf_iter, &subnet_array);
+                    do {
+                        upf_subnet_t *subnet = NULL;
+                        const char *ipstr = NULL;
+                        const char *mask_or_numbits = NULL;
+                        const char *apn = NULL;
+                        const char *dev = self.tun_ifname;
+
+                        if (ogs_yaml_iter_type(&subnet_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&subnet_iter, &subnet_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&subnet_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&subnet_array))
+                                break;
+                            ogs_yaml_iter_recurse(&subnet_array,
+                                    &subnet_iter);
+                        } else if (ogs_yaml_iter_type(&subnet_array) ==
+                                YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&subnet_iter)) {
+                            const char *subnet_key =
+                                ogs_yaml_iter_key(&subnet_iter);
+                            ogs_assert(subnet_key);
+                            if (!strcmp(subnet_key, "addr")) {
+                                char *v =
+                                    (char *)ogs_yaml_iter_value(&subnet_iter);
+                                if (v) {
+                                    ipstr = (const char *)strsep(&v, "/");
+                                    if (ipstr) {
+                                        mask_or_numbits = (const char *)v;
+                                    }
+                                }
+                            } else if (!strcmp(subnet_key, "apn")) {
+                                apn = ogs_yaml_iter_value(&subnet_iter);
+                            } else if (!strcmp(subnet_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&subnet_iter);
+                            } else
+                                ogs_warn("unknown key `%s`", subnet_key);
+                        }
+
+                        if (ipstr && mask_or_numbits) {
+                            subnet = upf_subnet_add(
+                                    ipstr, mask_or_numbits, apn, dev);
+                            ogs_assert(subnet);
+                        } else {
+                            ogs_warn("Ignore : addr(%s/%s), apn(%s)",
+                                    ipstr, mask_or_numbits, apn);
+                        }
+
+                    } while (ogs_yaml_iter_type(&subnet_array) ==
+                            YAML_SEQUENCE_NODE);
                 }
             }
         }

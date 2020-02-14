@@ -793,8 +793,7 @@ static upf_subnet_t *find_subnet(int family, const char *apn)
     for (subnet = upf_subnet_first();
             subnet; subnet = upf_subnet_next(subnet)) {
         if (strlen(subnet->apn)) {
-            if (subnet->family == family && strcmp(subnet->apn, apn) == 0 &&
-                ogs_pool_avail(&subnet->pool)) {
+            if (subnet->family == family && strcmp(subnet->apn, apn) == 0) {
                 return subnet;
             }
         }
@@ -803,8 +802,7 @@ static upf_subnet_t *find_subnet(int family, const char *apn)
     for (subnet = upf_subnet_first();
             subnet; subnet = upf_subnet_next(subnet)) {
         if (strlen(subnet->apn) == 0) {
-            if (subnet->family == family &&
-                ogs_pool_avail(&subnet->pool)) {
+            if (subnet->family == family) {
                 return subnet;
             }
         }
@@ -961,8 +959,6 @@ upf_subnet_t *upf_subnet_add(
     subnet->family = subnet->gw.family;
     subnet->prefixlen = atoi(mask_or_numbits);
 
-    ogs_pool_init(&subnet->pool, ogs_config()->pool.sess);
-
     ogs_list_add(&self.subnet_list, subnet);
 
     return subnet;
@@ -973,9 +969,6 @@ int upf_subnet_remove(upf_subnet_t *subnet)
     ogs_assert(subnet);
 
     ogs_list_remove(&self.subnet_list, subnet);
-
-    ogs_pool_final(&subnet->pool);
-
     ogs_pool_free(&upf_subnet_pool, subnet);
 
     return OGS_OK;

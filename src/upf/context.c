@@ -144,7 +144,7 @@ static int upf_context_validation(void)
         return OGS_ERROR;
     }
     if (ogs_list_first(&self.subnet_list) == NULL) {
-        ogs_error("No upf.subnet in '%s'",
+        ogs_error("No upf.pdn in '%s'",
                 ogs_config()->file);
         return OGS_ERROR;
     }

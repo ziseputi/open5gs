@@ -152,7 +152,7 @@ static int smf_context_validation(void)
         return OGS_ERROR;
     }
     if (ogs_list_first(&self.subnet_list) == NULL) {
-        ogs_error("No smf.ue_pool in '%s'",
+        ogs_error("No smf.pdn in '%s'",
                 ogs_config()->file);
         return OGS_ERROR;
     }

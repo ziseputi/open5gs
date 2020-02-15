@@ -139,13 +139,11 @@ static int upf_context_validation(void)
 {
     if (ogs_list_first(&self.gtpu_list) == NULL &&
         ogs_list_first(&self.gtpu_list6) == NULL) {
-        ogs_error("No upf.gtpu in '%s'",
-                ogs_config()->file);
+        ogs_error("No upf.gtpu in '%s'", ogs_config()->file);
         return OGS_ERROR;
     }
     if (ogs_list_first(&self.subnet_list) == NULL) {
-        ogs_error("No upf.pdn in '%s'",
-                ogs_config()->file);
+        ogs_error("No upf.pdn in '%s'", ogs_config()->file);
         return OGS_ERROR;
     }
     return OGS_OK;
@@ -342,17 +340,28 @@ int upf_context_parse_config(void)
                                 ogs_warn("unknown key `%s`", pdn_key);
                         }
 
-                        if (ipstr && mask_or_numbits) {
-                            subnet = upf_subnet_add(
-                                    ipstr, mask_or_numbits, apn, dev);
-                            ogs_assert(subnet);
-                        } else {
-                            ogs_warn("Ignore : addr(%s/%s), apn(%s)",
-                                    ipstr, mask_or_numbits, apn);
-                        }
+                        subnet = upf_subnet_add(
+                                ipstr, mask_or_numbits, apn, dev);
+                        ogs_assert(subnet);
 
                     } while (ogs_yaml_iter_type(&pdn_array) ==
                             YAML_SEQUENCE_NODE);
+
+#if defined(__linux)
+                    /*
+                     * On Linux, we can use a persitent tun/tap interface
+                     * which has already been setup. As such, we do not need
+                     * to get the IP address from configuration.
+                     *
+                     * If there is no APN and TUN mapping, the default subnet
+                     * is added with `ogstun` name
+                     */
+                    if (ogs_list_first(&self.subnet_list) == NULL) {
+                        subnet = upf_subnet_add(
+                                NULL, NULL, NULL, self.tun_ifname);
+                        ogs_assert(subnet);
+                    }
+#endif
                 }
             }
         }
@@ -850,29 +859,23 @@ static upf_subnet_t *find_subnet(int family, const char *apn)
 {
     upf_subnet_t *subnet = NULL;
 
-    ogs_assert(apn);
     ogs_assert(family == AF_INET || family == AF_INET6);
 
     for (subnet = upf_subnet_first();
             subnet; subnet = upf_subnet_next(subnet)) {
-        if (strlen(subnet->apn)) {
-            if (subnet->family == family && strcmp(subnet->apn, apn) == 0) {
-                return subnet;
-            }
+        if (subnet->family == family &&
+            ((strlen(subnet->apn) && apn != NULL &&
+                  strcmp(subnet->apn, apn) == 0) ||
+             (strlen(subnet->apn) == 0 && apn == NULL))) {
+            return subnet;
         }
     }
 
-    for (subnet = upf_subnet_first();
-            subnet; subnet = upf_subnet_next(subnet)) {
-        if (strlen(subnet->apn) == 0) {
-            if (subnet->family == family) {
-                return subnet;
-            }
-        }
-    }
+    /* Use default subnet if APN is not provided from SMF */
+    subnet = upf_subnet_first();
 
     if (subnet == NULL)
-        ogs_error("CHECK CONFIGURATION: Cannot find UE Pool");
+        ogs_error("CHECK CONFIGURATION: Cannot find PDN");
 
     return subnet;
 }
@@ -885,7 +888,6 @@ upf_ue_ip_t *upf_ue_ip_alloc(int family, const char *apn, uint8_t *addr)
     uint8_t zero[16];
     size_t maxbytes = 0;
 
-    ogs_assert(apn);
     subnet = find_subnet(family, apn);
     ogs_assert(subnet);
 
@@ -995,8 +997,6 @@ upf_subnet_t *upf_subnet_add(
     upf_dev_t *dev = NULL;
     upf_subnet_t *subnet = NULL;
 
-    ogs_assert(ipstr);
-    ogs_assert(mask_or_numbits);
     ogs_assert(ifname);
 
     dev = upf_dev_find_by_ifname(ifname);
@@ -1010,17 +1010,19 @@ upf_subnet_t *upf_subnet_add(
 
     subnet->dev = dev;
 
-    rv = ogs_ipsubnet(&subnet->gw, ipstr, NULL);
-    ogs_assert(rv == OGS_OK);
+    if (ipstr && mask_or_numbits) {
+        rv = ogs_ipsubnet(&subnet->gw, ipstr, NULL);
+        ogs_assert(rv == OGS_OK);
 
-    rv = ogs_ipsubnet(&subnet->sub, ipstr, mask_or_numbits);
-    ogs_assert(rv == OGS_OK);
+        rv = ogs_ipsubnet(&subnet->sub, ipstr, mask_or_numbits);
+        ogs_assert(rv == OGS_OK);
+
+        subnet->family = subnet->gw.family;
+        subnet->prefixlen = atoi(mask_or_numbits);
+    }
 
     if (apn)
         strcpy(subnet->apn, apn);
-
-    subnet->family = subnet->gw.family;
-    subnet->prefixlen = atoi(mask_or_numbits);
 
     ogs_list_add(&self.subnet_list, subnet);
 

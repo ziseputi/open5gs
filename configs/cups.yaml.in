@@ -88,7 +88,7 @@ smf:
       - addr: ::1
     pfcp:
       - addr: 127.0.0.3
-    ue_pool:
+    pdn:
       - addr: 45.45.0.1/16
       - addr: cafe::1/64
     dns:
@@ -103,7 +103,7 @@ upf:
     gtpu:
       - addr: 127.0.0.3
       - addr: ::1
-    subnet:
+    pdn:
       - addr: 45.45.0.1/16
       - addr: cafe::1/64
 

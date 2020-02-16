@@ -124,124 +124,19 @@ static int ogs_pfcp_context_prepare(void)
     return OGS_OK;
 }
 
-static int ogs_pfcp_context_validation(void)
+static int ogs_pfcp_context_validation(const char *local)
 {
     if (ogs_list_first(&self.pfcp_list) == NULL &&
         ogs_list_first(&self.pfcp_list6) == NULL) {
-        ogs_error("No smf.pfcp in '%s'", ogs_config()->file);
+        ogs_error("No %s.pfcp: in '%s'", local, ogs_config()->file);
+        return OGS_ERROR;
+    }
+    if (ogs_list_first(&self.subnet_list) == NULL) {
+        ogs_error("No %s.pdn: in '%s'", local, ogs_config()->file);
         return OGS_ERROR;
     }
 
-    if (ogs_list_first(&ogs_pfcp_self()->subnet_list) == NULL) {
-#if defined(__linux)
-        /*
-         * On Linux, we can use a persitent tun/tap interface
-         * which has already been setup. As such, we do not need
-         * to get the IP address from configuration.
-         *
-         * If there is no APN and TUN mapping, the default subnet
-         * is added with `ogstun` name
-         */
-        ogs_pfcp_subnet_t *subnet = NULL;
-        subnet = ogs_pfcp_subnet_add(NULL, NULL, NULL, self.tun_ifname);
-        ogs_assert(subnet);
-#else
-        ogs_error("No smf.pdn in '%s'", ogs_config()->file);
-        return OGS_ERROR;
-#endif
-    }
     return OGS_OK;
-}
-
-static void parse_pdn_config(ogs_yaml_iter_t *parent)
-{
-    ogs_yaml_iter_t pdn_array, pdn_iter;
-    ogs_yaml_iter_recurse(parent, &pdn_array);
-
-    do {
-        ogs_pfcp_subnet_t *subnet = NULL;
-        const char *ipstr = NULL;
-        const char *mask_or_numbits = NULL;
-        const char *apn = NULL;
-        const char *dev = self.tun_ifname;
-        const char *low[MAX_NUM_OF_SUBNET_RANGE];
-        const char *high[MAX_NUM_OF_SUBNET_RANGE];
-        int i, num = 0;
-
-        if (ogs_yaml_iter_type(&pdn_array) == YAML_MAPPING_NODE) {
-            memcpy(&pdn_iter, &pdn_array, sizeof(ogs_yaml_iter_t));
-        } else if (ogs_yaml_iter_type(&pdn_array) == YAML_SEQUENCE_NODE) {
-            if (!ogs_yaml_iter_next(&pdn_array))
-                break;
-            ogs_yaml_iter_recurse(&pdn_array, &pdn_iter);
-        } else if (ogs_yaml_iter_type(&pdn_array) == YAML_SCALAR_NODE) {
-            break;
-        } else
-            ogs_assert_if_reached();
-
-        while (ogs_yaml_iter_next(&pdn_iter)) {
-            const char *pdn_key = ogs_yaml_iter_key(&pdn_iter);
-            ogs_assert(pdn_key);
-            if (!strcmp(pdn_key, "addr")) {
-                char *v = (char *)ogs_yaml_iter_value(&pdn_iter);
-                if (v) {
-                    ipstr = (const char *)strsep(&v, "/");
-                    if (ipstr) {
-                        mask_or_numbits = (const char *)v;
-                    }
-                }
-            } else if (!strcmp(pdn_key, "apn")) {
-                apn = ogs_yaml_iter_value(&pdn_iter);
-            } else if (!strcmp(pdn_key, "dev")) {
-                dev = ogs_yaml_iter_value(&pdn_iter);
-            } else if (!strcmp(pdn_key, "range")) {
-                ogs_yaml_iter_t range_iter;
-                ogs_yaml_iter_recurse(&pdn_iter, &range_iter);
-                ogs_assert(ogs_yaml_iter_type(&range_iter) !=
-                    YAML_MAPPING_NODE);
-                do {
-                    char *v = NULL;
-
-                    if (ogs_yaml_iter_type(&range_iter) == YAML_SEQUENCE_NODE) {
-                        if (!ogs_yaml_iter_next(&range_iter))
-                            break;
-                    }
-
-                    v = (char *)ogs_yaml_iter_value(&range_iter);
-                    if (v) {
-                        ogs_assert(num <= MAX_NUM_OF_SUBNET_RANGE);
-                        low[num] = (const char *)strsep(&v, "-");
-                        if (low[num] && strlen(low[num]) == 0)
-                            low[num] = NULL;
-
-                        high[num] = (const char *)v;
-                        if (high[num] && strlen(high[num]) == 0)
-                            high[num] = NULL;
-                    }
-
-                    if (low[num] || high[num]) num++;
-                } while (
-                    ogs_yaml_iter_type(&range_iter) == YAML_SEQUENCE_NODE);
-            } else
-                ogs_warn("unknown key `%s`", pdn_key);
-        }
-
-        if (ipstr && mask_or_numbits) {
-            subnet = ogs_pfcp_subnet_add(ipstr, mask_or_numbits, apn, dev);
-            ogs_assert(subnet);
-
-            subnet->num_of_range = num;
-            for (i = 0; i < subnet->num_of_range; i++) {
-                subnet->range[i].low = low[i];
-                subnet->range[i].high = high[i];
-            }
-        } else {
-            ogs_warn("Ignore : addr(%s/%s), apn(%s)",
-                    ipstr, mask_or_numbits, apn);
-        }
-
-    } while (ogs_yaml_iter_type(&pdn_array) ==
-            YAML_SEQUENCE_NODE);
 }
 
 int ogs_pfcp_context_parse_config(const char *local, const char *remote)
@@ -394,7 +289,136 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                         ogs_assert(rv == OGS_OK);
                     }
                 } else if (!strcmp(local_key, "pdn")) {
-                    parse_pdn_config(&local_iter);
+                    ogs_yaml_iter_t pdn_array, pdn_iter;
+                    ogs_yaml_iter_recurse(&local_iter, &pdn_array);
+
+                    do {
+                        ogs_pfcp_subnet_t *subnet = NULL;
+                        const char *ipstr = NULL;
+                        const char *mask_or_numbits = NULL;
+                        const char *apn = NULL;
+                        const char *dev = self.tun_ifname;
+                        const char *low[MAX_NUM_OF_SUBNET_RANGE];
+                        const char *high[MAX_NUM_OF_SUBNET_RANGE];
+                        int i, num = 0;
+
+                        if (ogs_yaml_iter_type(&pdn_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&pdn_iter, &pdn_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&pdn_array) ==
+                                YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&pdn_array))
+                                break;
+                            ogs_yaml_iter_recurse(&pdn_array, &pdn_iter);
+                        } else if (ogs_yaml_iter_type(&pdn_array) ==
+                                YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&pdn_iter)) {
+                            const char *pdn_key = ogs_yaml_iter_key(&pdn_iter);
+                            ogs_assert(pdn_key);
+                            if (!strcmp(pdn_key, "addr")) {
+                                char *v =
+                                    (char *)ogs_yaml_iter_value(&pdn_iter);
+                                if (v) {
+                                    ipstr = (const char *)strsep(&v, "/");
+                                    if (ipstr) {
+                                        mask_or_numbits = (const char *)v;
+                                    }
+                                }
+                            } else if (!strcmp(pdn_key, "apn")) {
+                                apn = ogs_yaml_iter_value(&pdn_iter);
+                            } else if (!strcmp(pdn_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&pdn_iter);
+                            } else if (!strcmp(pdn_key, "range")) {
+                                ogs_yaml_iter_t range_iter;
+                                ogs_yaml_iter_recurse(&pdn_iter, &range_iter);
+                                ogs_assert(ogs_yaml_iter_type(&range_iter) !=
+                                    YAML_MAPPING_NODE);
+                                do {
+                                    char *v = NULL;
+
+                                    if (ogs_yaml_iter_type(&range_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&range_iter))
+                                            break;
+                                    }
+
+                                    v = (char *)
+                                        ogs_yaml_iter_value(&range_iter);
+                                    if (v) {
+                                        ogs_assert(num <=
+                                                MAX_NUM_OF_SUBNET_RANGE);
+                                        low[num] =
+                                            (const char *)strsep(&v, "-");
+                                        if (low[num] && strlen(low[num]) == 0)
+                                            low[num] = NULL;
+
+                                        high[num] = (const char *)v;
+                                        if (high[num] && strlen(high[num]) == 0)
+                                            high[num] = NULL;
+                                    }
+
+                                    if (low[num] || high[num]) num++;
+                                } while (
+                                    ogs_yaml_iter_type(&range_iter) ==
+                                    YAML_SEQUENCE_NODE);
+                            } else
+                                ogs_warn("unknown key `%s`", pdn_key);
+                        }
+
+                        subnet = ogs_pfcp_subnet_add(
+                                ipstr, mask_or_numbits, apn, dev);
+                        ogs_assert(subnet);
+
+                        subnet->num_of_range = num;
+                        for (i = 0; i < subnet->num_of_range; i++) {
+                            subnet->range[i].low = low[i];
+                            subnet->range[i].high = high[i];
+                        }
+
+                    } while (ogs_yaml_iter_type(&pdn_array) ==
+                            YAML_SEQUENCE_NODE);
+
+                    if (ogs_list_first(&self.subnet_list) == NULL) {
+                        /* The followings are default configuration
+                         * if no PDN configration */
+                        ogs_pfcp_subnet_t *subnet = NULL;
+
+#if defined(__linux)
+                        /*
+                         * On Linux, we can use a persitent tun/tap interface
+                         * which has already been setup. As such,
+                         * we do not need to get the IP address
+                         * from configuration.
+                         *
+                         * If there is no APN and TUN mapping,
+                         * the default subnet is added with `ogstun` name
+                         */
+                        subnet = ogs_pfcp_subnet_add(
+                                NULL, NULL, NULL, self.tun_ifname);
+                        ogs_assert(subnet);
+#else
+                        /*
+                         * On MacOSX/FreeBSD, There is no persitent tun/tap
+                         * interface, TUN IP address is required.
+                         * The default configuration is same as below.
+                         *
+                         *   pdn:
+                         *     - addr: 45.45.0.1/16
+                         *     - addr: cafe::1/64
+                         */
+                        subnet = ogs_pfcp_subnet_add(
+                                "45.45.0.1", "16", NULL, self.tun_ifname);
+                        ogs_assert(subnet);
+                        subnet = ogs_pfcp_subnet_add(
+                                "cafe::1", "64", NULL, self.tun_ifname);
+                        ogs_assert(subnet);
+#endif
+                    }
                 }
             }
         } else if (!strcmp(root_key, remote)) {
@@ -521,14 +545,12 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
 
                     } while (ogs_yaml_iter_type(&pfcp_array) ==
                             YAML_SEQUENCE_NODE);
-                } else if (!strcmp(remote_key, "pdn")) {
-                    parse_pdn_config(&remote_iter);
                 }
             }
         }
     }
 
-    rv = ogs_pfcp_context_validation();
+    rv = ogs_pfcp_context_validation(local);
     if (rv != OGS_OK) return rv;
 
     return OGS_OK;
@@ -1149,6 +1171,7 @@ ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
     ogs_assert(subnet);
     memset(subnet, 0, sizeof *subnet);
 
+    subnet->family = AF_UNSPEC;
     subnet->dev = dev;
 
     if (ipstr && mask_or_numbits) {

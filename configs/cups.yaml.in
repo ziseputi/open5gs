@@ -104,8 +104,6 @@ upf:
       - addr: 127.0.0.3
       - addr: ::1
     pdn:
-      - addr: 45.45.0.1/16
-      - addr: cafe::1/64
 
 #
 #  <P-CSCF>

@@ -48,6 +48,7 @@ extern "C" {
 #define OGS_MAX_APN_LEN                 100
 #define OGS_MAX_PCO_LEN                 251
 #define OGS_MAX_FQDN_LEN                256
+#define OGS_MAX_IFNAME_LEN              32
 
 #define OGS_NEXT_ID(__id, __min, __max) \
     ((__id) = ((__id) == (__max) ? (__min) : ((__id) + 1)))

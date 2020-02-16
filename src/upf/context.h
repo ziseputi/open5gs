@@ -35,9 +35,6 @@
 extern "C" {
 #endif
 
-#define MAX_NUM_OF_DEV          16
-#define MAX_NUM_OF_SUBNET       16
-
 extern int __upf_log_domain;
 
 #undef OGS_LOG_DOMAIN
@@ -49,7 +46,6 @@ typedef struct upf_context_s {
 
     uint32_t        gtpc_port;      /* Default: UPF GTP-C local port */
     uint32_t        gtpu_port;      /* Default: UPF GTP-U local port */
-    const char      *tun_ifname;    /* Default: ogstun */
 
     ogs_list_t      gtpc_list;      /* UPF GTPC IPv4 Server List */
     ogs_list_t      gtpc_list6;     /* UPF GTPC IPv6 Server List */
@@ -66,9 +62,6 @@ typedef struct upf_context_s {
     ogs_sockaddr_t  *gtpu_addr6;    /* UPF GTPU IPv6 Address */
 
     uint16_t        function_features; /* UP Function Features */
-
-    ogs_list_t      dev_list;       /* UPF Tun Device List */
-    ogs_list_t      subnet_list;    /* UPF UE Subnet List */
 
     ogs_queue_t     *queue;         /* Queue for processing UPF control */
     ogs_timer_mgr_t *timer_mgr;     /* Timer Manager */
@@ -95,46 +88,6 @@ typedef struct upf_context_s {
     ogs_hash_t      *ipv6_hash;     /* hash table (IPv6 Address) */
 } upf_context_t;
 
-typedef struct upf_subnet_s upf_subnet_t;
-typedef struct upf_ue_ip_s {
-    uint32_t        addr[4];
-    bool            static_ip;
-
-    /* Related Context */
-    upf_subnet_t    *subnet;
-} upf_ue_ip_t;
-
-typedef struct upf_dev_s {
-    ogs_lnode_t     lnode;
-
-    char            ifname[IFNAMSIZ];
-    ogs_socket_t    fd;
-
-    ogs_sockaddr_t  *link_local_addr;
-    ogs_poll_t      *poll;
-} upf_dev_t;
-
-typedef struct upf_subnet_s {
-    ogs_lnode_t     node;
-
-    ogs_ipsubnet_t  sub;                /* Subnet : cafe::0/64 */
-    ogs_ipsubnet_t  gw;                 /* Gateway : cafe::1 */
-    char            apn[OGS_MAX_APN_LEN];   /* APN : "internet", "volte", .. */
-
-#define MAX_NUM_OF_SUBNET_RANGE         16
-    struct {
-        const char *low;
-        const char *high;
-    } range[MAX_NUM_OF_SUBNET_RANGE];
-    int num_of_range;
-
-    int             family;         /* AF_INET or AF_INET6 */
-    uint8_t         prefixlen;      /* prefixlen */
-    OGS_POOL(pool, upf_ue_ip_t);
-
-    upf_dev_t       *dev;           /* Related Context */
-} upf_subnet_t;
-
 typedef struct upf_sess_s {
     ogs_lnode_t     lnode;
     uint32_t        index;          /**< An index of this node */
@@ -153,8 +106,8 @@ typedef struct upf_sess_s {
 
     /* APN Configuration */
     ogs_pdn_t       pdn;
-    upf_ue_ip_t     *ipv4;
-    upf_ue_ip_t     *ipv6;
+    ogs_pfcp_ue_ip_t *ipv4;
+    ogs_pfcp_ue_ip_t *ipv6;
 
     /* User-Lication-Info */
     ogs_tai_t       tai;
@@ -277,25 +230,6 @@ void upf_pf_remove_all(upf_bearer_t *bearer);
 upf_pf_t *upf_pf_find_by_id(upf_bearer_t *upf_bearer, uint8_t id);
 upf_pf_t *upf_pf_first(upf_bearer_t *bearer);
 upf_pf_t *upf_pf_next(upf_pf_t *pf);
-
-int upf_ue_pool_generate(void);
-upf_ue_ip_t *upf_ue_ip_alloc(int family, const char *apn, uint8_t *addr);
-int upf_ue_ip_free(upf_ue_ip_t *ip);
-
-upf_dev_t *upf_dev_add(const char *ifname);
-int upf_dev_remove(upf_dev_t *dev);
-void upf_dev_remove_all(void);
-upf_dev_t *upf_dev_find_by_ifname(const char *ifname);
-upf_dev_t *upf_dev_first(void);
-upf_dev_t *upf_dev_next(upf_dev_t *dev);
-
-upf_subnet_t *upf_subnet_add(
-        const char *ipstr, const char *mask_or_numbits,
-        const char *apn, const char *ifname);
-upf_subnet_t *upf_subnet_next(upf_subnet_t *subnet);
-int upf_subnet_remove(upf_subnet_t *subnet);
-void upf_subnet_remove_all(void);
-upf_subnet_t *upf_subnet_first(void);
 
 void stats_add_session(void);
 void stats_remove_session(void);

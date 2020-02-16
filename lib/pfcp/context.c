@@ -29,6 +29,9 @@ static OGS_POOL(ogs_pfcp_urr_pool, ogs_pfcp_urr_t);
 static OGS_POOL(ogs_pfcp_qer_pool, ogs_pfcp_qer_t);
 static OGS_POOL(ogs_pfcp_bar_pool, ogs_pfcp_bar_t);
 
+static OGS_POOL(ogs_pfcp_dev_pool, ogs_pfcp_dev_t);
+static OGS_POOL(ogs_pfcp_subnet_pool, ogs_pfcp_subnet_t);
+
 static int context_initiaized = 0;
 
 void ogs_pfcp_context_init(void)
@@ -76,12 +79,23 @@ void ogs_pfcp_context_init(void)
 
     ogs_list_init(&self.sess_list);
 
+    ogs_list_init(&self.dev_list);
+    ogs_pool_init(&ogs_pfcp_dev_pool, MAX_NUM_OF_DEV);
+    ogs_list_init(&self.subnet_list);
+    ogs_pool_init(&ogs_pfcp_subnet_pool, MAX_NUM_OF_SUBNET);
+
     context_initiaized = 1;
 }
 
 void ogs_pfcp_context_final(void)
 {
     ogs_assert(context_initiaized == 1);
+
+    ogs_pfcp_dev_remove_all();
+    ogs_pfcp_subnet_remove_all();
+
+    ogs_pool_final(&ogs_pfcp_dev_pool);
+    ogs_pool_final(&ogs_pfcp_subnet_pool);
 
     ogs_pool_final(&ogs_pfcp_sess_pool);
     ogs_pool_final(&ogs_pfcp_pdr_pool);
@@ -105,6 +119,7 @@ ogs_pfcp_context_t *ogs_pfcp_self(void)
 static int ogs_pfcp_context_prepare(void)
 {
     self.pfcp_port = OGS_PFCP_UDP_PORT;
+    self.tun_ifname = "ogstun";
 
     return OGS_OK;
 }
@@ -113,9 +128,27 @@ static int ogs_pfcp_context_validation(void)
 {
     if (ogs_list_first(&self.pfcp_list) == NULL &&
         ogs_list_first(&self.pfcp_list6) == NULL) {
-        ogs_error("No smf.pfcp in '%s'",
-                ogs_config()->file);
+        ogs_error("No smf.pfcp in '%s'", ogs_config()->file);
         return OGS_ERROR;
+    }
+
+    if (ogs_list_first(&ogs_pfcp_self()->subnet_list) == NULL) {
+#if defined(__linux)
+        /*
+         * On Linux, we can use a persitent tun/tap interface
+         * which has already been setup. As such, we do not need
+         * to get the IP address from configuration.
+         *
+         * If there is no APN and TUN mapping, the default subnet
+         * is added with `ogstun` name
+         */
+        ogs_pfcp_subnet_t *subnet = NULL;
+        subnet = ogs_pfcp_subnet_add(NULL, NULL, NULL, self.tun_ifname);
+        ogs_assert(subnet);
+#else
+        ogs_error("No smf.pdn in '%s'", ogs_config()->file);
+        return OGS_ERROR;
+#endif
     }
     return OGS_OK;
 }
@@ -137,14 +170,14 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
         const char *root_key = ogs_yaml_iter_key(&root_iter);
         ogs_assert(root_key);
         if (!strcmp(root_key, local)) {
-            ogs_yaml_iter_t ogs_pfcp_iter;
-            ogs_yaml_iter_recurse(&root_iter, &ogs_pfcp_iter);
-            while (ogs_yaml_iter_next(&ogs_pfcp_iter)) {
-                const char *ogs_pfcp_key = ogs_yaml_iter_key(&ogs_pfcp_iter);
-                ogs_assert(ogs_pfcp_key);
-                if (!strcmp(ogs_pfcp_key, "pfcp")) {
+            ogs_yaml_iter_t local_iter;
+            ogs_yaml_iter_recurse(&root_iter, &local_iter);
+            while (ogs_yaml_iter_next(&local_iter)) {
+                const char *local_key = ogs_yaml_iter_key(&local_iter);
+                ogs_assert(local_key);
+                if (!strcmp(local_key, "pfcp")) {
                     ogs_yaml_iter_t pfcp_array, pfcp_iter;
-                    ogs_yaml_iter_recurse(&ogs_pfcp_iter, &pfcp_array);
+                    ogs_yaml_iter_recurse(&local_iter, &pfcp_array);
                     do {
                         int family = AF_UNSPEC;
                         int i, num = 0;
@@ -177,7 +210,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 if (v) family = atoi(v);
                                 if (family != AF_UNSPEC &&
                                     family != AF_INET && family != AF_INET6) {
-                                    ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
                                         "AF_INET(%d), AF_INET6(%d) ", 
                                         family, AF_UNSPEC, AF_INET, AF_INET6);
                                     family = AF_UNSPEC;
@@ -185,7 +219,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                             } else if (!strcmp(pfcp_key, "addr") ||
                                     !strcmp(pfcp_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&pfcp_iter, &hostname_iter);
+                                ogs_yaml_iter_recurse(&pfcp_iter,
+                                        &hostname_iter);
                                 ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
                                     YAML_MAPPING_NODE);
 
@@ -267,17 +302,118 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 NULL, self.pfcp_port);
                         ogs_assert(rv == OGS_OK);
                     }
+                } else if (!strcmp(local_key, "pdn")) {
+                    ogs_yaml_iter_t pdn_array, pdn_iter;
+                    ogs_yaml_iter_recurse(&local_iter, &pdn_array);
+                    do {
+                        ogs_pfcp_subnet_t *subnet = NULL;
+                        const char *ipstr = NULL;
+                        const char *mask_or_numbits = NULL;
+                        const char *apn = NULL;
+                        const char *dev = self.tun_ifname;
+                        const char *low[MAX_NUM_OF_SUBNET_RANGE];
+                        const char *high[MAX_NUM_OF_SUBNET_RANGE];
+                        int i, num = 0;
+
+                        if (ogs_yaml_iter_type(&pdn_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&pdn_iter, &pdn_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&pdn_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&pdn_array))
+                                break;
+                            ogs_yaml_iter_recurse(&pdn_array,
+                                    &pdn_iter);
+                        } else if (ogs_yaml_iter_type(&pdn_array) ==
+                                YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&pdn_iter)) {
+                            const char *pdn_key =
+                                ogs_yaml_iter_key(&pdn_iter);
+                            ogs_assert(pdn_key);
+                            if (!strcmp(pdn_key, "addr")) {
+                                char *v =
+                                    (char *)ogs_yaml_iter_value(&pdn_iter);
+                                if (v) {
+                                    ipstr = (const char *)strsep(&v, "/");
+                                    if (ipstr) {
+                                        mask_or_numbits = (const char *)v;
+                                    }
+                                }
+                            } else if (!strcmp(pdn_key, "apn")) {
+                                apn = ogs_yaml_iter_value(&pdn_iter);
+                            } else if (!strcmp(pdn_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&pdn_iter);
+                            } else if (!strcmp(pdn_key, "range")) {
+                                ogs_yaml_iter_t range_iter;
+                                ogs_yaml_iter_recurse(
+                                        &pdn_iter, &range_iter);
+                                ogs_assert(ogs_yaml_iter_type(&range_iter) !=
+                                    YAML_MAPPING_NODE);
+                                do {
+                                    char *v = NULL;
+
+                                    if (ogs_yaml_iter_type(&range_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&range_iter))
+                                            break;
+                                    }
+
+                                    v = (char *)ogs_yaml_iter_value(
+                                            &range_iter);
+                                    if (v) {
+                                        ogs_assert(num <=
+                                                MAX_NUM_OF_SUBNET_RANGE);
+                                        low[num] =
+                                            (const char *)strsep(&v, "-");
+                                        if (low[num] && strlen(low[num]) == 0)
+                                            low[num] = NULL;
+
+                                        high[num] = (const char *)v;
+                                        if (high[num] && strlen(high[num]) == 0)
+                                            high[num] = NULL;
+                                    }
+
+                                    if (low[num] || high[num]) num++;
+                                } while (
+                                    ogs_yaml_iter_type(&range_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else
+                                ogs_warn("unknown key `%s`", pdn_key);
+                        }
+
+                        if (ipstr && mask_or_numbits) {
+                            subnet = ogs_pfcp_subnet_add(
+                                    ipstr, mask_or_numbits, apn, dev);
+                            ogs_assert(subnet);
+
+                            subnet->num_of_range = num;
+                            for (i = 0; i < subnet->num_of_range; i++) {
+                                subnet->range[i].low = low[i];
+                                subnet->range[i].high = high[i];
+                            }
+                        } else {
+                            ogs_warn("Ignore : addr(%s/%s), apn(%s)",
+                                    ipstr, mask_or_numbits, apn);
+                        }
+
+                    } while (ogs_yaml_iter_type(&pdn_array) ==
+                            YAML_SEQUENCE_NODE);
                 }
             }
         } else if (!strcmp(root_key, remote)) {
-            ogs_yaml_iter_t upf_iter;
-            ogs_yaml_iter_recurse(&root_iter, &upf_iter);
-            while (ogs_yaml_iter_next(&upf_iter)) {
-                const char *ogs_pfcp_key = ogs_yaml_iter_key(&upf_iter);
-                ogs_assert(ogs_pfcp_key);
-                if (!strcmp(ogs_pfcp_key, "pfcp")) {
+            ogs_yaml_iter_t remote_iter;
+            ogs_yaml_iter_recurse(&root_iter, &remote_iter);
+            while (ogs_yaml_iter_next(&remote_iter)) {
+                const char *remote_key = ogs_yaml_iter_key(&remote_iter);
+                ogs_assert(remote_key);
+                if (!strcmp(remote_key, "pfcp")) {
                     ogs_yaml_iter_t pfcp_array, pfcp_iter;
-                    ogs_yaml_iter_recurse(&upf_iter, &pfcp_array);
+                    ogs_yaml_iter_recurse(&remote_iter, &pfcp_array);
                     do {
                         ogs_pfcp_node_t *pnode = NULL;
                         ogs_sockaddr_t *addr = NULL;
@@ -312,7 +448,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 if (v) family = atoi(v);
                                 if (family != AF_UNSPEC &&
                                     family != AF_INET && family != AF_INET6) {
-                                    ogs_warn("Ignore family(%d) : AF_UNSPEC(%d), "
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
                                         "AF_INET(%d), AF_INET6(%d) ", 
                                         family, AF_UNSPEC, AF_INET, AF_INET6);
                                     family = AF_UNSPEC;
@@ -391,6 +528,107 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                             memcpy(pnode->tac, tac, sizeof(pnode->tac));
 
                     } while (ogs_yaml_iter_type(&pfcp_array) ==
+                            YAML_SEQUENCE_NODE);
+                } else if (!strcmp(remote_key, "pdn")) {
+                    ogs_yaml_iter_t pdn_array, pdn_iter;
+                    ogs_yaml_iter_recurse(&remote_iter, &pdn_array);
+                    do {
+                        ogs_pfcp_subnet_t *subnet = NULL;
+                        const char *ipstr = NULL;
+                        const char *mask_or_numbits = NULL;
+                        const char *apn = NULL;
+                        const char *dev = self.tun_ifname;
+                        const char *low[MAX_NUM_OF_SUBNET_RANGE];
+                        const char *high[MAX_NUM_OF_SUBNET_RANGE];
+                        int i, num = 0;
+
+                        if (ogs_yaml_iter_type(&pdn_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&pdn_iter, &pdn_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&pdn_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&pdn_array))
+                                break;
+                            ogs_yaml_iter_recurse(&pdn_array,
+                                    &pdn_iter);
+                        } else if (ogs_yaml_iter_type(&pdn_array) ==
+                                YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&pdn_iter)) {
+                            const char *pdn_key =
+                                ogs_yaml_iter_key(&pdn_iter);
+                            ogs_assert(pdn_key);
+                            if (!strcmp(pdn_key, "addr")) {
+                                char *v =
+                                    (char *)ogs_yaml_iter_value(&pdn_iter);
+                                if (v) {
+                                    ipstr = (const char *)strsep(&v, "/");
+                                    if (ipstr) {
+                                        mask_or_numbits = (const char *)v;
+                                    }
+                                }
+                            } else if (!strcmp(pdn_key, "apn")) {
+                                apn = ogs_yaml_iter_value(&pdn_iter);
+                            } else if (!strcmp(pdn_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&pdn_iter);
+                            } else if (!strcmp(pdn_key, "range")) {
+                                ogs_yaml_iter_t range_iter;
+                                ogs_yaml_iter_recurse(
+                                        &pdn_iter, &range_iter);
+                                ogs_assert(ogs_yaml_iter_type(&range_iter) !=
+                                    YAML_MAPPING_NODE);
+                                do {
+                                    char *v = NULL;
+
+                                    if (ogs_yaml_iter_type(&range_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&range_iter))
+                                            break;
+                                    }
+
+                                    v = (char *)ogs_yaml_iter_value(
+                                            &range_iter);
+                                    if (v) {
+                                        ogs_assert(num <=
+                                                MAX_NUM_OF_SUBNET_RANGE);
+                                        low[num] =
+                                            (const char *)strsep(&v, "-");
+                                        if (low[num] && strlen(low[num]) == 0)
+                                            low[num] = NULL;
+
+                                        high[num] = (const char *)v;
+                                        if (high[num] && strlen(high[num]) == 0)
+                                            high[num] = NULL;
+                                    }
+
+                                    if (low[num] || high[num]) num++;
+                                } while (
+                                    ogs_yaml_iter_type(&range_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else
+                                ogs_warn("unknown key `%s`", pdn_key);
+                        }
+
+                        if (ipstr && mask_or_numbits) {
+                            subnet = ogs_pfcp_subnet_add(
+                                    ipstr, mask_or_numbits, apn, dev);
+                            ogs_assert(subnet);
+
+                            subnet->num_of_range = num;
+                            for (i = 0; i < subnet->num_of_range; i++) {
+                                subnet->range[i].low = low[i];
+                                subnet->range[i].high = high[i];
+                            }
+                        } else {
+                            ogs_warn("Ignore : addr(%s/%s), apn(%s)",
+                                    ipstr, mask_or_numbits, apn);
+                        }
+
+                    } while (ogs_yaml_iter_type(&pdn_array) ==
                             YAML_SEQUENCE_NODE);
                 }
             }
@@ -748,4 +986,326 @@ void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar)
     sess->bar = NULL;
 
     ogs_pool_free(&ogs_pfcp_bar_pool, bar);
+}
+
+int ogs_pfcp_ue_pool_generate(void)
+{
+    int i, rv;
+    ogs_pfcp_subnet_t *subnet = NULL;
+
+    for (subnet = ogs_pfcp_subnet_first();
+        subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
+        int maxbytes = 0;
+        int lastindex = 0;
+        uint32_t start[4], end[4], broadcast[4];
+        int rangeindex, num_of_range;
+        int poolindex;
+        int inc;
+
+        if (subnet->family == AF_INET) {
+            maxbytes = 4;
+            lastindex = 0;
+        }
+        else if (subnet->family == AF_INET6) {
+            maxbytes = 16;
+            lastindex = 3;
+        }
+
+        for (i = 0; i < 4; i++) {
+            broadcast[i] = subnet->sub.sub[i] + ~subnet->sub.mask[i];
+        }
+
+        num_of_range = subnet->num_of_range;
+        if (!num_of_range) num_of_range = 1;
+
+        poolindex = 0;
+        for (rangeindex = 0; rangeindex < num_of_range; rangeindex++) {
+
+            if (subnet->num_of_range &&
+                subnet->range[rangeindex].low) {
+                ogs_ipsubnet_t low;
+                rv = ogs_ipsubnet(
+                        &low, subnet->range[rangeindex].low, NULL);
+                ogs_assert(rv == OGS_OK);
+                memcpy(start, low.sub, maxbytes);
+            } else {
+                memcpy(start, subnet->sub.sub, maxbytes);
+            }
+
+            if (subnet->num_of_range &&
+                subnet->range[rangeindex].high) {
+                ogs_ipsubnet_t high;
+                rv = ogs_ipsubnet(
+                        &high, subnet->range[rangeindex].high, NULL);
+                ogs_assert(rv == OGS_OK);
+                high.sub[lastindex] += htobe32(1);
+                memcpy(end, high.sub, maxbytes);
+            } else {
+                memcpy(end, broadcast, maxbytes);
+            }
+
+            inc = 0;
+            while(poolindex < ogs_config()->pool.sess) {
+                ogs_pfcp_ue_ip_t *ue_ip = NULL;
+
+                ue_ip = &subnet->pool.array[poolindex];
+                ogs_assert(ue_ip);
+                memset(ue_ip, 0, sizeof *ue_ip);
+                ue_ip->subnet = subnet;
+
+                memcpy(ue_ip->addr, start, maxbytes);
+                ue_ip->addr[lastindex] += htobe32(inc);
+                inc++;
+
+                if (memcmp(ue_ip->addr, end, maxbytes) == 0)
+                    break;
+
+                /* Exclude Network Address */
+                if (memcmp(ue_ip->addr, subnet->sub.sub, maxbytes) == 0)
+                    continue;
+
+                /* Exclude TUN IP Address */
+                if (memcmp(ue_ip->addr, subnet->gw.sub, maxbytes) == 0)
+                    continue;
+
+                ogs_trace("[%d] - %x:%x:%x:%x",
+                        poolindex,
+                        ue_ip->addr[0], ue_ip->addr[1],
+                        ue_ip->addr[2], ue_ip->addr[3]);
+
+                poolindex++;
+            }
+        }
+        subnet->pool.size = subnet->pool.avail = poolindex;
+    }
+
+    return OGS_OK;
+}
+
+static ogs_pfcp_subnet_t *find_subnet(int family, const char *apn)
+{
+    ogs_pfcp_subnet_t *subnet = NULL;
+
+    ogs_assert(apn);
+    ogs_assert(family == AF_INET || family == AF_INET6);
+
+    for (subnet = ogs_pfcp_subnet_first();
+            subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
+        if (strlen(subnet->apn)) {
+            if (subnet->family == family && strcmp(subnet->apn, apn) == 0 &&
+                ogs_pool_avail(&subnet->pool)) {
+                return subnet;
+            }
+        }
+    }
+
+    for (subnet = ogs_pfcp_subnet_first();
+            subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
+        if (strlen(subnet->apn) == 0) {
+            if (subnet->family == family &&
+                ogs_pool_avail(&subnet->pool)) {
+                return subnet;
+            }
+        }
+    }
+
+    if (subnet == NULL)
+        ogs_error("CHECK CONFIGURATION: Cannot find Packet Data Network(PDN)");
+
+    return subnet;
+}
+
+ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
+        int family, const char *apn, uint8_t *addr)
+{
+    ogs_pfcp_subnet_t *subnet = NULL;
+    ogs_pfcp_ue_ip_t *ue_ip = NULL;
+
+    uint8_t zero[16];
+    size_t maxbytes = 0;
+
+    ogs_assert(apn);
+    subnet = find_subnet(family, apn);
+    ogs_assert(subnet);
+
+    memset(zero, 0, sizeof zero);
+    if (family == AF_INET) {
+        maxbytes = 4;
+    } else if (family == AF_INET6) {
+        maxbytes = 16;
+    } else {
+        ogs_fatal("Invalid family[%d]", family);
+        ogs_assert_if_reached();
+    }
+
+    // if assigning a static IP, do so. If not, assign dynamically!
+    if (memcmp(addr, zero, maxbytes) != 0) {
+        ue_ip = ogs_calloc(1, sizeof(ogs_pfcp_ue_ip_t));
+
+        ue_ip->subnet = subnet;
+        ue_ip->static_ip = true;
+        memcpy(ue_ip->addr, addr, maxbytes);
+    } else {
+        ogs_pool_alloc(&subnet->pool, &ue_ip);
+    }
+
+    ogs_assert(ue_ip);
+    return ue_ip;
+}
+
+int ogs_pfcp_ue_ip_free(ogs_pfcp_ue_ip_t *ue_ip)
+{
+    ogs_pfcp_subnet_t *subnet = NULL;
+
+    ogs_assert(ue_ip);
+    subnet = ue_ip->subnet;
+
+    ogs_assert(subnet);
+
+    if (ue_ip->static_ip) {
+        ogs_free(ue_ip);
+    } else {
+        ogs_pool_free(&subnet->pool, ue_ip);
+    }
+
+    return OGS_OK;
+}
+
+ogs_pfcp_dev_t *ogs_pfcp_dev_add(const char *ifname)
+{
+    ogs_pfcp_dev_t *dev = NULL;
+
+    ogs_assert(ifname);
+
+    ogs_pool_alloc(&ogs_pfcp_dev_pool, &dev);
+    ogs_assert(dev);
+    memset(dev, 0, sizeof *dev);
+
+    strcpy(dev->ifname, ifname);
+
+    ogs_list_add(&self.dev_list, dev);
+
+    return dev;
+}
+
+int ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev)
+{
+    ogs_assert(dev);
+
+    ogs_list_remove(&self.dev_list, dev);
+
+    if (dev->link_local_addr)
+        ogs_freeaddrinfo(dev->link_local_addr);
+
+    ogs_pool_free(&ogs_pfcp_dev_pool, dev);
+
+    return OGS_OK;
+}
+
+void ogs_pfcp_dev_remove_all(void)
+{
+    ogs_pfcp_dev_t *dev = NULL, *next_dev = NULL;
+
+    ogs_list_for_each_safe(&self.dev_list, next_dev, dev)
+        ogs_pfcp_dev_remove(dev);
+}
+
+ogs_pfcp_dev_t *ogs_pfcp_dev_find_by_ifname(const char *ifname)
+{
+    ogs_pfcp_dev_t *dev = NULL;
+
+    ogs_assert(ifname);
+
+    dev = ogs_pfcp_dev_first();
+    while (dev) {
+        if (strcmp(dev->ifname, ifname) == 0)
+            return dev;
+
+        dev = ogs_pfcp_dev_next(dev);
+    }
+
+    return OGS_OK;
+}
+
+ogs_pfcp_dev_t *ogs_pfcp_dev_first(void)
+{
+    return ogs_list_first(&self.dev_list);
+}
+
+ogs_pfcp_dev_t *ogs_pfcp_dev_next(ogs_pfcp_dev_t *dev)
+{
+    return ogs_list_next(dev);
+}
+
+ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
+        const char *ipstr, const char *mask_or_numbits,
+        const char *apn, const char *ifname)
+{
+    int rv;
+    ogs_pfcp_dev_t *dev = NULL;
+    ogs_pfcp_subnet_t *subnet = NULL;
+
+    ogs_assert(ifname);
+
+    dev = ogs_pfcp_dev_find_by_ifname(ifname);
+    if (!dev)
+        dev = ogs_pfcp_dev_add(ifname);
+    ogs_assert(dev);
+
+    ogs_pool_alloc(&ogs_pfcp_subnet_pool, &subnet);
+    ogs_assert(subnet);
+    memset(subnet, 0, sizeof *subnet);
+
+    subnet->dev = dev;
+
+    if (ipstr && mask_or_numbits) {
+        rv = ogs_ipsubnet(&subnet->gw, ipstr, NULL);
+        ogs_assert(rv == OGS_OK);
+
+        rv = ogs_ipsubnet(&subnet->sub, ipstr, mask_or_numbits);
+        ogs_assert(rv == OGS_OK);
+
+        subnet->family = subnet->gw.family;
+        subnet->prefixlen = atoi(mask_or_numbits);
+    }
+
+    if (apn)
+        strcpy(subnet->apn, apn);
+
+    ogs_pool_init(&subnet->pool, ogs_config()->pool.sess);
+
+    ogs_list_add(&self.subnet_list, subnet);
+
+    return subnet;
+}
+
+int ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet)
+{
+    ogs_assert(subnet);
+
+    ogs_list_remove(&self.subnet_list, subnet);
+
+    ogs_pool_final(&subnet->pool);
+
+    ogs_pool_free(&ogs_pfcp_subnet_pool, subnet);
+
+    return OGS_OK;
+}
+
+void ogs_pfcp_subnet_remove_all(void)
+{
+    ogs_pfcp_subnet_t *subnet = NULL, *next_subnet = NULL;
+
+    ogs_list_for_each_safe(&self.subnet_list, next_subnet, subnet)
+        ogs_pfcp_subnet_remove(subnet);
+}
+
+ogs_pfcp_subnet_t *ogs_pfcp_subnet_first(void)
+{
+    return ogs_list_first(&self.subnet_list);
+}
+
+ogs_pfcp_subnet_t *ogs_pfcp_subnet_next(ogs_pfcp_subnet_t *subnet)
+{
+    return ogs_list_next(subnet);
 }

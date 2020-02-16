@@ -52,7 +52,7 @@ int smf_initialize()
             ogs_config()->logger.domain, ogs_config()->logger.level);
     if (rv != OGS_OK) return rv;
 
-    rv = smf_ue_pool_generate();
+    rv = ogs_pfcp_ue_pool_generate();
     if (rv != OGS_OK) return rv;
 
     rv = smf_fd_init();

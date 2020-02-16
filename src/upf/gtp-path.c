@@ -96,8 +96,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     uint32_t teid;
     upf_bearer_t *bearer = NULL;
     upf_sess_t *sess = NULL;
-    upf_subnet_t *subnet = NULL;
-    upf_dev_t *dev = NULL;
+    ogs_pfcp_subnet_t *subnet = NULL;
+    ogs_pfcp_dev_t *dev = NULL;
 
     ogs_assert(fd != INVALID_SOCKET);
 
@@ -168,8 +168,8 @@ cleanup:
 
 int upf_gtp_open(void)
 {
-    upf_dev_t *dev = NULL;
-    upf_subnet_t *subnet = NULL;
+    ogs_pfcp_dev_t *dev = NULL;
+    ogs_pfcp_subnet_t *subnet = NULL;
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
     int rc;
@@ -211,8 +211,8 @@ int upf_gtp_open(void)
      */
 
     /* Open Tun interface */
-    for (dev = upf_dev_first(); dev; dev = upf_dev_next(dev)) {
-        dev->fd = ogs_tun_open(dev->ifname, IFNAMSIZ, 0);
+    for (dev = ogs_pfcp_dev_first(); dev; dev = ogs_pfcp_dev_next(dev)) {
+        dev->fd = ogs_tun_open(dev->ifname, OGS_MAX_IFNAME_LEN, 0);
         if (dev->fd == INVALID_SOCKET) {
             ogs_error("tun_open(dev:%s) failed", dev->ifname);
             return OGS_ERROR;
@@ -234,8 +234,8 @@ int upf_gtp_open(void)
 
     /* Set P-to-P IP address with Netmask
      * Note that Linux will skip this configuration */
-    for (subnet = upf_subnet_first(); 
-            subnet; subnet = upf_subnet_next(subnet)) {
+    for (subnet = ogs_pfcp_subnet_first(); 
+            subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
         ogs_assert(subnet->dev);
         rc = ogs_tun_set_ip(subnet->dev->ifname, &subnet->gw, &subnet->sub);
         if (rc != OGS_OK) {
@@ -245,7 +245,7 @@ int upf_gtp_open(void)
     }
 
     /* Link-Local Address for UPF_TUN */
-    for (dev = upf_dev_first(); dev; dev = upf_dev_next(dev))
+    for (dev = ogs_pfcp_dev_first(); dev; dev = ogs_pfcp_dev_next(dev))
         dev->link_local_addr = ogs_link_local_addr_by_dev(dev->ifname);
 
     return OGS_OK;
@@ -253,12 +253,12 @@ int upf_gtp_open(void)
 
 void upf_gtp_close(void)
 {
-    upf_dev_t *dev = NULL;
+    ogs_pfcp_dev_t *dev = NULL;
 
     ogs_socknode_remove_all(&upf_self()->gtpu_list);
     ogs_socknode_remove_all(&upf_self()->gtpu_list6);
 
-    for (dev = upf_dev_first(); dev; dev = upf_dev_next(dev)) {
+    for (dev = ogs_pfcp_dev_first(); dev; dev = ogs_pfcp_dev_next(dev)) {
         ogs_pollset_remove(dev->poll);
         ogs_closesocket(dev->fd);
     }
@@ -372,9 +372,9 @@ static int upf_gtp_send_router_advertisement(
     ogs_pkbuf_t *pkbuf = NULL;
 
     upf_bearer_t *bearer = NULL;
-    upf_ue_ip_t *ue_ip = NULL;
-    upf_subnet_t *subnet = NULL;
-    upf_dev_t *dev = NULL;
+    ogs_pfcp_ue_ip_t *ue_ip = NULL;
+    ogs_pfcp_subnet_t *subnet = NULL;
+    ogs_pfcp_dev_t *dev = NULL;
 
     ogs_ipsubnet_t src_ipsub;
     uint16_t plen = 0;

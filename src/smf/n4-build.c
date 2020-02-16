@@ -104,7 +104,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
 
     ogs_pfcp_node_id_t node_id;
     ogs_pfcp_f_seid_t f_seid;
-    ogs_pfcp_ue_ip_t addr[OGS_MAX_NUM_OF_PDR];
+    ogs_pfcp_ue_ip_addr_t addr[OGS_MAX_NUM_OF_PDR];
     ogs_pfcp_outer_header_removal_t outer_header_removal[OGS_MAX_NUM_OF_PDR];
     ogs_pfcp_f_teid_t f_teid[OGS_MAX_NUM_OF_PDR];
     ogs_pfcp_outer_header_creation_t outer_header_creation[OGS_MAX_NUM_OF_FAR];
@@ -171,7 +171,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
 
         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE &&
             far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
-            ogs_pfcp_paa_to_ue_ip(&sess->pdn.paa, &addr[i], &len);
+            ogs_pfcp_paa_to_ue_ip_addr(&sess->pdn.paa, &addr[i], &len);
             addr[i].sd = OGS_PFCP_UE_IP_DST;
 
             message->pdi.ue_ip_address.presence = 1;

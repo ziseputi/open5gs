@@ -230,7 +230,8 @@ int ogs_pfcp_sockaddr_to_f_teid(
     return sockaddr_to_f_teid(addr, addr6, f_teid, len);
 }
 
-int ogs_pfcp_paa_to_ue_ip(ogs_paa_t *paa, ogs_pfcp_ue_ip_t *addr, int *len)
+int ogs_pfcp_paa_to_ue_ip_addr(
+    ogs_paa_t *paa, ogs_pfcp_ue_ip_addr_t *addr, int *len)
 {
     const int hdr_len = 1;
 

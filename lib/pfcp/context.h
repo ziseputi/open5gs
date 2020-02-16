@@ -28,8 +28,12 @@
 extern "C" {
 #endif
 
+#define MAX_NUM_OF_DEV          16
+#define MAX_NUM_OF_SUBNET       16
+
 typedef struct ogs_pfcp_context_s {
     uint32_t        pfcp_port;      /* PFCP local port */
+    const char      *tun_ifname;    /* PFCP TUN Interface Name */
 
     ogs_list_t      pfcp_list;      /* PFCP IPv4 Server List */
     ogs_list_t      pfcp_list6;     /* PFCP IPv6 Server List */
@@ -42,6 +46,9 @@ typedef struct ogs_pfcp_context_s {
 
     ogs_list_t      n4_list;        /* PFCP Node List */
     ogs_pfcp_node_t *peer;          /* Iterator for Peer round-robin */
+
+    ogs_list_t      dev_list;       /* Tun Device List */
+    ogs_list_t      subnet_list;    /* UE Subnet List */
 
     ogs_list_t      sess_list;
 } ogs_pfcp_context_t;
@@ -124,6 +131,46 @@ typedef struct ogs_pfcp_bar_s {
     ogs_pfcp_sess_t         *sess;
 } ogs_pfcp_bar_t;
 
+typedef struct ogs_pfcp_subnet_s ogs_pfcp_subnet_t;
+typedef struct ogs_pfcp_ue_ip_s {
+    uint32_t        addr[4];
+    bool            static_ip;
+
+    /* Related Context */
+    ogs_pfcp_subnet_t    *subnet;
+} ogs_pfcp_ue_ip_t;
+
+typedef struct ogs_pfcp_dev_s {
+    ogs_lnode_t     lnode;
+
+    char            ifname[OGS_MAX_IFNAME_LEN];
+    ogs_socket_t    fd;
+
+    ogs_sockaddr_t  *link_local_addr;
+    ogs_poll_t      *poll;
+} ogs_pfcp_dev_t;
+
+typedef struct ogs_pfcp_subnet_s {
+    ogs_lnode_t     node;
+
+    ogs_ipsubnet_t  sub;                /* Subnet : cafe::0/64 */
+    ogs_ipsubnet_t  gw;                 /* Gateway : cafe::1 */
+    char            apn[OGS_MAX_APN_LEN];   /* APN : "internet", "volte", .. */
+
+#define MAX_NUM_OF_SUBNET_RANGE         16
+    struct {
+        const char *low;
+        const char *high;
+    } range[MAX_NUM_OF_SUBNET_RANGE];
+    int num_of_range;
+
+    int             family;         /* AF_INET or AF_INET6 */
+    uint8_t         prefixlen;      /* prefixlen */
+    OGS_POOL(pool, ogs_pfcp_ue_ip_t);
+
+    ogs_pfcp_dev_t       *dev;           /* Related Context */
+} ogs_pfcp_subnet_t;
+
 void ogs_pfcp_context_init(void);
 void ogs_pfcp_context_final(void);
 ogs_pfcp_context_t *ogs_pfcp_self(void);
@@ -165,6 +212,26 @@ void ogs_pfcp_qer_remove_all(ogs_pfcp_sess_t *sess);
 
 ogs_pfcp_bar_t *ogs_pfcp_bar_new(ogs_pfcp_sess_t *sess);
 void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar);
+
+int ogs_pfcp_ue_pool_generate(void);
+ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
+        int family, const char *apn, uint8_t *addr);
+int ogs_pfcp_ue_ip_free(ogs_pfcp_ue_ip_t *ip);
+
+ogs_pfcp_dev_t *ogs_pfcp_dev_add(const char *ifname);
+int ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev);
+void ogs_pfcp_dev_remove_all(void);
+ogs_pfcp_dev_t *ogs_pfcp_dev_find_by_ifname(const char *ifname);
+ogs_pfcp_dev_t *ogs_pfcp_dev_first(void);
+ogs_pfcp_dev_t *ogs_pfcp_dev_next(ogs_pfcp_dev_t *dev);
+
+ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
+        const char *ipstr, const char *mask_or_numbits,
+        const char *apn, const char *ifname);
+ogs_pfcp_subnet_t *ogs_pfcp_subnet_next(ogs_pfcp_subnet_t *subnet);
+int ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet);
+void ogs_pfcp_subnet_remove_all(void);
+ogs_pfcp_subnet_t *ogs_pfcp_subnet_first(void);
 
 #ifdef __cplusplus
 }

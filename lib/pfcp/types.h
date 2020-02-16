@@ -247,7 +247,7 @@ ED5(uint8_t       spare:4;,
  * the UP function shall only use the IPv6 prefix part and
  * ignore the interface identifier part.
  */
-typedef struct ogs_pfcp_ue_ip_s {
+typedef struct ogs_pfcp_ue_ip_addr_s {
 ED4(uint8_t       spare:5;,
 #define OGS_PFCP_UE_IP_SRC     0
 #define OGS_PFCP_UE_IP_DST     1
@@ -262,7 +262,7 @@ ED4(uint8_t       spare:5;,
             uint8_t addr6[OGS_IPV6_LEN];
         } both;
     };
-} __attribute__ ((packed)) ogs_pfcp_ue_ip_t;
+} __attribute__ ((packed)) ogs_pfcp_ue_ip_addr_t;
 
 /*
  * 8.2.56 Outer Header Creation

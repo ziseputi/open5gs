@@ -35,9 +35,6 @@
 extern "C" {
 #endif
 
-#define MAX_NUM_OF_DEV          16
-#define MAX_NUM_OF_SUBNET       16
-
 extern int __smf_log_domain;
 
 #undef OGS_LOG_DOMAIN
@@ -49,7 +46,6 @@ typedef struct smf_context_s {
 
     uint32_t        gtpc_port;      /* Default: SMF GTP-C local port */
     uint32_t        gtpu_port;      /* Default: UPF GTP-U local port */
-    const char      *tun_ifname;    /* Default: ogstun */
 
     ogs_list_t      gtpc_list;      /* SMF GTPC IPv4 Server List */
     ogs_list_t      gtpc_list6;     /* SMF GTPC IPv6 Server List */
@@ -59,9 +55,6 @@ typedef struct smf_context_s {
     ogs_sockaddr_t  *gtpc_addr6;    /* SMF GTPC IPv6 Address */
 
     uint8_t         function_features; /* CP Function Features */
-
-    ogs_list_t      dev_list;       /* SMF Tun Device List */
-    ogs_list_t      subnet_list;    /* SMF UE Subnet List */
 
     ogs_queue_t     *queue;         /* Queue for processing SMF control */
     ogs_timer_mgr_t *timer_mgr;     /* Timer Manager */
@@ -88,46 +81,6 @@ typedef struct smf_context_s {
     ogs_hash_t      *ipv6_hash;     /* hash table (IPv6 Address) */
 } smf_context_t;
 
-typedef struct smf_subnet_s smf_subnet_t;
-typedef struct smf_ue_ip_s {
-    uint32_t        addr[4];
-    bool            static_ip;
-
-    /* Related Context */
-    smf_subnet_t    *subnet;
-} smf_ue_ip_t;
-
-typedef struct smf_dev_s {
-    ogs_lnode_t     lnode;
-
-    char            ifname[IFNAMSIZ];
-    ogs_socket_t    fd;
-
-    ogs_sockaddr_t  *link_local_addr;
-    ogs_poll_t      *poll;
-} smf_dev_t;
-
-typedef struct smf_subnet_s {
-    ogs_lnode_t     node;
-
-    ogs_ipsubnet_t  sub;                /* Subnet : cafe::0/64 */
-    ogs_ipsubnet_t  gw;                 /* Gateway : cafe::1 */
-    char            apn[OGS_MAX_APN_LEN];   /* APN : "internet", "volte", .. */
-
-#define MAX_NUM_OF_SUBNET_RANGE         16
-    struct {
-        const char *low;
-        const char *high;
-    } range[MAX_NUM_OF_SUBNET_RANGE];
-    int num_of_range;
-
-    int             family;         /* AF_INET or AF_INET6 */
-    uint8_t         prefixlen;      /* prefixlen */
-    OGS_POOL(pool, smf_ue_ip_t);
-
-    smf_dev_t       *dev;           /* Related Context */
-} smf_subnet_t;
-
 typedef struct smf_sess_s {
     ogs_lnode_t     lnode;
     uint32_t        index;          /**< An index of this node */
@@ -146,8 +99,8 @@ typedef struct smf_sess_s {
 
     /* APN Configuration */
     ogs_pdn_t       pdn;
-    smf_ue_ip_t     *ipv4;
-    smf_ue_ip_t     *ipv6;
+    ogs_pfcp_ue_ip_t *ipv4;
+    ogs_pfcp_ue_ip_t *ipv6;
 
     /* User-Lication-Info */
     ogs_tai_t       tai;
@@ -269,25 +222,6 @@ void smf_pf_remove_all(smf_bearer_t *bearer);
 smf_pf_t *smf_pf_find_by_id(smf_bearer_t *smf_bearer, uint8_t id);
 smf_pf_t *smf_pf_first(smf_bearer_t *bearer);
 smf_pf_t *smf_pf_next(smf_pf_t *pf);
-
-int smf_ue_pool_generate(void);
-smf_ue_ip_t *smf_ue_ip_alloc(int family, const char *apn, uint8_t *addr);
-int smf_ue_ip_free(smf_ue_ip_t *ip);
-
-smf_dev_t *smf_dev_add(const char *ifname);
-int smf_dev_remove(smf_dev_t *dev);
-void smf_dev_remove_all(void);
-smf_dev_t *smf_dev_find_by_ifname(const char *ifname);
-smf_dev_t *smf_dev_first(void);
-smf_dev_t *smf_dev_next(smf_dev_t *dev);
-
-smf_subnet_t *smf_subnet_add(
-        const char *ipstr, const char *mask_or_numbits,
-        const char *apn, const char *ifname);
-smf_subnet_t *smf_subnet_next(smf_subnet_t *subnet);
-int smf_subnet_remove(smf_subnet_t *subnet);
-void smf_subnet_remove_all(void);
-smf_subnet_t *smf_subnet_first(void);
 
 void stats_add_session(void);
 void stats_remove_session(void);

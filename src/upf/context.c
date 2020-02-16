@@ -142,9 +142,27 @@ static int upf_context_validation(void)
         ogs_error("No upf.gtpu in '%s'", ogs_config()->file);
         return OGS_ERROR;
     }
+
     if (ogs_list_first(&self.subnet_list) == NULL) {
+
+#if defined(__linux)
+        /*
+         * On Linux, we can use a persitent tun/tap interface
+         * which has already been setup. As such, we do not need
+         * to get the IP address from configuration.
+         *
+         * If there is no APN and TUN mapping, the default subnet
+         * is added with `ogstun` name
+         */
+        upf_subnet_t *subnet = NULL;
+        subnet = upf_subnet_add(
+                NULL, NULL, NULL, self.tun_ifname);
+        ogs_assert(subnet);
+#else
         ogs_error("No upf.pdn in '%s'", ogs_config()->file);
         return OGS_ERROR;
+#endif
+
     }
     return OGS_OK;
 }
@@ -346,22 +364,6 @@ int upf_context_parse_config(void)
 
                     } while (ogs_yaml_iter_type(&pdn_array) ==
                             YAML_SEQUENCE_NODE);
-
-#if defined(__linux)
-                    /*
-                     * On Linux, we can use a persitent tun/tap interface
-                     * which has already been setup. As such, we do not need
-                     * to get the IP address from configuration.
-                     *
-                     * If there is no APN and TUN mapping, the default subnet
-                     * is added with `ogstun` name
-                     */
-                    if (ogs_list_first(&self.subnet_list) == NULL) {
-                        subnet = upf_subnet_add(
-                                NULL, NULL, NULL, self.tun_ifname);
-                        ogs_assert(subnet);
-                    }
-#endif
                 }
             }
         }

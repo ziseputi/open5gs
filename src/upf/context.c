@@ -320,6 +320,9 @@ int upf_context_parse_config(void)
                         const char *mask_or_numbits = NULL;
                         const char *apn = NULL;
                         const char *dev = self.tun_ifname;
+                        const char *low[MAX_NUM_OF_SUBNET_RANGE];
+                        const char *high[MAX_NUM_OF_SUBNET_RANGE];
+                        int i, num = 0;
 
                         if (ogs_yaml_iter_type(&pdn_array) ==
                                 YAML_MAPPING_NODE) {
@@ -354,13 +357,58 @@ int upf_context_parse_config(void)
                                 apn = ogs_yaml_iter_value(&pdn_iter);
                             } else if (!strcmp(pdn_key, "dev")) {
                                 dev = ogs_yaml_iter_value(&pdn_iter);
+                            } else if (!strcmp(pdn_key, "range")) {
+                                ogs_yaml_iter_t range_iter;
+                                ogs_yaml_iter_recurse(
+                                        &pdn_iter, &range_iter);
+                                ogs_assert(ogs_yaml_iter_type(&range_iter) !=
+                                    YAML_MAPPING_NODE);
+                                do {
+                                    char *v = NULL;
+
+                                    if (ogs_yaml_iter_type(&range_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&range_iter))
+                                            break;
+                                    }
+
+                                    v = (char *)ogs_yaml_iter_value(
+                                            &range_iter);
+                                    if (v) {
+                                        ogs_assert(num <=
+                                                MAX_NUM_OF_SUBNET_RANGE);
+                                        low[num] =
+                                            (const char *)strsep(&v, "-");
+                                        if (low[num] && strlen(low[num]) == 0)
+                                            low[num] = NULL;
+
+                                        high[num] = (const char *)v;
+                                        if (high[num] && strlen(high[num]) == 0)
+                                            high[num] = NULL;
+                                    }
+
+                                    if (low[num] || high[num]) num++;
+                                } while (
+                                    ogs_yaml_iter_type(&range_iter) ==
+                                        YAML_SEQUENCE_NODE);
                             } else
                                 ogs_warn("unknown key `%s`", pdn_key);
                         }
 
-                        subnet = upf_subnet_add(
-                                ipstr, mask_or_numbits, apn, dev);
-                        ogs_assert(subnet);
+                        if (ipstr && mask_or_numbits) {
+                            subnet = upf_subnet_add(
+                                    ipstr, mask_or_numbits, apn, dev);
+                            ogs_assert(subnet);
+
+                            subnet->num_of_range = num;
+                            for (i = 0; i < subnet->num_of_range; i++) {
+                                subnet->range[i].low = low[i];
+                                subnet->range[i].high = high[i];
+                            }
+                        } else {
+                            ogs_warn("Ignore : addr(%s/%s), apn(%s)",
+                                    ipstr, mask_or_numbits, apn);
+                        }
 
                     } while (ogs_yaml_iter_type(&pdn_array) ==
                             YAML_SEQUENCE_NODE);
@@ -857,27 +905,129 @@ upf_pf_t *upf_pf_next(upf_pf_t *pf)
     return ogs_list_next(pf);
 }
 
+int upf_ue_pool_generate(void)
+{
+    int i, rv;
+    upf_subnet_t *subnet = NULL;
+
+    for (subnet = upf_subnet_first();
+        subnet; subnet = upf_subnet_next(subnet)) {
+        int maxbytes = 0;
+        int lastindex = 0;
+        uint32_t start[4], end[4], broadcast[4];
+        int rangeindex, num_of_range;
+        int poolindex;
+        int inc;
+
+        if (subnet->family == AF_INET) {
+            maxbytes = 4;
+            lastindex = 0;
+        }
+        else if (subnet->family == AF_INET6) {
+            maxbytes = 16;
+            lastindex = 3;
+        }
+
+        for (i = 0; i < 4; i++) {
+            broadcast[i] = subnet->sub.sub[i] + ~subnet->sub.mask[i];
+        }
+
+        num_of_range = subnet->num_of_range;
+        if (!num_of_range) num_of_range = 1;
+
+        poolindex = 0;
+        for (rangeindex = 0; rangeindex < num_of_range; rangeindex++) {
+
+            if (subnet->num_of_range &&
+                subnet->range[rangeindex].low) {
+                ogs_ipsubnet_t low;
+                rv = ogs_ipsubnet(
+                        &low, subnet->range[rangeindex].low, NULL);
+                ogs_assert(rv == OGS_OK);
+                memcpy(start, low.sub, maxbytes);
+            } else {
+                memcpy(start, subnet->sub.sub, maxbytes);
+            }
+
+            if (subnet->num_of_range &&
+                subnet->range[rangeindex].high) {
+                ogs_ipsubnet_t high;
+                rv = ogs_ipsubnet(
+                        &high, subnet->range[rangeindex].high, NULL);
+                ogs_assert(rv == OGS_OK);
+                high.sub[lastindex] += htobe32(1);
+                memcpy(end, high.sub, maxbytes);
+            } else {
+                memcpy(end, broadcast, maxbytes);
+            }
+
+            inc = 0;
+            while(poolindex < ogs_config()->pool.sess) {
+                upf_ue_ip_t *ue_ip = NULL;
+
+                ue_ip = &subnet->pool.array[poolindex];
+                ogs_assert(ue_ip);
+                memset(ue_ip, 0, sizeof *ue_ip);
+                ue_ip->subnet = subnet;
+
+                memcpy(ue_ip->addr, start, maxbytes);
+                ue_ip->addr[lastindex] += htobe32(inc);
+                inc++;
+
+                if (memcmp(ue_ip->addr, end, maxbytes) == 0)
+                    break;
+
+                /* Exclude Network Address */
+                if (memcmp(ue_ip->addr, subnet->sub.sub, maxbytes) == 0)
+                    continue;
+
+                /* Exclude TUN IP Address */
+                if (memcmp(ue_ip->addr, subnet->gw.sub, maxbytes) == 0)
+                    continue;
+
+                ogs_trace("[%d] - %x:%x:%x:%x",
+                        poolindex,
+                        ue_ip->addr[0], ue_ip->addr[1],
+                        ue_ip->addr[2], ue_ip->addr[3]);
+
+                poolindex++;
+            }
+        }
+        subnet->pool.size = subnet->pool.avail = poolindex;
+    }
+
+    return OGS_OK;
+}
+
 static upf_subnet_t *find_subnet(int family, const char *apn)
 {
     upf_subnet_t *subnet = NULL;
 
+    ogs_assert(apn);
     ogs_assert(family == AF_INET || family == AF_INET6);
 
     for (subnet = upf_subnet_first();
             subnet; subnet = upf_subnet_next(subnet)) {
-        if (subnet->family == family &&
-            ((strlen(subnet->apn) && apn != NULL &&
-                  strcmp(subnet->apn, apn) == 0) ||
-             (strlen(subnet->apn) == 0 && apn == NULL))) {
-            return subnet;
+        if (strlen(subnet->apn)) {
+            if (subnet->family == family && strcmp(subnet->apn, apn) == 0 &&
+                ogs_pool_avail(&subnet->pool)) {
+                return subnet;
+            }
         }
     }
 
-    /* Use default subnet if APN is not provided from SMF */
-    subnet = upf_subnet_first();
+    for (subnet = upf_subnet_first();
+            subnet; subnet = upf_subnet_next(subnet)) {
+        if (strlen(subnet->apn) == 0) {
+            if (subnet->family == family &&
+                ogs_pool_avail(&subnet->pool)) {
+                return subnet;
+            }
+        }
+    }
 
     if (subnet == NULL)
-        ogs_error("CHECK CONFIGURATION: Cannot find PDN");
+        ogs_error("CHECK CONFIGURATION: Cannot find Packet Data Network(PDN)");
 
     return subnet;
 }
@@ -890,6 +1040,7 @@ upf_ue_ip_t *upf_ue_ip_alloc(int family, const char *apn, uint8_t *addr)
     uint8_t zero[16];
     size_t maxbytes = 0;
 
+    ogs_assert(apn);
     subnet = find_subnet(family, apn);
     ogs_assert(subnet);
 
@@ -903,8 +1054,16 @@ upf_ue_ip_t *upf_ue_ip_alloc(int family, const char *apn, uint8_t *addr)
         ogs_assert_if_reached();
     }
 
-    ue_ip = ogs_calloc(1, sizeof(upf_ue_ip_t));
-    ogs_assert(ue_ip);
+    // if assigning a static IP, do so. If not, assign dynamically!
+    if (memcmp(addr, zero, maxbytes) != 0) {
+        ue_ip = ogs_calloc(1, sizeof(upf_ue_ip_t));
+
+        ue_ip->subnet = subnet;
+        ue_ip->static_ip = true;
+        memcpy(ue_ip->addr, addr, maxbytes);
+    } else {
+        ogs_pool_alloc(&subnet->pool, &ue_ip);
+    }
 
     ue_ip->subnet = subnet;
     memcpy(ue_ip->addr, addr, maxbytes);
@@ -920,7 +1079,11 @@ int upf_ue_ip_free(upf_ue_ip_t *ue_ip)
     subnet = ue_ip->subnet;
     ogs_assert(subnet);
 
-    ogs_free(ue_ip);
+    if (ue_ip->static_ip) {
+        ogs_free(ue_ip);
+    } else {
+        ogs_pool_free(&subnet->pool, ue_ip);
+    }
 
     return OGS_OK;
 }
@@ -1026,6 +1189,8 @@ upf_subnet_t *upf_subnet_add(
     if (apn)
         strcpy(subnet->apn, apn);
 
+    ogs_pool_init(&subnet->pool, ogs_config()->pool.sess);
+
     ogs_list_add(&self.subnet_list, subnet);
 
     return subnet;
@@ -1036,6 +1201,9 @@ int upf_subnet_remove(upf_subnet_t *subnet)
     ogs_assert(subnet);
 
     ogs_list_remove(&self.subnet_list, subnet);
+
+    ogs_pool_final(&subnet->pool);
+
     ogs_pool_free(&upf_subnet_pool, subnet);
 
     return OGS_OK;

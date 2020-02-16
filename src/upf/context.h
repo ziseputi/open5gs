@@ -98,6 +98,7 @@ typedef struct upf_context_s {
 typedef struct upf_subnet_s upf_subnet_t;
 typedef struct upf_ue_ip_s {
     uint32_t        addr[4];
+    bool            static_ip;
 
     /* Related Context */
     upf_subnet_t    *subnet;
@@ -120,8 +121,16 @@ typedef struct upf_subnet_s {
     ogs_ipsubnet_t  gw;                 /* Gateway : cafe::1 */
     char            apn[OGS_MAX_APN_LEN];   /* APN : "internet", "volte", .. */
 
+#define MAX_NUM_OF_SUBNET_RANGE         16
+    struct {
+        const char *low;
+        const char *high;
+    } range[MAX_NUM_OF_SUBNET_RANGE];
+    int num_of_range;
+
     int             family;         /* AF_INET or AF_INET6 */
     uint8_t         prefixlen;      /* prefixlen */
+    OGS_POOL(pool, upf_ue_ip_t);
 
     upf_dev_t       *dev;           /* Related Context */
 } upf_subnet_t;

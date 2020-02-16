@@ -222,8 +222,6 @@ ogs_pfcp_dev_t *ogs_pfcp_dev_add(const char *ifname);
 int ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev);
 void ogs_pfcp_dev_remove_all(void);
 ogs_pfcp_dev_t *ogs_pfcp_dev_find_by_ifname(const char *ifname);
-ogs_pfcp_dev_t *ogs_pfcp_dev_first(void);
-ogs_pfcp_dev_t *ogs_pfcp_dev_next(ogs_pfcp_dev_t *dev);
 
 ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
         const char *ipstr, const char *mask_or_numbits,
@@ -231,7 +229,6 @@ ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
 ogs_pfcp_subnet_t *ogs_pfcp_subnet_next(ogs_pfcp_subnet_t *subnet);
 int ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet);
 void ogs_pfcp_subnet_remove_all(void);
-ogs_pfcp_subnet_t *ogs_pfcp_subnet_first(void);
 
 #ifdef __cplusplus
 }

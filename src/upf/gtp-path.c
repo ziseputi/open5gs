@@ -211,7 +211,7 @@ int upf_gtp_open(void)
      */
 
     /* Open Tun interface */
-    for (dev = ogs_pfcp_dev_first(); dev; dev = ogs_pfcp_dev_next(dev)) {
+    ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
         dev->fd = ogs_tun_open(dev->ifname, OGS_MAX_IFNAME_LEN, 0);
         if (dev->fd == INVALID_SOCKET) {
             ogs_error("tun_open(dev:%s) failed", dev->ifname);
@@ -234,8 +234,7 @@ int upf_gtp_open(void)
 
     /* Set P-to-P IP address with Netmask
      * Note that Linux will skip this configuration */
-    for (subnet = ogs_pfcp_subnet_first(); 
-            subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
+    ogs_list_for_each(&ogs_pfcp_self()->subnet_list, subnet) {
         ogs_assert(subnet->dev);
         rc = ogs_tun_set_ip(subnet->dev->ifname, &subnet->gw, &subnet->sub);
         if (rc != OGS_OK) {
@@ -245,7 +244,7 @@ int upf_gtp_open(void)
     }
 
     /* Link-Local Address for UPF_TUN */
-    for (dev = ogs_pfcp_dev_first(); dev; dev = ogs_pfcp_dev_next(dev))
+    ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev)
         dev->link_local_addr = ogs_link_local_addr_by_dev(dev->ifname);
 
     return OGS_OK;
@@ -258,7 +257,7 @@ void upf_gtp_close(void)
     ogs_socknode_remove_all(&upf_self()->gtpu_list);
     ogs_socknode_remove_all(&upf_self()->gtpu_list6);
 
-    for (dev = ogs_pfcp_dev_first(); dev; dev = ogs_pfcp_dev_next(dev)) {
+    ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
         ogs_pollset_remove(dev->poll);
         ogs_closesocket(dev->fd);
     }

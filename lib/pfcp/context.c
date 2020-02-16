@@ -908,8 +908,7 @@ int ogs_pfcp_ue_pool_generate(void)
     int i, rv;
     ogs_pfcp_subnet_t *subnet = NULL;
 
-    for (subnet = ogs_pfcp_subnet_first();
-        subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
+    ogs_list_for_each(&self.subnet_list, subnet) {
         int maxbytes = 0;
         int lastindex = 0;
         uint32_t start[4], end[4], broadcast[4];
@@ -920,8 +919,7 @@ int ogs_pfcp_ue_pool_generate(void)
         if (subnet->family == AF_INET) {
             maxbytes = 4;
             lastindex = 0;
-        }
-        else if (subnet->family == AF_INET6) {
+        } else if (subnet->family == AF_INET6) {
             maxbytes = 16;
             lastindex = 3;
         }
@@ -1004,8 +1002,7 @@ static ogs_pfcp_subnet_t *find_subnet(int family, const char *apn)
     ogs_assert(apn);
     ogs_assert(family == AF_INET || family == AF_INET6);
 
-    for (subnet = ogs_pfcp_subnet_first();
-            subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
+    ogs_list_for_each(&self.subnet_list, subnet) {
         if (strlen(subnet->apn)) {
             if (subnet->family == family && strcmp(subnet->apn, apn) == 0 &&
                 ogs_pool_avail(&subnet->pool)) {
@@ -1014,8 +1011,7 @@ static ogs_pfcp_subnet_t *find_subnet(int family, const char *apn)
         }
     }
 
-    for (subnet = ogs_pfcp_subnet_first();
-            subnet; subnet = ogs_pfcp_subnet_next(subnet)) {
+    ogs_list_for_each(&self.subnet_list, subnet) {
         if (strlen(subnet->apn) == 0) {
             if (subnet->family == family &&
                 ogs_pool_avail(&subnet->pool)) {
@@ -1131,25 +1127,12 @@ ogs_pfcp_dev_t *ogs_pfcp_dev_find_by_ifname(const char *ifname)
 
     ogs_assert(ifname);
 
-    dev = ogs_pfcp_dev_first();
-    while (dev) {
+    ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
         if (strcmp(dev->ifname, ifname) == 0)
             return dev;
-
-        dev = ogs_pfcp_dev_next(dev);
     }
 
     return OGS_OK;
-}
-
-ogs_pfcp_dev_t *ogs_pfcp_dev_first(void)
-{
-    return ogs_list_first(&self.dev_list);
-}
-
-ogs_pfcp_dev_t *ogs_pfcp_dev_next(ogs_pfcp_dev_t *dev)
-{
-    return ogs_list_next(dev);
 }
 
 ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
@@ -1214,14 +1197,4 @@ void ogs_pfcp_subnet_remove_all(void)
 
     ogs_list_for_each_safe(&self.subnet_list, next_subnet, subnet)
         ogs_pfcp_subnet_remove(subnet);
-}
-
-ogs_pfcp_subnet_t *ogs_pfcp_subnet_first(void)
-{
-    return ogs_list_first(&self.subnet_list);
-}
-
-ogs_pfcp_subnet_t *ogs_pfcp_subnet_next(ogs_pfcp_subnet_t *subnet)
-{
-    return ogs_list_next(subnet);
 }

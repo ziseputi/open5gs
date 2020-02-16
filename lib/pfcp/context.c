@@ -922,6 +922,9 @@ int ogs_pfcp_ue_pool_generate(void)
         } else if (subnet->family == AF_INET6) {
             maxbytes = 16;
             lastindex = 3;
+        } else {
+            /* subnet->family might be AF_UNSPEC. So, skip it */
+            continue;
         }
 
         for (i = 0; i < 4; i++) {
@@ -1003,25 +1006,16 @@ static ogs_pfcp_subnet_t *find_subnet(int family, const char *apn)
     ogs_assert(family == AF_INET || family == AF_INET6);
 
     ogs_list_for_each(&self.subnet_list, subnet) {
-        if (strlen(subnet->apn)) {
-            if (subnet->family == family && strcmp(subnet->apn, apn) == 0 &&
-                ogs_pool_avail(&subnet->pool)) {
-                return subnet;
-            }
-        }
-    }
-
-    ogs_list_for_each(&self.subnet_list, subnet) {
-        if (strlen(subnet->apn) == 0) {
-            if (subnet->family == family &&
-                ogs_pool_avail(&subnet->pool)) {
-                return subnet;
-            }
+        if ((subnet->family == AF_UNSPEC || subnet->family == family) &&
+            (strlen(subnet->apn) == 0 ||
+                (strlen(subnet->apn) && strcmp(subnet->apn, apn) == 0))) {
+            return subnet;
         }
     }
 
     if (subnet == NULL)
-        ogs_error("CHECK CONFIGURATION: Cannot find Packet Data Network(PDN)");
+        ogs_error("CHECK CONFIGURATION: Cannot find PDN[family:%d, apn:%s]",
+                family, apn);
 
     return subnet;
 }

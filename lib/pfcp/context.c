@@ -408,11 +408,11 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                          * The default configuration is same as below.
                          *
                          *   pdn:
-                         *     - addr: 45.45.0.1/16
+                         *     - addr: 10.45.0.1/16
                          *     - addr: cafe::1/64
                          */
                         subnet = ogs_pfcp_subnet_add(
-                                "45.45.0.1", "16", NULL, self.tun_ifname);
+                                "10.45.0.1", "16", NULL, self.tun_ifname);
                         ogs_assert(subnet);
                         subnet = ogs_pfcp_subnet_add(
                                 "cafe::1", "64", NULL, self.tun_ifname);

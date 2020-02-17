@@ -83,7 +83,7 @@ typedef struct upf_context_s {
     ogs_list_t      sgw_s5u_list;   /* SGW GTPU Node List */
     ogs_list_t      ip_pool_list;
 
-    ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
+    ogs_hash_t      *sess_hash;     /* hash table (F-SEID) */
     ogs_hash_t      *ipv4_hash;     /* hash table (IPv4 Address) */
     ogs_hash_t      *ipv6_hash;     /* hash table (IPv6 Address) */
 } upf_context_t;
@@ -192,7 +192,8 @@ int upf_sess_remove(upf_sess_t *sess);
 void upf_sess_remove_all(void);
 upf_sess_t *upf_sess_find(uint32_t index);
 upf_sess_t *upf_sess_find_by_teid(uint32_t teid);
-upf_sess_t *upf_sess_find_by_seid(uint64_t seid);
+upf_sess_t *upf_sess_find_by_local_seid(uint64_t seid);
+upf_sess_t *upf_sess_find_by_remote_seid(uint64_t seid);
 upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr);
 upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6);
 

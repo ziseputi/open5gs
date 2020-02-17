@@ -286,14 +286,14 @@ int upf_context_parse_config(void)
     return OGS_OK;
 }
 
-upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *f_seid,
+upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid,
         const char *apn, uint8_t pdn_type, ogs_pfcp_ue_ip_addr_t *ue_ip)
 {
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
     upf_sess_t *sess = NULL;
 
-    ogs_assert(f_seid);
+    ogs_assert(cp_f_seid);
     ogs_assert(apn);
     ogs_assert(ue_ip);
 
@@ -305,7 +305,9 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *f_seid,
     ogs_assert(sess->index > 0 && sess->index <= ogs_config()->pool.sess);
 
     sess->pfcp.local_n4_seid = sess->index;
-    sess->pfcp.remote_n4_seid = f_seid->seid;
+    sess->pfcp.remote_n4_seid = cp_f_seid->seid;
+    ogs_hash_set(self.sess_hash, &sess->pfcp.remote_n4_seid,
+            sizeof(sess->pfcp.remote_n4_seid), sess);
 
     /* Set APN */
     ogs_cpystrn(sess->pdn.apn, apn, OGS_MAX_APN_LEN+1);
@@ -351,8 +353,8 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *f_seid,
         goto cleanup;
     }
 
-    ogs_info("UE F-SEID:[%lld] APN:[%s] IPv4:[%s] IPv6:[%s]",
-            sess->pfcp.local_n4_seid, apn,
+    ogs_info("UE F-SEID:[L:%lld,R:%lld] APN:[%s] IPv4:[%s] IPv6:[%s]",
+            sess->pfcp.local_n4_seid, sess->pfcp.remote_n4_seid, apn,
             sess->ipv4 ?  INET_NTOP(&sess->ipv4->addr, buf1) : "",
             sess->ipv6 ?  INET6_NTOP(&sess->ipv6->addr, buf2) : "");
 
@@ -375,6 +377,9 @@ int upf_sess_remove(upf_sess_t *sess)
 
     OGS_MEM_CLEAR(sess->create_session_request);
     OGS_MEM_CLEAR(sess->delete_session_request);
+
+    ogs_hash_set(self.sess_hash, &sess->pfcp.remote_n4_seid,
+            sizeof(sess->pfcp.remote_n4_seid), NULL);
 
     if (sess->ipv4) {
         ogs_hash_set(self.ipv4_hash, sess->ipv4->addr, OGS_IPV4_LEN, NULL);
@@ -413,9 +418,14 @@ upf_sess_t *upf_sess_find_by_teid(uint32_t teid)
     return upf_sess_find(teid);
 }
 
-upf_sess_t *upf_sess_find_by_seid(uint64_t seid)
+upf_sess_t *upf_sess_find_by_local_seid(uint64_t seid)
 {
     return upf_sess_find(seid);
+}
+
+upf_sess_t *upf_sess_find_by_remote_seid(uint64_t seid)
+{
+    return (upf_sess_t *)ogs_hash_get(self.sess_hash, &seid, sizeof(seid));
 }
 
 upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr)
@@ -434,25 +444,18 @@ upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6)
 upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
 {
     upf_sess_t *sess = NULL;
-#if 0
-    ogs_paa_t *paa = NULL;
+    ogs_pfcp_ue_ip_addr_t *addr = NULL;
     char apn[OGS_MAX_APN_LEN];
-#endif
 
     ogs_pfcp_session_establishment_request_t *req =
         &message->pfcp_session_establishment_request;;
+    ogs_pfcp_tlv_create_pdr_t *create_pdrs[OGS_MAX_NUM_OF_PDR];
+    int i;
 
-#if 0
-    if (req->access_point_name.presence == 0) {
-        ogs_error("No APN");
-        return NULL;
-    }
-    if (req->bearer_contexts_to_be_created.presence == 0) {
-        ogs_error("No Bearer");
-        return NULL;
-    }
-    if (req->bearer_contexts_to_be_created.eps_bearer_id.presence == 0) {
-        ogs_error("No EPS Bearer ID");
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    if (req->cp_f_seid.presence == 0) {
+        ogs_error("No CP F-SEID");
         return NULL;
     }
     if (req->pdn_type.presence == 0) {
@@ -460,6 +463,19 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
         return NULL;
     }
 
+#if 0
+    /* Create PDR */
+    ogs_pfcp_create_pdrs_in_session_establishment(&create_pdrs, req);
+    for (i = 0; i < OGS_MAX_NUM_OF_PDR; i++) {
+        ogs_pfcp_tlv_create_pdr_t *message = create_pdrs[i];
+        if (message->presence) {
+            ogs_fatal("i = %d\n", i);
+        }
+    }
+    if (req->access_point_name.presence == 0) {
+        ogs_error("No APN");
+        return NULL;
+    }
     if (req->pdn_address_allocation.presence == 0) {
         ogs_error("No PAA Type");
         return NULL;

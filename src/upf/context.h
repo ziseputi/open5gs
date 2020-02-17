@@ -98,11 +98,6 @@ typedef struct upf_sess_s {
 
     ogs_pfcp_sess_t pfcp;
 
-    /* IMSI */
-    uint8_t         imsi[OGS_MAX_IMSI_LEN];
-    int             imsi_len;
-    char            imsi_bcd[OGS_MAX_IMSI_BCD_LEN+1];
-
     /* APN Configuration */
     ogs_pdn_t       pdn;
     ogs_pfcp_ue_ip_t *ipv4;
@@ -111,9 +106,6 @@ typedef struct upf_sess_s {
     /* User-Lication-Info */
     ogs_tai_t       tai;
     ogs_e_cgi_t     e_cgi;
-
-    uint8_t         hash_keybuf[OGS_MAX_IMSI_LEN+OGS_MAX_APN_LEN+1];
-    int             hash_keylen;
 
     /* Stored GTP message */
     ogs_gtp_create_session_request_t *create_session_request;
@@ -201,7 +193,6 @@ void upf_sess_remove_all(void);
 upf_sess_t *upf_sess_find(uint32_t index);
 upf_sess_t *upf_sess_find_by_teid(uint32_t teid);
 upf_sess_t *upf_sess_find_by_seid(uint64_t seid);
-upf_sess_t *upf_sess_find_by_imsi_apn(uint8_t *imsi, int imsi_len, char *apn);
 upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr);
 upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6);
 

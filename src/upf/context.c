@@ -286,16 +286,6 @@ int upf_context_parse_config(void)
     return OGS_OK;
 }
 
-static void *sess_hash_keygen(uint8_t *out, int *out_len,
-        uint8_t *imsi, int imsi_len, char *apn)
-{
-    memcpy(out, imsi, imsi_len);
-    ogs_cpystrn((char*)(out+imsi_len), apn, OGS_MAX_APN_LEN+1);
-    *out_len = imsi_len+strlen((char*)(out+imsi_len));
-
-    return out;
-}
-
 upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *f_seid,
         const char *apn, uint8_t pdn_type, ogs_pfcp_ue_ip_addr_t *ue_ip)
 {
@@ -386,8 +376,6 @@ int upf_sess_remove(upf_sess_t *sess)
     OGS_MEM_CLEAR(sess->create_session_request);
     OGS_MEM_CLEAR(sess->delete_session_request);
 
-    ogs_hash_set(self.sess_hash, sess->hash_keybuf, sess->hash_keylen, NULL);
-
     if (sess->ipv4) {
         ogs_hash_set(self.ipv4_hash, sess->ipv4->addr, OGS_IPV4_LEN, NULL);
         ogs_pfcp_ue_ip_free(sess->ipv4);
@@ -430,18 +418,6 @@ upf_sess_t *upf_sess_find_by_seid(uint64_t seid)
     return upf_sess_find(seid);
 }
 
-upf_sess_t *upf_sess_find_by_imsi_apn(
-    uint8_t *imsi, int imsi_len, char *apn)
-{
-    uint8_t keybuf[OGS_MAX_IMSI_LEN+OGS_MAX_APN_LEN+1];
-    int keylen = 0;
-
-    ogs_assert(self.sess_hash);
-
-    sess_hash_keygen(keybuf, &keylen, imsi, imsi_len, apn);
-    return (upf_sess_t *)ogs_hash_get(self.sess_hash, keybuf, keylen);
-}
-
 upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr)
 {
     ogs_assert(self.ipv4_hash);
@@ -467,10 +443,6 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
         &message->pfcp_session_establishment_request;;
 
 #if 0
-    if (req->imsi.presence == 0) {
-        ogs_error("No IMSI");
-        return NULL;
-    }
     if (req->access_point_name.presence == 0) {
         ogs_error("No APN");
         return NULL;

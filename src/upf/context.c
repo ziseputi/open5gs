@@ -449,7 +449,6 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
 
     ogs_pfcp_session_establishment_request_t *req =
         &message->pfcp_session_establishment_request;;
-    ogs_pfcp_tlv_create_pdr_t *create_pdrs[OGS_MAX_NUM_OF_PDR];
     int i;
 
     ogs_pfcp_pdr_t *pdr = NULL;
@@ -463,11 +462,10 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
         return NULL;
     }
 
-#if 0
     /* Create PDR */
-    ogs_pfcp_create_pdrs_in_session_establishment(&create_pdrs, req);
+#if 0
     for (i = 0; i < OGS_MAX_NUM_OF_PDR; i++) {
-        ogs_pfcp_tlv_create_pdr_t *message = create_pdrs[i];
+        ogs_pfcp_tlv_create_pdr_t *message = &req->create_pdr[i];
         if (message->presence) {
             ogs_fatal("i = %d\n", i);
         }

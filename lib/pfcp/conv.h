@@ -48,19 +48,6 @@ int ogs_pfcp_paa_to_ue_ip_addr(
 int ogs_pfcp_ip_to_outer_header_creation(ogs_ip_t *ip,
     ogs_pfcp_outer_header_creation_t *outer_header_creation, int *len);
 
-void ogs_pfcp_create_pdrs_in_session_establishment(
-    ogs_pfcp_tlv_create_pdr_t *create_pdrs[][OGS_MAX_NUM_OF_PDR],
-    ogs_pfcp_session_establishment_request_t *req);
-void ogs_pfcp_create_fars_in_session_establishment(
-    ogs_pfcp_tlv_create_far_t *create_fars[][OGS_MAX_NUM_OF_FAR],
-    ogs_pfcp_session_establishment_request_t *req);
-void ogs_pfcp_create_urrs_in_session_establishment(
-    ogs_pfcp_tlv_create_urr_t *create_urrs[][OGS_MAX_NUM_OF_URR],
-    ogs_pfcp_session_establishment_request_t *req);
-void ogs_pfcp_create_qers_in_session_establishment(
-    ogs_pfcp_tlv_create_qer_t *create_qers[][OGS_MAX_NUM_OF_QER],
-    ogs_pfcp_session_establishment_request_t *req);
-
 #ifdef __cplusplus
 }
 #endif

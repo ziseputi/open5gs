@@ -91,10 +91,6 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
 {
     ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_session_establishment_request_t *req = NULL;
-    ogs_pfcp_tlv_create_pdr_t *create_pdrs[OGS_MAX_NUM_OF_PDR];
-    ogs_pfcp_tlv_create_far_t *create_fars[OGS_MAX_NUM_OF_FAR];
-    ogs_pfcp_tlv_create_urr_t *create_urrs[OGS_MAX_NUM_OF_URR];
-    ogs_pfcp_tlv_create_qer_t *create_qers[OGS_MAX_NUM_OF_QER];
 
     ogs_pfcp_pdr_t *pdr = NULL;
     ogs_pfcp_far_t *far = NULL;
@@ -141,10 +137,9 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     req->cp_f_seid.len = len;
 
     /* Create PDR */
-    ogs_pfcp_create_pdrs_in_session_establishment(&create_pdrs, req);
     i = 0;
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
-        ogs_pfcp_tlv_create_pdr_t *message = create_pdrs[i];
+        ogs_pfcp_tlv_create_pdr_t *message = &req->create_pdr[i];
         ogs_pfcp_far_t *far = pdr->far;
         int j = 0;
         int len = 0;
@@ -235,10 +230,9 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     }
 
     /* Create FAR */
-    ogs_pfcp_create_fars_in_session_establishment(&create_fars, req);
     i = 0;
     ogs_list_for_each(&sess->pfcp.far_list, far) {
-        ogs_pfcp_tlv_create_far_t *message = create_fars[i];
+        ogs_pfcp_tlv_create_far_t *message = &req->create_far[i];
         ogs_pfcp_pdr_t *pdr = far->pdr;
 
         ogs_assert(message);
@@ -272,10 +266,9 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     }
 
     /* Create URR */
-    ogs_pfcp_create_urrs_in_session_establishment(&create_urrs, req);
     i = 0;
     ogs_list_for_each(&sess->pfcp.urr_list, urr) {
-        ogs_pfcp_tlv_create_urr_t *message = create_urrs[i];
+        ogs_pfcp_tlv_create_urr_t *message = &req->create_urr[i];
 
         ogs_assert(message);
         ogs_assert(urr);
@@ -288,10 +281,9 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
     }
 
     /* Create QER */
-    ogs_pfcp_create_qers_in_session_establishment(&create_qers, req);
     i = 0;
     ogs_list_for_each(&sess->pfcp.qer_list, qer) {
-        ogs_pfcp_tlv_create_qer_t *message = create_qers[i];
+        ogs_pfcp_tlv_create_qer_t *message = &req->create_qer[i];
 
         ogs_assert(message);
         ogs_assert(qer);

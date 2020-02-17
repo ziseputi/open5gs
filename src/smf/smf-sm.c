@@ -67,13 +67,11 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
         rv = smf_gtp_open();
         if (rv != OGS_OK) {
             ogs_fatal("Can't establish S11-GTP path");
-            break;
         }
 
         rv = smf_pfcp_open();
         if (rv != OGS_OK) {
             ogs_fatal("Can't establish N4-PFCP path");
-            break;
         }
 
         ogs_list_for_each(&ogs_pfcp_self()->n4_list, pnode) {

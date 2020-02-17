@@ -58,12 +58,10 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
         rv = upf_pfcp_open();
         if (rv != OGS_OK) {
             ogs_fatal("Can't establish N4-PFCP path");
-            break;
         }
         rv = upf_gtp_open();
         if (rv != OGS_OK) {
             ogs_fatal("Can't establish GTP-U path");
-            break;
         }
 
         ogs_list_for_each(&ogs_pfcp_self()->n4_list, pnode) {

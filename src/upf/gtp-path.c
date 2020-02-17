@@ -258,7 +258,8 @@ void upf_gtp_close(void)
     ogs_socknode_remove_all(&upf_self()->gtpu_list6);
 
     ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
-        ogs_pollset_remove(dev->poll);
+        if (dev->poll)
+            ogs_pollset_remove(dev->poll);
         ogs_closesocket(dev->fd);
     }
 }

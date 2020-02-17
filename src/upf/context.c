@@ -353,10 +353,10 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid,
         goto cleanup;
     }
 
-    ogs_info("UE F-SEID:[L:%lld,R:%lld] APN:[%s] IPv4:[%s] IPv6:[%s]",
-            sess->pfcp.local_n4_seid, sess->pfcp.remote_n4_seid, apn,
-            sess->ipv4 ?  INET_NTOP(&sess->ipv4->addr, buf1) : "",
-            sess->ipv6 ?  INET6_NTOP(&sess->ipv6->addr, buf2) : "");
+    ogs_info("UE F-SEID:[L:%ld,R:%ld] APN:[%s] IPv4:[%s] IPv6:[%s]",
+        (long)sess->pfcp.local_n4_seid, (long)sess->pfcp.remote_n4_seid, apn,
+        sess->ipv4 ?  INET_NTOP(&sess->ipv4->addr, buf1) : "",
+        sess->ipv6 ?  INET6_NTOP(&sess->ipv6->addr, buf2) : "");
 
     ogs_list_add(&ogs_pfcp_self()->sess_list, sess);
     

@@ -48,7 +48,7 @@ static void test1_func(abts_case *tc, void *data)
         "00090080c1000006 00000005c001a001 0200080002001800 42000a183d090000"
         "603d090000001800 70000034006b4500 093d0f807f000002 000000015c279a3e"
         "783d02074201490c 0313401000320033 0034003500315201 c101090c07737461"
-        "72656e7403636f6d 05012d2d00025e06 fefee2e20303270f 80000d0408080808"
+        "72656e7403636f6d 05010a2d00025e06 fefee2e20303270f 80000d0408080808"
         "000d040808040450 0bf6134010801e64 d90068e259496401 01006b000518000c"
         "00000049002046c7 89cba93e9b977583 35c097e6c386c872 e4b82434a48037c3"
         "0601590edd8e";
@@ -236,7 +236,7 @@ static void test1_func(abts_case *tc, void *data)
     ogs_pkbuf_free(recvbuf);
 
     /* Send GTP-U ICMP Packet */
-    rv = testgtpu_build_ping(&sendbuf, "45.45.0.2", "45.45.0.1");
+    rv = testgtpu_build_ping(&sendbuf, "10.45.0.2", "10.45.0.1");
     ABTS_INT_EQUAL(tc, OGS_OK, rv);
     rv = testenb_gtpu_send(gtpu, sendbuf);
     ABTS_INT_EQUAL(tc, OGS_OK, rv);

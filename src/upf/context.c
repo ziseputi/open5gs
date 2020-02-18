@@ -473,17 +473,12 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
         ogs_pfcp_tlv_create_pdr_t *message = &req->create_pdr[i];
         if (message->presence) {
             if (message->pdi.presence) {
-                if (message->pdi.source_interface.presence &&
-                    message->pdi.source_interface.u8 ==
-                    OGS_PFCP_INTERFACE_CORE) {
-                    if (message->pdi.network_instance.presence)
-                        ogs_fqdn_parse(apn,
-                            message->pdi.network_instance.data,
-                            message->pdi.network_instance.len);
-                    if (message->pdi.ue_ip_address.presence)
-                        addr = message->pdi.ue_ip_address.data;
-                    break;
-                }
+                if (message->pdi.network_instance.presence)
+                    ogs_fqdn_parse(apn,
+                        message->pdi.network_instance.data,
+                        message->pdi.network_instance.len);
+                if (message->pdi.ue_ip_address.presence)
+                    addr = message->pdi.ue_ip_address.data;
             } else {
                 ogs_warn("No PDI in PDR-ID[%d]", message->pdr_id.u16);
             }

@@ -114,10 +114,12 @@ void upf_n4_handle_session_establishment_request(
         pdr->precedence = message->precedence.u32;
         pdr->src_if = message->pdi.source_interface.u8;
 
+        /* APN(Network Instance) and UE IP Address
+         * has already been processed in upf_sess_add() */
+
         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE) {  /* Downlink */
 
-            /* Nothing : APN(Network Instance) and UE IP Address
-             * has already been processed in upf_sess_add() */
+            /* Nothing */
 
         } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS) { /* Uplink */
             if (message->pdi.local_f_teid.presence == 0) {
@@ -209,6 +211,7 @@ void upf_n4_handle_session_establishment_request(
     }
 
     if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED) {
+        ogs_pfcp_sess_clear(&sess->pfcp);
         ogs_pfcp_send_error_message(xact, sess ? sess->pfcp.remote_n4_seid : 0,
                 OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE, cause_value);
         return;

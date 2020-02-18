@@ -316,7 +316,7 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid,
     sess->pdn.pdn_type = pdn_type;
     if (pdn_type == OGS_GTP_PDN_TYPE_IPV4) {
         if (ue_ip->ipv4 == 0) {
-            ogs_error("Cannot support PDN Type[%d] != [IPv4:%d, IPv6:%d]",
+            ogs_error("Cannot support PDN-Type[%d] != [IPv4:%d, IPv6:%d]",
                     pdn_type, ue_ip->ipv4, ue_ip->ipv6);
             goto cleanup;
         }
@@ -326,7 +326,7 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid,
         ogs_hash_set(self.ipv4_hash, sess->ipv4->addr, OGS_IPV4_LEN, sess);
     } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV6) {
         if (ue_ip->ipv6 == 0) {
-            ogs_error("Cannot support PDN Type[%d] != [IPv4:%d, IPv6:%d]",
+            ogs_error("Cannot support PDN-Type[%d] != [IPv4:%d, IPv6:%d]",
                     pdn_type, ue_ip->ipv4, ue_ip->ipv6);
             goto cleanup;
         }
@@ -335,7 +335,7 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid,
         ogs_hash_set(self.ipv6_hash, sess->ipv6->addr, OGS_IPV6_LEN, sess);
     } else if (pdn_type == OGS_GTP_PDN_TYPE_IPV4V6) {
         if (ue_ip->ipv4 == 0 || ue_ip->ipv6 == 0) {
-            ogs_error("Cannot support PDN Type[%d] != [IPv4:%d, IPv6:%d]",
+            ogs_error("Cannot support PDN-Type[%d] != [IPv4:%d, IPv6:%d]",
                     pdn_type, ue_ip->ipv4, ue_ip->ipv6);
             goto cleanup;
         }
@@ -348,15 +348,16 @@ upf_sess_t *upf_sess_add(ogs_pfcp_f_seid_t *cp_f_seid,
         ogs_assert(sess->ipv6);
         ogs_hash_set(self.ipv6_hash, sess->ipv6->addr, OGS_IPV6_LEN, sess);
     } else {
-        ogs_error("Cannot support PDN Type[%d] != [IPv4:%d, IPv6:%d]",
+        ogs_error("Cannot support PDN-Type[%d] != [IPv4:%d, IPv6:%d]",
                 pdn_type, ue_ip->ipv4, ue_ip->ipv6);
         goto cleanup;
     }
 
-    ogs_info("UE F-SEID:[L:%ld,R:%ld] APN:[%s] IPv4:[%s] IPv6:[%s]",
-        (long)sess->pfcp.local_n4_seid, (long)sess->pfcp.remote_n4_seid, apn,
-        sess->ipv4 ?  INET_NTOP(&sess->ipv4->addr, buf1) : "",
-        sess->ipv6 ?  INET6_NTOP(&sess->ipv6->addr, buf2) : "");
+    ogs_info("UE F-SEID[CP:%ld,UP:%ld] APN[%s] PDN-Type[%d] IPv4[%s] IPv6[%s]",
+        (long)sess->pfcp.local_n4_seid, (long)sess->pfcp.remote_n4_seid,
+        apn, pdn_type,
+        sess->ipv4 ? INET_NTOP(&sess->ipv4->addr, buf1) : "",
+        sess->ipv6 ? INET6_NTOP(&sess->ipv6->addr, buf2) : "");
 
     ogs_list_add(&ogs_pfcp_self()->sess_list, sess);
     
@@ -418,14 +419,14 @@ upf_sess_t *upf_sess_find_by_teid(uint32_t teid)
     return upf_sess_find(teid);
 }
 
-upf_sess_t *upf_sess_find_by_local_seid(uint64_t seid)
-{
-    return upf_sess_find(seid);
-}
-
-upf_sess_t *upf_sess_find_by_remote_seid(uint64_t seid)
+upf_sess_t *upf_sess_find_by_cp_seid(uint64_t seid)
 {
     return (upf_sess_t *)ogs_hash_get(self.sess_hash, &seid, sizeof(seid));
+}
+
+upf_sess_t *upf_sess_find_by_up_seid(uint64_t seid)
+{
+    return upf_sess_find(seid);
 }
 
 upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr)
@@ -444,79 +445,68 @@ upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6)
 upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
 {
     upf_sess_t *sess = NULL;
-    ogs_pfcp_ue_ip_addr_t *addr = NULL;
+
+    ogs_pfcp_f_seid_t *f_seid = NULL;
     char apn[OGS_MAX_APN_LEN];
+    ogs_pfcp_ue_ip_addr_t *addr = NULL;
 
     ogs_pfcp_session_establishment_request_t *req =
         &message->pfcp_session_establishment_request;;
     int i;
 
-    ogs_pfcp_pdr_t *pdr = NULL;
-
-    if (req->cp_f_seid.presence == 0) {
+    f_seid = req->cp_f_seid.data;
+    if (req->cp_f_seid.presence == 0 || f_seid == NULL) {
         ogs_error("No CP F-SEID");
         return NULL;
     }
+    f_seid->seid = be64toh(f_seid->seid);
+
     if (req->pdn_type.presence == 0) {
         ogs_error("No PDN Type");
         return NULL;
     }
 
-    /* Create PDR */
-#if 0
+    /* Check APN(Network Instance) in Uplink PDR */
+    memset(apn, 0, sizeof(apn));
     for (i = 0; i < OGS_MAX_NUM_OF_PDR; i++) {
         ogs_pfcp_tlv_create_pdr_t *message = &req->create_pdr[i];
         if (message->presence) {
-            ogs_fatal("i = %d\n", i);
+            if (message->pdi.presence) {
+                if (message->pdi.source_interface.presence &&
+                    message->pdi.source_interface.u8 ==
+                    OGS_PFCP_INTERFACE_CORE) {
+                    if (message->pdi.network_instance.presence)
+                        ogs_fqdn_parse(apn,
+                            message->pdi.network_instance.data,
+                            message->pdi.network_instance.len);
+                    if (message->pdi.ue_ip_address.presence)
+                        addr = message->pdi.ue_ip_address.data;
+                    break;
+                }
+            } else {
+                ogs_warn("No PDI in PDR-ID[%d]", message->pdr_id.u16);
+            }
+        } else {
+            break;
         }
     }
-    if (req->access_point_name.presence == 0) {
-        ogs_error("No APN");
-        return NULL;
-    }
-    if (req->pdn_address_allocation.presence == 0) {
-        ogs_error("No PAA Type");
+
+    if (strlen(apn) == 0) {
+        ogs_error("No APN in Uplink PDR");
         return NULL;
     }
 
-    ogs_fqdn_parse(apn,
-            req->access_point_name.data, req->access_point_name.len);
-
-    ogs_trace("upf_sess_add_by_message() [APN:%s, PDN:%d, EDI:%d]",
-            apn, req->pdn_type.u8,
-            req->bearer_contexts_to_be_created.eps_bearer_id.u8);
-
-    paa = (ogs_paa_t *)req->pdn_address_allocation.data;
-
-    /* 
-     * 7.2.1 in 3GPP TS 29.274 Release 15
-     *
-     * If the new Create Session Request received by the UPF collides with
-     * an existing PDN connection context (the existing PDN connection context
-     * is identified with the triplet [IMSI, EPS Bearer ID, Interface type],
-     * where applicable Interface type here is S2a TWAN GTP-C interface or
-     * S2b ePDG GTP-C interface or S5/S8 SGW GTP-C interface, and where IMSI
-     * shall be replaced by TAC and SNR part of ME Identity for emergency
-     * attached UE without UICC or authenticated IMSI), this Create Session
-     * Request shall be treated as a request for a new session. Before creating
-     * the new session, the UPF should delete:
-     *
-     * - the existing PDN connection context, if the Create Session Request
-     *   collides with the default bearer of an existing PDN connection context;
-     * - the existing dedicated bearer context, if the Create Session Request
-     *   collides with a dedicated bearer of an existing PDN connection context.
-     */
-    sess = upf_sess_find_by_imsi_apn(req->imsi.data, req->imsi.len, apn);
-    if (sess) {
-        ogs_warn("OLD Session Release [IMSI:%s,APN:%s]",
-                sess->imsi_bcd, sess->pdn.apn);
-        upf_sess_remove(sess);
+    if (!addr) {
+        ogs_error("No UE IP Address");
+        return NULL;
     }
-    sess = upf_sess_add(req->imsi.data, req->imsi.len, apn,
-                    req->pdn_type.u8,
-                    req->bearer_contexts_to_be_created.eps_bearer_id.u8, paa);
+
+    sess = upf_sess_find_by_cp_seid(f_seid->seid);
+    if (!sess) {
+        sess = upf_sess_add(f_seid, apn, req->pdn_type.u8, addr);
+        if (!sess) return NULL;
+    }
     ogs_assert(sess);
-#endif
 
     return sess;
 }

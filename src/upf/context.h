@@ -192,8 +192,8 @@ int upf_sess_remove(upf_sess_t *sess);
 void upf_sess_remove_all(void);
 upf_sess_t *upf_sess_find(uint32_t index);
 upf_sess_t *upf_sess_find_by_teid(uint32_t teid);
-upf_sess_t *upf_sess_find_by_local_seid(uint64_t seid);
-upf_sess_t *upf_sess_find_by_remote_seid(uint64_t seid);
+upf_sess_t *upf_sess_find_by_cp_seid(uint64_t seid);
+upf_sess_t *upf_sess_find_by_up_seid(uint64_t seid);
 upf_sess_t *upf_sess_find_by_ipv4(uint32_t addr);
 upf_sess_t *upf_sess_find_by_ipv6(uint32_t *addr6);
 

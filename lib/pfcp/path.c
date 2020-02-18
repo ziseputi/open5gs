@@ -139,3 +139,68 @@ void ogs_pfcp_send_heartbeat_response(ogs_pfcp_xact_t *xact)
     ogs_expect(rv == OGS_OK);
 }
 
+void ogs_pfcp_send_error_message(
+    ogs_pfcp_xact_t *xact, uint64_t seid, uint8_t type, uint8_t cause_value)
+{
+    int rv;
+    ogs_pfcp_message_t errmsg;
+    ogs_pfcp_tlv_cause_t *tlv = NULL;
+    ogs_pkbuf_t *pkbuf = NULL;
+
+    ogs_assert(xact);
+
+    memset(&errmsg, 0, sizeof(ogs_pfcp_message_t));
+    errmsg.h.seid = seid;
+    errmsg.h.type = type;
+
+    switch (type) {
+    case OGS_PFCP_PFD_MANAGEMENT_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_pfd_management_response.cause;
+        break;
+    case OGS_PFCP_ASSOCIATION_SETUP_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_association_setup_response.cause;
+        break;
+    case OGS_PFCP_ASSOCIATION_UPDATE_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_association_update_response.cause;
+        break;
+    case OGS_PFCP_ASSOCIATION_RELEASE_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_association_release_response.cause;
+        break;
+    case OGS_PFCP_NODE_REPORT_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_node_report_response.cause;
+        break;
+    case OGS_PFCP_SESSION_SET_DELETION_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_session_set_deletion_response.cause;
+        break;
+    case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_session_establishment_response.cause;
+        break;
+    case OGS_PFCP_SESSION_MODIFICATION_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_session_modification_response.cause;
+        break;
+    case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_session_deletion_response.cause;
+        break;
+    case OGS_PFCP_SESSION_REPORT_RESPONSE_TYPE:
+        tlv = &errmsg.pfcp_session_report_response.cause;
+        break;
+    default:
+        ogs_assert_if_reached();
+        return;
+    }
+
+    ogs_assert(tlv);
+
+    tlv->presence = 1;
+    tlv->u8 = cause_value;
+
+    pkbuf = ogs_pfcp_build_msg(&errmsg);
+    ogs_expect_or_return(pkbuf);
+
+    rv = ogs_pfcp_xact_update_tx(xact, &errmsg.h, pkbuf);
+    ogs_expect_or_return(rv == OGS_OK);
+
+    rv = ogs_pfcp_xact_commit(xact);
+    ogs_expect(rv == OGS_OK);
+}
+

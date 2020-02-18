@@ -375,6 +375,7 @@ int upf_sess_remove(upf_sess_t *sess)
     ogs_assert(sess);
 
     ogs_list_remove(&ogs_pfcp_self()->sess_list, sess);
+    ogs_pfcp_sess_clear(&sess->pfcp);
 
     OGS_MEM_CLEAR(sess->create_session_request);
     OGS_MEM_CLEAR(sess->delete_session_request);
@@ -466,7 +467,7 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
         return NULL;
     }
 
-    /* Check APN(Network Instance) in Uplink PDR */
+    /* Check APN(Network Instance) and UE IP Address in Uplink PDR */
     memset(apn, 0, sizeof(apn));
     for (i = 0; i < OGS_MAX_NUM_OF_PDR; i++) {
         ogs_pfcp_tlv_create_pdr_t *message = &req->create_pdr[i];
@@ -492,12 +493,12 @@ upf_sess_t *upf_sess_add_by_message(ogs_pfcp_message_t *message)
     }
 
     if (strlen(apn) == 0) {
-        ogs_error("No APN in Uplink PDR");
+        ogs_error("No APN in PDR");
         return NULL;
     }
 
     if (!addr) {
-        ogs_error("No UE IP Address");
+        ogs_error("No UE IP Address in PDR");
         return NULL;
     }
 

@@ -604,9 +604,11 @@ ogs_pfcp_pdr_t *ogs_pfcp_pdr_find_or_add(
     ogs_assert(sess);
 
     pdr = ogs_pfcp_pdr_find_by_id(sess, id);
-    if (!pdr)
+    if (!pdr) {
         pdr = ogs_pfcp_pdr_add(sess);
-    ogs_assert(pdr);
+        ogs_assert(pdr);
+        pdr->id = id;
+    }
 
     return pdr;
 }
@@ -675,9 +677,11 @@ ogs_pfcp_far_t *ogs_pfcp_far_find_or_add(
     ogs_assert(sess);
 
     far = ogs_pfcp_far_find_by_id(sess, id);
-    if (!far)
+    if (!far) {
         far = ogs_pfcp_far_add(pdr);
-    ogs_assert(far);
+        ogs_assert(far);
+        far->id = id;
+    }
 
     return far;
 }
@@ -756,9 +760,11 @@ ogs_pfcp_urr_t *ogs_pfcp_urr_find_or_add(
     ogs_assert(sess);
 
     urr = ogs_pfcp_urr_find_by_id(sess, id);
-    if (!urr)
+    if (!urr) {
         urr = ogs_pfcp_urr_add(pdr);
-    ogs_assert(urr);
+        ogs_assert(urr);
+        urr->id = id;
+    }
 
     return urr;
 }
@@ -837,9 +843,11 @@ ogs_pfcp_qer_t *ogs_pfcp_qer_find_or_add(
     ogs_assert(sess);
 
     qer = ogs_pfcp_qer_find_by_id(sess, id);
-    if (!qer)
+    if (!qer) {
         qer = ogs_pfcp_qer_add(pdr);
-    ogs_assert(qer);
+        ogs_assert(qer);
+        qer->id = id;
+    }
 
     return qer;
 }

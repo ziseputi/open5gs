@@ -154,7 +154,6 @@ typedef uint8_t  ogs_pfcp_apply_action_t;
  * GTP-PDU packet. Spare bits shall be ignored by the receiver.
  */
 typedef struct ogs_pfcp_outer_header_removal_s {
-    int presence;
 #define OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4         0
 #define OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6         1
 #define OGS_PFCP_OUTER_HEADER_REMOVAL_UDP_IPV4              2

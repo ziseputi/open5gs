@@ -85,13 +85,64 @@ void upf_n4_handle_session_establishment_request(
             break;
 
         if (message->pdr_id.presence == 0) {
-            ogs_warn("No PDR ID");
+            ogs_warn("No PDR-ID");
             cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
             break;
         }
 
         pdr = ogs_pfcp_pdr_find_or_add(&sess->pfcp, message->pdr_id.u16);
         ogs_assert(pdr);
+
+        if (message->precedence.presence == 0) {
+            ogs_warn("No Presence in PDR");
+            cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+            break;
+        }
+
+        if (message->pdi.presence == 0) {
+            ogs_warn("No PDI in PDR");
+            cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+            break;
+        }
+
+        if (message->pdi.source_interface.presence == 0) {
+            ogs_warn("No Source Interface in PDI");
+            cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+            break;
+        }
+
+        pdr->precedence = message->precedence.u32;
+        pdr->src_if = message->pdi.source_interface.u8;
+
+        if (pdr->src_if == OGS_PFCP_INTERFACE_CORE) {  /* Downlink */
+
+            /* Nothing : APN(Network Instance) and UE IP Address
+             * has already been processed in upf_sess_add() */
+
+        } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS) { /* Uplink */
+            if (message->pdi.local_f_teid.presence == 0) {
+                ogs_warn("No F-TEID in PDI");
+                cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+                break;
+            }
+
+            if (message->outer_header_removal.presence == 0) {
+                ogs_warn("No Outer Header Removal in PDI");
+                cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+                break;
+            }
+
+            memcpy(&pdr->f_teid, message->pdi.local_f_teid.data,
+                    message->pdi.local_f_teid.len);
+            pdr->f_teid.teid = be32toh(pdr->f_teid.teid);
+            memcpy(&pdr->outer_header_removal,
+                    message->outer_header_removal.data,
+                    message->outer_header_removal.len);
+        } else {
+            ogs_error("Invalid Source Interface[%d] in PDR", pdr->src_if);
+            cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_INCORRECT;
+            break;
+        }
 
         if (message->far_id.presence)
             ogs_pfcp_far_find_or_add(pdr, message->far_id.u32);
@@ -105,14 +156,53 @@ void upf_n4_handle_session_establishment_request(
             break;
 
         if (message->far_id.presence == 0) {
-            ogs_warn("No PDR ID");
+            ogs_warn("No FAR-ID");
             cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
             break;
         }
 
         far = ogs_pfcp_far_find_by_id(&sess->pfcp, message->far_id.u32);
         if (!far) {
-            ogs_fatal("Cannot find FAR-ID[%d] in PDR", message->far_id.u32);
+            ogs_error("Cannot find FAR-ID[%d] in PDR", message->far_id.u32);
+            cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_INCORRECT;
+            break;
+        }
+
+        if (message->apply_action.presence == 0) {
+            ogs_warn("No Apply Action");
+            cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+            break;
+        }
+        if (message->forwarding_parameters.
+                destination_interface.presence == 0) {
+            ogs_warn("No Destination Interface");
+            cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+            break;
+        }
+
+        far->apply_action = message->apply_action.u8;
+        far->dst_if = message->forwarding_parameters.destination_interface.u8;
+
+        if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) { /* Downlink */
+            if (message->forwarding_parameters.
+                    outer_header_creation.presence == 0) {
+                ogs_warn("No Outer Header Creation in PDI");
+                cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_MISSING;
+                break;
+            }
+
+            memcpy(&far->outer_header_creation,
+                    message->forwarding_parameters.outer_header_creation.data,
+                    message->forwarding_parameters.outer_header_creation.len);
+            far->outer_header_creation.teid =
+                be32toh(far->outer_header_creation.teid);
+
+        } else if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {  /* Uplink */
+
+            /* Nothing */
+
+        } else {
+            ogs_error("Invalid Destination Interface[%d] in FAR", far->dst_if);
             cause_value = OGS_PFCP_CAUSE_MANDATORY_IE_INCORRECT;
             break;
         }

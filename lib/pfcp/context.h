@@ -174,6 +174,25 @@ typedef struct ogs_pfcp_subnet_s {
     ogs_pfcp_dev_t       *dev;           /* Related Context */
 } ogs_pfcp_subnet_t;
 
+typedef struct ogs_pfcp_f_teid_attr_s {
+    ogs_lnode_t     node;
+
+    ogs_sockaddr_t  *addr;
+    ogs_sockaddr_t  *addr6;
+
+    char apn[OGS_MAX_APN_LEN];
+
+    struct {
+        uint8_t num_of_bits;        /* TEID Range Indication */
+        uint8_t value;              /* TEID Range */
+    } teid_range;
+
+    struct {
+        uint8_t presence;
+        uint8_t value;
+    } source_interface;
+} ogs_pfcp_f_teid_attr_t;
+
 void ogs_pfcp_context_init(void);
 void ogs_pfcp_context_final(void);
 ogs_pfcp_context_t *ogs_pfcp_self(void);
@@ -219,10 +238,10 @@ void ogs_pfcp_bar_delete(ogs_pfcp_bar_t *bar);
 int ogs_pfcp_ue_pool_generate(void);
 ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
         int family, const char *apn, uint8_t *addr);
-int ogs_pfcp_ue_ip_free(ogs_pfcp_ue_ip_t *ip);
+void ogs_pfcp_ue_ip_free(ogs_pfcp_ue_ip_t *ip);
 
 ogs_pfcp_dev_t *ogs_pfcp_dev_add(const char *ifname);
-int ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev);
+void ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev);
 void ogs_pfcp_dev_remove_all(void);
 ogs_pfcp_dev_t *ogs_pfcp_dev_find_by_ifname(const char *ifname);
 
@@ -230,7 +249,7 @@ ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
         const char *ipstr, const char *mask_or_numbits,
         const char *apn, const char *ifname);
 ogs_pfcp_subnet_t *ogs_pfcp_subnet_next(ogs_pfcp_subnet_t *subnet);
-int ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet);
+void ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet);
 void ogs_pfcp_subnet_remove_all(void);
 
 #ifdef __cplusplus

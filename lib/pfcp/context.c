@@ -1066,7 +1066,7 @@ ogs_pfcp_ue_ip_t *ogs_pfcp_ue_ip_alloc(
     return ue_ip;
 }
 
-int ogs_pfcp_ue_ip_free(ogs_pfcp_ue_ip_t *ue_ip)
+void ogs_pfcp_ue_ip_free(ogs_pfcp_ue_ip_t *ue_ip)
 {
     ogs_pfcp_subnet_t *subnet = NULL;
 
@@ -1080,8 +1080,6 @@ int ogs_pfcp_ue_ip_free(ogs_pfcp_ue_ip_t *ue_ip)
     } else {
         ogs_pool_free(&subnet->pool, ue_ip);
     }
-
-    return OGS_OK;
 }
 
 ogs_pfcp_dev_t *ogs_pfcp_dev_add(const char *ifname)
@@ -1101,7 +1099,7 @@ ogs_pfcp_dev_t *ogs_pfcp_dev_add(const char *ifname)
     return dev;
 }
 
-int ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev)
+void ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev)
 {
     ogs_assert(dev);
 
@@ -1111,8 +1109,6 @@ int ogs_pfcp_dev_remove(ogs_pfcp_dev_t *dev)
         ogs_freeaddrinfo(dev->link_local_addr);
 
     ogs_pool_free(&ogs_pfcp_dev_pool, dev);
-
-    return OGS_OK;
 }
 
 void ogs_pfcp_dev_remove_all(void)
@@ -1180,7 +1176,7 @@ ogs_pfcp_subnet_t *ogs_pfcp_subnet_add(
     return subnet;
 }
 
-int ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet)
+void ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet)
 {
     ogs_assert(subnet);
 
@@ -1189,8 +1185,6 @@ int ogs_pfcp_subnet_remove(ogs_pfcp_subnet_t *subnet)
     ogs_pool_final(&subnet->pool);
 
     ogs_pool_free(&ogs_pfcp_subnet_pool, subnet);
-
-    return OGS_OK;
 }
 
 void ogs_pfcp_subnet_remove_all(void)

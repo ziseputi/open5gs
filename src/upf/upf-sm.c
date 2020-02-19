@@ -43,7 +43,6 @@ void upf_state_operational(ogs_fsm_t *s, upf_event_t *e)
 {
     int rv;
     ogs_pkbuf_t *recvbuf = NULL;
-    upf_sess_t *sess = NULL;
 
     ogs_pfcp_message_t pfcp_message;
     ogs_pfcp_node_t *pnode = NULL;

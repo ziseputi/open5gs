@@ -364,22 +364,14 @@ ED2(
 )
 } __attribute__ ((packed)) ogs_pfcp_downlink_data_service_information_t;
 
-typedef struct ogs_pfcp_user_plane_ip_resource_information_s {
-ED6(uint8_t       spare1:1;,
+typedef struct ogs_pfcp_user_plane_ip_resource_information_flags_s {
+ED6(uint8_t       spare:1;,
     uint8_t       assosi:1;,
     uint8_t       assoni:1;,
     uint8_t       teidri:3;,
     uint8_t       v6:1;,
     uint8_t       v4:1;)
-
-    uint8_t       teid_range;
-    uint32_t      addr;
-    uint8_t       addr6[OGS_IPV6_LEN];
-    uint8_t       network_instance;
-ED2(uint8_t       spare2:4;,
-    uint8_t       source_interface:4;
-)
-} __attribute__ ((packed)) ogs_pfcp_user_plane_ip_resource_information_t;
+} __attribute__ ((packed)) ogs_pfcp_user_plane_ip_resource_information_flags_t;
 
 #ifdef __cplusplus
 }

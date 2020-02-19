@@ -345,7 +345,7 @@ ED5(uint8_t       spare0:4;,
     uint8_t       erir:1;,      /* Error Indication Report */
     uint8_t       usar:1;,      /* Usage Report */
     uint8_t       dldr:1;)      /* Downlink Data Report */
-} __attribute__ ((packed)) pfcp_report_type_t;
+} __attribute__ ((packed)) ogs_pfcp_report_type_t;
 
 typedef struct ogs_pfcp_downlink_data_service_information_s {
 #define OGS_PFCP_DOWNLINK_DATA_SERVICE_INFORMATION_LEN(__data) \
@@ -372,7 +372,7 @@ ED6(uint8_t       spare1:1;,
     uint8_t       v6:1;,
     uint8_t       v4:1;)
 
-    uint8_t       teid_range:8;
+    uint8_t       teid_range;
     uint32_t      addr;
     uint8_t       addr6[OGS_IPV6_LEN];
     uint8_t       network_instance;

@@ -20,7 +20,7 @@
 /*******************************************************************************
  * This file had been created by pfcp-tlv.py script v0.1.0
  * Please do not modify this file but regenerate it via script.
- * Created on: 2020-02-17 20:29:30.139314 by acetcom
+ * Created on: 2020-02-19 11:01:37.501258 by acetcom
  * from 29244-g10.docx
  ******************************************************************************/
 
@@ -1104,7 +1104,7 @@ typedef struct ogs_pfcp_association_setup_request_s {
     ogs_pfcp_tlv_recovery_time_stamp_t recovery_time_stamp;
     ogs_pfcp_tlv_up_function_features_t up_function_features;
     ogs_pfcp_tlv_cp_function_features_t cp_function_features;
-    ogs_pfcp_tlv_user_plane_ip_resource_information_t user_plane_ip_resource_information;
+    ogs_pfcp_tlv_user_plane_ip_resource_information_t user_plane_ip_resource_information[4];
     ogs_pfcp_tlv_ue_ip_address_t ue_ip_address_pool_identity;
     ogs_pfcp_tlv_alternative_smf_ip_address_t alternative_smf_ip_address;
     ogs_pfcp_tlv_smf_set_id_t smf_set_id;
@@ -1116,7 +1116,7 @@ typedef struct ogs_pfcp_association_setup_response_s {
     ogs_pfcp_tlv_recovery_time_stamp_t recovery_time_stamp;
     ogs_pfcp_tlv_up_function_features_t up_function_features;
     ogs_pfcp_tlv_cp_function_features_t cp_function_features;
-    ogs_pfcp_tlv_user_plane_ip_resource_information_t user_plane_ip_resource_information;
+    ogs_pfcp_tlv_user_plane_ip_resource_information_t user_plane_ip_resource_information[4];
     ogs_pfcp_tlv_alternative_smf_ip_address_t alternative_smf_ip_address;
 } ogs_pfcp_association_setup_response_t;
 
@@ -1126,7 +1126,7 @@ typedef struct ogs_pfcp_association_update_request_s {
     ogs_pfcp_tlv_cp_function_features_t cp_function_features;
     ogs_pfcp_tlv_pfcp_association_release_request_t pfcp_association_release_request;
     ogs_pfcp_tlv_graceful_release_period_t graceful_release_period;
-    ogs_pfcp_tlv_user_plane_ip_resource_information_t user_plane_ip_resource_information;
+    ogs_pfcp_tlv_user_plane_ip_resource_information_t user_plane_ip_resource_information[4];
     ogs_pfcp_tlv_pfcpaureq_flags_t pfcpaureq_flags;
     ogs_pfcp_tlv_alternative_smf_ip_address_t alternative_smf_ip_address;
 } ogs_pfcp_association_update_request_t;

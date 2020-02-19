@@ -165,7 +165,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         message->pdi.network_instance.data = apn[i];
 
         if (pdr->src_if == OGS_PFCP_INTERFACE_CORE &&
-            far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
+            far->dst_if == OGS_PFCP_INTERFACE_ACCESS) { /* Dowklink */
             ogs_pfcp_paa_to_ue_ip_addr(&sess->pdn.paa, &addr[i], &len);
             addr[i].sd = OGS_PFCP_UE_IP_DST;
 
@@ -174,7 +174,7 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request(
             message->pdi.ue_ip_address.len = len;
 
         } else if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS &&
-                    far->dst_if == OGS_PFCP_INTERFACE_CORE) {
+                    far->dst_if == OGS_PFCP_INTERFACE_CORE) { /* Uplink */
             ogs_pfcp_sockaddr_to_f_teid(
                     &sess->pfcp.node->addr, NULL,
                     &f_teid[i], &len);

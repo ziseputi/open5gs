@@ -152,6 +152,8 @@ def get_cells(cells):
         tlv_more = "1"
     if ie_type == 'Create QER' or ie_type == 'Update QER' or ie_type == "Remove QER":
         tlv_more = "1"
+    if ie_type == 'User Plane IP Resource Information':
+        tlv_more = "3"
 
     if int(tlv_more) > int(type_list[ie_type]["max_tlv_more"]):
         type_list[ie_type]["max_tlv_more"] = tlv_more

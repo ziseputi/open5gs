@@ -36,10 +36,10 @@
 #include "pfcp/types.h"
 #include "pfcp/conv.h"
 #include "pfcp/node.h"
+#include "pfcp/context.h"
 #include "pfcp/n4-build.h"
 #include "pfcp/path.h"
 #include "pfcp/xact.h"
-#include "pfcp/context.h"
 
 #ifdef __cplusplus
 extern "C" {

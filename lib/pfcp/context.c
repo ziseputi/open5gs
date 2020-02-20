@@ -80,9 +80,9 @@ void ogs_pfcp_context_init(void)
     ogs_list_init(&self.sess_list);
 
     ogs_list_init(&self.dev_list);
-    ogs_pool_init(&ogs_pfcp_dev_pool, MAX_NUM_OF_DEV);
+    ogs_pool_init(&ogs_pfcp_dev_pool, OGS_MAX_NUM_OF_DEV);
     ogs_list_init(&self.subnet_list);
-    ogs_pool_init(&ogs_pfcp_subnet_pool, MAX_NUM_OF_SUBNET);
+    ogs_pool_init(&ogs_pfcp_subnet_pool, OGS_MAX_NUM_OF_SUBNET);
 
     context_initiaized = 1;
 }

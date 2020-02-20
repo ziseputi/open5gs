@@ -28,8 +28,8 @@
 extern "C" {
 #endif
 
-#define MAX_NUM_OF_DEV          16
-#define MAX_NUM_OF_SUBNET       16
+#define OGS_MAX_NUM_OF_DEV      16
+#define OGS_MAX_NUM_OF_SUBNET   16
 
 typedef struct ogs_pfcp_context_s {
     uint32_t        pfcp_port;      /* PFCP local port */

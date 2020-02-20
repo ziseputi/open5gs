@@ -57,7 +57,26 @@ typedef struct ogs_pfcp_node_s {
 
     uint16_t        tac[OGS_MAX_NUM_OF_TAI];
     uint8_t         num_of_tac;
+
+    /* List of Peer's User Plane IP Resource Information */
+    ogs_list_t      up_node_list;
 } ogs_pfcp_node_t;
+
+/**
+ * This structure represents the User Plane IP Resource Information.
+ */
+typedef struct ogs_pfcp_up_node_s {
+    ogs_sockaddr_t *addr;
+    ogs_sockaddr_t *addr6;
+
+    struct {
+        uint8_t num_of_bits;    /* Not available if num_of_bits == 0 */
+        uint8_t value;
+    } teid_range;
+
+    char apn[OGS_MAX_APN_LEN];  /* Not available if strlen(apn) == 0 */
+    int8_t source_interface;    /* Not available if source interface == -1 */
+} ogs_pfcp_up_node_t;
 
 int ogs_pfcp_node_init(int size);
 int ogs_pfcp_node_final(void);
@@ -77,6 +96,14 @@ ogs_pfcp_node_t *ogs_pfcp_node_find_by_addr(
         ogs_list_t *list, ogs_sockaddr_t *addr);
 ogs_pfcp_node_t *ogs_pfcp_node_find_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid);
+
+ogs_pfcp_up_node_t *ogs_pfcp_up_node_add(
+        ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6);
+ogs_pfcp_up_node_t *ogs_pfcp_up_node_add_by_message(
+    ogs_pfcp_tlv_user_plane_ip_resource_information_t
+        *user_plane_ip_resource_information[]);
+void ogs_pfcp_up_node_remove(ogs_pfcp_up_node_t *up_node);
+void ogs_pfcp_up_node_remove_all(void);
 
 #ifdef __cplusplus
 }

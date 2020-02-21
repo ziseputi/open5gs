@@ -102,9 +102,6 @@ void ogs_pfcp_up_node_remove(
         ogs_list_t *list, ogs_pfcp_up_node_t *node);
 void ogs_pfcp_up_node_remove_all(ogs_list_t *list);
 
-int ogs_pfcp_up_node_parse(ogs_list_t *list, unsigned char *data, int len);
-int ogs_pfcp_up_node_build(unsigned char *data, int len, ogs_list_t *list);
-
 #ifdef __cplusplus
 }
 #endif

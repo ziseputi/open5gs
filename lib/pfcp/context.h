@@ -45,7 +45,7 @@ typedef struct ogs_pfcp_context_s {
     uint32_t        pfcp_started;   /* UTC time when the PFCP entity started */
 
     ogs_list_t      n4_list;        /* PFCP Node List */
-    ogs_pfcp_node_t *peer;          /* Iterator for Peer round-robin */
+    ogs_pfcp_cp_node_t *cp_node;    /* Iterator for Peer round-robin */
 
     ogs_list_t      dev_list;       /* Tun Device List */
     ogs_list_t      subnet_list;    /* UE Subnet List */
@@ -78,7 +78,7 @@ typedef struct ogs_pfcp_sess_s {
     ogs_pfcp_bar_t      *bar;       /* BAR Item */
 
     /* Related Context */
-    ogs_pfcp_node_t     *node;
+    ogs_pfcp_cp_node_t  *node;
 } ogs_pfcp_sess_t;
 
 typedef struct ogs_pfcp_pdr_s {
@@ -154,7 +154,7 @@ typedef struct ogs_pfcp_dev_s {
 } ogs_pfcp_dev_t;
 
 typedef struct ogs_pfcp_subnet_s {
-    ogs_lnode_t     node;
+    ogs_lnode_t     lnode;
 
     ogs_ipsubnet_t  sub;                /* Subnet : cafe::0/64 */
     ogs_ipsubnet_t  gw;                 /* Gateway : cafe::1 */
@@ -171,27 +171,8 @@ typedef struct ogs_pfcp_subnet_s {
     uint8_t         prefixlen;      /* prefixlen */
     OGS_POOL(pool, ogs_pfcp_ue_ip_t);
 
-    ogs_pfcp_dev_t       *dev;           /* Related Context */
+    ogs_pfcp_dev_t  *dev;           /* Related Context */
 } ogs_pfcp_subnet_t;
-
-typedef struct ogs_pfcp_f_teid_attr_s {
-    ogs_lnode_t     node;
-
-    ogs_sockaddr_t  *addr;
-    ogs_sockaddr_t  *addr6;
-
-    char apn[OGS_MAX_APN_LEN];
-
-    struct {
-        uint8_t num_of_bits;        /* TEID Range Indication */
-        uint8_t value;              /* TEID Range */
-    } teid_range;
-
-    struct {
-        uint8_t presence;
-        uint8_t value;
-    } source_interface;
-} ogs_pfcp_f_teid_attr_t;
 
 void ogs_pfcp_context_init(void);
 void ogs_pfcp_context_final(void);

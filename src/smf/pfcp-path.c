@@ -33,7 +33,7 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     smf_event_t *e = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
     ogs_sockaddr_t from;
-    ogs_pfcp_node_t *pnode = NULL;
+    ogs_pfcp_cp_node_t *node = NULL;
     ogs_pfcp_header_t *h = NULL;
 
     ogs_assert(fd != INVALID_SOCKET);
@@ -69,14 +69,14 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 
     e = smf_event_new(SMF_EVT_N4_MESSAGE);
-    pnode = ogs_pfcp_node_find_by_addr(&ogs_pfcp_self()->n4_list, &from);
-    if (!pnode) {
-        pnode = ogs_pfcp_node_add_by_addr(&ogs_pfcp_self()->n4_list, &from);
-        ogs_assert(pnode);
-        pnode->sock = data;
+    node = ogs_pfcp_cp_node_find_by_addr(&ogs_pfcp_self()->n4_list, &from);
+    if (!node) {
+        node = ogs_pfcp_cp_node_add_by_addr(&ogs_pfcp_self()->n4_list, &from);
+        ogs_assert(node);
+        node->sock = data;
     }
     ogs_assert(e);
-    e->pnode = pnode;
+    e->cp_node = node;
     e->pkbuf = pkbuf;
 
     rv = ogs_queue_push(smf_self()->queue, e);
@@ -144,7 +144,7 @@ static void timeout(ogs_pfcp_xact_t *xact, void *data)
         ogs_assert(data);
 
         e = smf_event_new(SMF_EVT_N4_NO_HEARTBEAT);
-        e->pnode = data;
+        e->cp_node = data;
 
         rv = ogs_queue_push(smf_self()->queue, e);
         if (rv != OGS_OK) {
@@ -157,14 +157,14 @@ static void timeout(ogs_pfcp_xact_t *xact, void *data)
     }
 }
 
-void smf_pfcp_send_association_setup_request(ogs_pfcp_node_t *pnode)
+void smf_pfcp_send_association_setup_request(ogs_pfcp_cp_node_t *node)
 {
     int rv;
     ogs_pkbuf_t *n4buf = NULL;
     ogs_pfcp_header_t h;
     ogs_pfcp_xact_t *xact = NULL;
 
-    ogs_assert(pnode);
+    ogs_assert(node);
 
     memset(&h, 0, sizeof(ogs_pfcp_header_t));
     h.type = OGS_PFCP_ASSOCIATION_SETUP_REQUEST_TYPE;
@@ -173,7 +173,7 @@ void smf_pfcp_send_association_setup_request(ogs_pfcp_node_t *pnode)
     n4buf = smf_n4_build_association_setup_request(h.type);
     ogs_expect_or_return(n4buf);
 
-    xact = ogs_pfcp_xact_local_create(pnode, &h, n4buf, timeout, pnode);
+    xact = ogs_pfcp_xact_local_create(node, &h, n4buf, timeout, node);
     ogs_expect_or_return(xact);
 
     rv = ogs_pfcp_xact_commit(xact);
@@ -203,14 +203,14 @@ void smf_pfcp_send_association_setup_response(ogs_pfcp_xact_t *xact,
     ogs_expect(rv == OGS_OK);
 }
 
-void smf_pfcp_send_heartbeat_request(ogs_pfcp_node_t *pnode)
+void smf_pfcp_send_heartbeat_request(ogs_pfcp_cp_node_t *node)
 {
     int rv;
     ogs_pkbuf_t *n4buf = NULL;
     ogs_pfcp_header_t h;
     ogs_pfcp_xact_t *xact = NULL;
 
-    ogs_assert(pnode);
+    ogs_assert(node);
 
     memset(&h, 0, sizeof(ogs_pfcp_header_t));
     h.type = OGS_PFCP_HEARTBEAT_REQUEST_TYPE;
@@ -219,7 +219,7 @@ void smf_pfcp_send_heartbeat_request(ogs_pfcp_node_t *pnode)
     n4buf = ogs_pfcp_n4_build_heartbeat_request(h.type);
     ogs_expect_or_return(n4buf);
 
-    xact = ogs_pfcp_xact_local_create(pnode, &h, n4buf, timeout, pnode);
+    xact = ogs_pfcp_xact_local_create(node, &h, n4buf, timeout, node);
     ogs_expect_or_return(xact);
 
     rv = ogs_pfcp_xact_commit(xact);

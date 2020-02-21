@@ -23,7 +23,7 @@
 #include "n4-handler.h"
 
 void upf_n4_handle_association_setup_request(
-        ogs_pfcp_node_t *pnode, ogs_pfcp_xact_t *xact,
+        ogs_pfcp_cp_node_t *node, ogs_pfcp_xact_t *xact,
         ogs_pfcp_association_setup_request_t *req)
 {
     ogs_assert(xact);
@@ -32,14 +32,14 @@ void upf_n4_handle_association_setup_request(
 }
 
 void upf_n4_handle_association_setup_response(
-        ogs_pfcp_node_t *pnode, ogs_pfcp_xact_t *xact,
+        ogs_pfcp_cp_node_t *node, ogs_pfcp_xact_t *xact,
         ogs_pfcp_association_setup_response_t *rsp)
 {
     ogs_assert(xact);
 }
 
 void upf_n4_handle_heartbeat_request(
-        ogs_pfcp_node_t *pnode, ogs_pfcp_xact_t *xact,
+        ogs_pfcp_cp_node_t *node, ogs_pfcp_xact_t *xact,
         ogs_pfcp_heartbeat_request_t *req)
 {
     ogs_assert(xact);
@@ -47,11 +47,11 @@ void upf_n4_handle_heartbeat_request(
 }
 
 void upf_n4_handle_heartbeat_response(
-        ogs_pfcp_node_t *pnode, ogs_pfcp_xact_t *xact,
+        ogs_pfcp_cp_node_t *node, ogs_pfcp_xact_t *xact,
         ogs_pfcp_heartbeat_response_t *rsp)
 {
     ogs_assert(xact);
-    ogs_timer_start(pnode->t_heartbeat,
+    ogs_timer_start(node->t_heartbeat,
             upf_timer_cfg(UPF_TIMER_HEARTBEAT)->duration);
 }
 

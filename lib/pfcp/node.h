@@ -36,9 +36,9 @@ extern "C" {
     } while(0)
 
 /**
- * This structure represents the commonalities of PFCP node such as SMF/UPF.
+ * This structure represents the commonalities of PFCP CP node such as SMF/UPF.
  * Some of members may not be used by the specific type of node */
-typedef struct ogs_pfcp_node_s {
+typedef struct ogs_pfcp_cp_node_s {
     ogs_lnode_t     node;           /* A node of list_t */
 
     ogs_sockaddr_t  *sa_list;       /* Socket Address List Candidate */
@@ -60,7 +60,7 @@ typedef struct ogs_pfcp_node_s {
 
     /* List of Peer's User Plane IP Resource Information */
     ogs_list_t      up_node_list;
-} ogs_pfcp_node_t;
+} ogs_pfcp_cp_node_t;
 
 /**
  * This structure represents the User Plane IP Resource Information.
@@ -78,23 +78,23 @@ typedef struct ogs_pfcp_up_node_s {
     int8_t source_interface;    /* Not available if source interface == -1 */
 } ogs_pfcp_up_node_t;
 
-int ogs_pfcp_node_init(int size);
-int ogs_pfcp_node_final(void);
+int ogs_pfcp_cp_node_init(int size);
+int ogs_pfcp_cp_node_final(void);
 
-ogs_pfcp_node_t *ogs_pfcp_node_new(ogs_sockaddr_t *sa_list);
-void ogs_pfcp_node_free(ogs_pfcp_node_t *node);
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_new(ogs_sockaddr_t *sa_list);
+void ogs_pfcp_cp_node_free(ogs_pfcp_cp_node_t *node);
 
-ogs_pfcp_node_t *ogs_pfcp_node_add_by_f_seid(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid,
         uint16_t port, int no_ipv4, int no_ipv6, int prefer_ipv4);
-ogs_pfcp_node_t *ogs_pfcp_node_add_by_addr(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add_by_addr(
         ogs_list_t *list, ogs_sockaddr_t *addr);
-void ogs_pfcp_node_remove(ogs_list_t *list, ogs_pfcp_node_t *node);
-void ogs_pfcp_node_remove_all(ogs_list_t *list);
+void ogs_pfcp_cp_node_remove(ogs_list_t *list, ogs_pfcp_cp_node_t *node);
+void ogs_pfcp_cp_node_remove_all(ogs_list_t *list);
 
-ogs_pfcp_node_t *ogs_pfcp_node_find_by_addr(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_addr(
         ogs_list_t *list, ogs_sockaddr_t *addr);
-ogs_pfcp_node_t *ogs_pfcp_node_find_by_f_seid(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid);
 
 ogs_pfcp_up_node_t *ogs_pfcp_up_node_add(

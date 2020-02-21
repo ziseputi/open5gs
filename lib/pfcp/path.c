@@ -34,16 +34,17 @@ ogs_sock_t *ogs_pfcp_server(ogs_socknode_t *node)
     return pfcp;
 }
 
-int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
+int ogs_pfcp_connect(
+        ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_cp_node_t *node)
 {
     ogs_sockaddr_t *addr;
     char buf[OGS_ADDRSTRLEN];
 
     ogs_assert(ipv4 || ipv6);
-    ogs_assert(pnode);
-    ogs_assert(pnode->sa_list);
+    ogs_assert(node);
+    ogs_assert(node->sa_list);
 
-    addr = pnode->sa_list;
+    addr = node->sa_list;
     while (addr) {
         ogs_sock_t *sock = NULL;
 
@@ -58,8 +59,8 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
             ogs_info("ogs_pfcp_connect() [%s]:%d",
                     OGS_ADDR(addr, buf), OGS_PORT(addr));
 
-            pnode->sock = sock;
-            memcpy(&pnode->addr, addr, sizeof pnode->addr);
+            node->sock = sock;
+            memcpy(&node->addr, addr, sizeof node->addr);
             break;
         }
 
@@ -68,7 +69,7 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
 
     if (addr == NULL) {
         ogs_error("ogs_pfcp_connect() [%s]:%d failed",
-                OGS_ADDR(pnode->sa_list, buf), OGS_PORT(pnode->sa_list));
+                OGS_ADDR(node->sa_list, buf), OGS_PORT(node->sa_list));
         ogs_error("Please check the IP version between SMF and UPF nodes.");
         return OGS_ERROR;
     }
@@ -76,14 +77,14 @@ int ogs_pfcp_connect(ogs_sock_t *ipv4, ogs_sock_t *ipv6, ogs_pfcp_node_t *pnode)
     return OGS_OK;
 }
 
-int ogs_pfcp_send(ogs_pfcp_node_t *pnode, ogs_pkbuf_t *pkbuf)
+int ogs_pfcp_send(ogs_pfcp_cp_node_t *node, ogs_pkbuf_t *pkbuf)
 {
     ssize_t sent;
     ogs_sock_t *sock = NULL;
 
-    ogs_assert(pnode);
+    ogs_assert(node);
     ogs_assert(pkbuf);
-    sock = pnode->sock;
+    sock = node->sock;
     ogs_assert(sock);
 
     sent = ogs_send(sock->fd, pkbuf->data, pkbuf->len, 0);
@@ -95,17 +96,17 @@ int ogs_pfcp_send(ogs_pfcp_node_t *pnode, ogs_pkbuf_t *pkbuf)
     return OGS_OK;
 }
 
-int ogs_pfcp_sendto(ogs_pfcp_node_t *pnode, ogs_pkbuf_t *pkbuf)
+int ogs_pfcp_sendto(ogs_pfcp_cp_node_t *node, ogs_pkbuf_t *pkbuf)
 {
     ssize_t sent;
     ogs_sock_t *sock = NULL;
     ogs_sockaddr_t *addr = NULL;
 
-    ogs_assert(pnode);
+    ogs_assert(node);
     ogs_assert(pkbuf);
-    sock = pnode->sock;
+    sock = node->sock;
     ogs_assert(sock);
-    addr = &pnode->addr;
+    addr = &node->addr;
     ogs_assert(addr);
 
     sent = ogs_sendto(sock->fd, pkbuf->data, pkbuf->len, 0, addr);

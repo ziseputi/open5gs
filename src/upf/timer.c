@@ -56,7 +56,7 @@ static void timer_send_event(int timer_id, void *data)
 
     e = upf_event_new(UPF_EVT_N4_TIMER);
     e->timer_id = timer_id;
-    e->pnode = data;
+    e->cp_node = data;
 
     rv = ogs_queue_push(upf_self()->queue, e);
     if (rv != OGS_OK) {

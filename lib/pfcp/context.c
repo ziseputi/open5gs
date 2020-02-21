@@ -60,7 +60,7 @@ void ogs_pfcp_context_init(void)
 
     ogs_log_install_domain(&__ogs_pfcp_domain, "pfcp", ogs_core()->log.level);
 
-    ogs_pfcp_node_init(512);
+    ogs_pfcp_cp_node_init(512);
 
     ogs_list_init(&self.n4_list);
 
@@ -104,9 +104,9 @@ void ogs_pfcp_context_final(void)
     ogs_pool_final(&ogs_pfcp_qer_pool);
     ogs_pool_final(&ogs_pfcp_bar_pool);
 
-    ogs_pfcp_node_remove_all(&ogs_pfcp_self()->n4_list);
+    ogs_pfcp_cp_node_remove_all(&ogs_pfcp_self()->n4_list);
 
-    ogs_pfcp_node_final();
+    ogs_pfcp_cp_node_final();
 
     context_initiaized = 0;
 }
@@ -431,7 +431,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                     ogs_yaml_iter_t pfcp_array, pfcp_iter;
                     ogs_yaml_iter_recurse(&remote_iter, &pfcp_array);
                     do {
-                        ogs_pfcp_node_t *pnode = NULL;
+                        ogs_pfcp_cp_node_t *node = NULL;
                         ogs_sockaddr_t *addr = NULL;
                         int family = AF_UNSPEC;
                         int i, num = 0;
@@ -535,13 +535,13 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 ogs_config()->parameter.no_ipv6,
                                 ogs_config()->parameter.prefer_ipv4);
 
-                        pnode = ogs_pfcp_node_new(addr);
-                        ogs_assert(pnode);
-                        ogs_list_add(&self.n4_list, pnode);
+                        node = ogs_pfcp_cp_node_new(addr);
+                        ogs_assert(node);
+                        ogs_list_add(&self.n4_list, node);
 
-                        pnode->num_of_tac = num_of_tac;
+                        node->num_of_tac = num_of_tac;
                         if (num_of_tac != 0)
-                            memcpy(pnode->tac, tac, sizeof(pnode->tac));
+                            memcpy(node->tac, tac, sizeof(node->tac));
 
                     } while (ogs_yaml_iter_type(&pfcp_array) ==
                             YAML_SEQUENCE_NODE);

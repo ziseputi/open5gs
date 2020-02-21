@@ -19,30 +19,30 @@
 
 #include "ogs-pfcp.h"
 
-static OGS_POOL(pool, ogs_pfcp_node_t);
+static OGS_POOL(pool, ogs_pfcp_cp_node_t);
 
-int ogs_pfcp_node_init(int size)
+int ogs_pfcp_cp_node_init(int size)
 {
     ogs_pool_init(&pool, size);
 
     return OGS_OK;
 }
-int ogs_pfcp_node_final(void)
+int ogs_pfcp_cp_node_final(void)
 {
     ogs_pool_final(&pool);
 
     return OGS_OK;
 }
 
-ogs_pfcp_node_t *ogs_pfcp_node_new(ogs_sockaddr_t *sa_list)
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_new(ogs_sockaddr_t *sa_list)
 {
-    ogs_pfcp_node_t *node = NULL;
+    ogs_pfcp_cp_node_t *node = NULL;
 
     ogs_assert(sa_list);
 
     ogs_pool_alloc(&pool, &node);
     ogs_assert(node);
-    memset(node, 0, sizeof(ogs_pfcp_node_t));
+    memset(node, 0, sizeof(ogs_pfcp_cp_node_t));
 
     node->sa_list = sa_list;
 
@@ -52,7 +52,7 @@ ogs_pfcp_node_t *ogs_pfcp_node_new(ogs_sockaddr_t *sa_list)
     return node;
 }
 
-void ogs_pfcp_node_free(ogs_pfcp_node_t *node)
+void ogs_pfcp_cp_node_free(ogs_pfcp_cp_node_t *node)
 {
     ogs_assert(node);
 
@@ -65,12 +65,12 @@ void ogs_pfcp_node_free(ogs_pfcp_node_t *node)
     ogs_pool_free(&pool, node);
 }
 
-ogs_pfcp_node_t *ogs_pfcp_node_add_by_f_seid(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid,
         uint16_t port, int no_ipv4, int no_ipv6, int prefer_ipv4)
 {
     int rv;
-    ogs_pfcp_node_t *node = NULL;
+    ogs_pfcp_cp_node_t *node = NULL;
     ogs_sockaddr_t *addr = NULL;
 
     ogs_assert(list);
@@ -86,7 +86,7 @@ ogs_pfcp_node_t *ogs_pfcp_node_add_by_f_seid(
     rv = ogs_socknode_fill_scope_id_in_local(addr);
     ogs_assert(rv == OGS_OK);
 
-    node = ogs_pfcp_node_new(addr);
+    node = ogs_pfcp_cp_node_new(addr);
     ogs_assert(node);
 
     rv = ogs_pfcp_f_seid_to_ip(f_seid, &node->ip);
@@ -97,17 +97,17 @@ ogs_pfcp_node_t *ogs_pfcp_node_add_by_f_seid(
     return node;
 }
 
-ogs_pfcp_node_t *ogs_pfcp_node_add_by_addr(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add_by_addr(
         ogs_list_t *list, ogs_sockaddr_t *addr)
 {
-    ogs_pfcp_node_t *node = NULL;
+    ogs_pfcp_cp_node_t *node = NULL;
     ogs_sockaddr_t *new = NULL;
 
     ogs_assert(list);
     ogs_assert(addr);
 
     ogs_copyaddrinfo(&new, addr);
-    node = ogs_pfcp_node_new(new);
+    node = ogs_pfcp_cp_node_new(new);
 
     ogs_assert(node);
     memcpy(&node->addr, new, sizeof node->addr);
@@ -117,27 +117,27 @@ ogs_pfcp_node_t *ogs_pfcp_node_add_by_addr(
     return node;
 }
 
-void ogs_pfcp_node_remove(ogs_list_t *list, ogs_pfcp_node_t *node)
+void ogs_pfcp_cp_node_remove(ogs_list_t *list, ogs_pfcp_cp_node_t *node)
 {
     ogs_assert(node);
 
     ogs_list_remove(list, node);
 
-    ogs_pfcp_node_free(node);
+    ogs_pfcp_cp_node_free(node);
 }
 
-void ogs_pfcp_node_remove_all(ogs_list_t *list)
+void ogs_pfcp_cp_node_remove_all(ogs_list_t *list)
 {
-    ogs_pfcp_node_t *node = NULL, *next_node = NULL;
+    ogs_pfcp_cp_node_t *node = NULL, *next_node = NULL;
     
     ogs_list_for_each_safe(list, next_node, node)
-        ogs_pfcp_node_remove(list, node);
+        ogs_pfcp_cp_node_remove(list, node);
 }
 
-ogs_pfcp_node_t *ogs_pfcp_node_find_by_addr(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_addr(
         ogs_list_t *list, ogs_sockaddr_t *addr)
 {
-    ogs_pfcp_node_t *node = NULL;
+    ogs_pfcp_cp_node_t *node = NULL;
 
     ogs_assert(list);
     ogs_assert(addr);
@@ -150,11 +150,11 @@ ogs_pfcp_node_t *ogs_pfcp_node_find_by_addr(
     return node;
 }
 
-ogs_pfcp_node_t *ogs_pfcp_node_find_by_f_seid(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid)
 {
     int rv;
-    ogs_pfcp_node_t *node = NULL;
+    ogs_pfcp_cp_node_t *node = NULL;
     ogs_ip_t ip;
 
     ogs_assert(list);

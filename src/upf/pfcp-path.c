@@ -69,9 +69,9 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     }
 
     e = upf_event_new(UPF_EVT_N4_MESSAGE);
-    node = ogs_pfcp_cp_node_find_by_addr(&ogs_pfcp_self()->n4_list, &from);
+    node = ogs_pfcp_cp_node_find(&ogs_pfcp_self()->n4_list, &from);
     if (!node) {
-        node = ogs_pfcp_cp_node_add_by_addr(&ogs_pfcp_self()->n4_list, &from);
+        node = ogs_pfcp_cp_node_add(&ogs_pfcp_self()->n4_list, &from);
         ogs_assert(node);
         node->sock = data;
     }

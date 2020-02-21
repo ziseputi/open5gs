@@ -60,7 +60,8 @@ void ogs_pfcp_context_init(void)
 
     ogs_log_install_domain(&__ogs_pfcp_domain, "pfcp", ogs_core()->log.level);
 
-    ogs_pfcp_cp_node_init(512);
+    /* FIXME : configuration for CP/UP node size */
+    ogs_pfcp_node_init(512, 512);
 
     ogs_list_init(&self.n4_list);
 
@@ -106,7 +107,7 @@ void ogs_pfcp_context_final(void)
 
     ogs_pfcp_cp_node_remove_all(&ogs_pfcp_self()->n4_list);
 
-    ogs_pfcp_cp_node_final();
+    ogs_pfcp_node_final();
 
     context_initiaized = 0;
 }

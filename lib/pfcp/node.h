@@ -58,8 +58,7 @@ typedef struct ogs_pfcp_cp_node_s {
     uint16_t        tac[OGS_MAX_NUM_OF_TAI];
     uint8_t         num_of_tac;
 
-    /* List of Peer's User Plane IP Resource Information */
-    ogs_list_t      up_node_list;
+    ogs_list_t      up_list;        /* User Plane IP Resource Information */
 } ogs_pfcp_cp_node_t;
 
 /**
@@ -80,31 +79,26 @@ typedef struct ogs_pfcp_up_node_s {
     int8_t source_interface;    /* Not available if source interface == -1 */
 } ogs_pfcp_up_node_t;
 
-int ogs_pfcp_cp_node_init(int size);
-int ogs_pfcp_cp_node_final(void);
+int ogs_pfcp_node_init(int cp_size, int up_size);
+int ogs_pfcp_node_final(void);
 
 ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_new(ogs_sockaddr_t *sa_list);
 void ogs_pfcp_cp_node_free(ogs_pfcp_cp_node_t *node);
 
-ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add_by_f_seid(
-        ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid,
-        uint16_t port, int no_ipv4, int no_ipv6, int prefer_ipv4);
-ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add_by_addr(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add(
         ogs_list_t *list, ogs_sockaddr_t *addr);
 void ogs_pfcp_cp_node_remove(ogs_list_t *list, ogs_pfcp_cp_node_t *node);
 void ogs_pfcp_cp_node_remove_all(ogs_list_t *list);
 
-ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_addr(
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find(
         ogs_list_t *list, ogs_sockaddr_t *addr);
-ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_f_seid(
-        ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid);
 
 ogs_pfcp_up_node_t *ogs_pfcp_up_node_new(
         ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6);
 void ogs_pfcp_up_node_free(ogs_pfcp_up_node_t *node);
 
 ogs_pfcp_up_node_t *ogs_pfcp_up_node_add(
-        ogs_list_t *list, ogs_pfcp_up_node_t *node);
+        ogs_list_t *list, ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6);
 void ogs_pfcp_up_node_remove(
         ogs_list_t *list, ogs_pfcp_up_node_t *node);
 void ogs_pfcp_up_node_remove_all(ogs_list_t *list);

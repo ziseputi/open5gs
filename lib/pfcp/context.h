@@ -51,6 +51,8 @@ typedef struct ogs_pfcp_context_s {
     ogs_list_t      subnet_list;    /* UE Subnet List */
 
     ogs_list_t      sess_list;
+
+    ogs_list_t      up_list;        /* User Plane IP Resource Information */
 } ogs_pfcp_context_t;
 
 typedef struct ogs_pfcp_far_s ogs_pfcp_far_t;

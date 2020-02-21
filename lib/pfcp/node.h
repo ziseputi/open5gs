@@ -39,7 +39,7 @@ extern "C" {
  * This structure represents the commonalities of PFCP CP node such as SMF/UPF.
  * Some of members may not be used by the specific type of node */
 typedef struct ogs_pfcp_cp_node_s {
-    ogs_lnode_t     node;           /* A node of list_t */
+    ogs_lnode_t     lnode;          /* A node of list_t */
 
     ogs_sockaddr_t  *sa_list;       /* Socket Address List Candidate */
 
@@ -66,7 +66,9 @@ typedef struct ogs_pfcp_cp_node_s {
  * This structure represents the User Plane IP Resource Information.
  */
 typedef struct ogs_pfcp_up_node_s {
-    ogs_sockaddr_t *addr;
+    ogs_lnode_t     lnode;      /* A node of list_t */
+
+    ogs_sockaddr_t *addr;       /* addr or addr6 is needed */
     ogs_sockaddr_t *addr6;
 
     struct {
@@ -97,13 +99,18 @@ ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_addr(
 ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find_by_f_seid(
         ogs_list_t *list, ogs_pfcp_f_seid_t *f_seid);
 
-ogs_pfcp_up_node_t *ogs_pfcp_up_node_add(
+ogs_pfcp_up_node_t *ogs_pfcp_up_node_new(
         ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6);
-ogs_pfcp_up_node_t *ogs_pfcp_up_node_add_by_message(
-    ogs_pfcp_tlv_user_plane_ip_resource_information_t
-        *user_plane_ip_resource_information[]);
-void ogs_pfcp_up_node_remove(ogs_pfcp_up_node_t *up_node);
-void ogs_pfcp_up_node_remove_all(void);
+void ogs_pfcp_up_node_free(ogs_pfcp_up_node_t *node);
+
+ogs_pfcp_up_node_t *ogs_pfcp_up_node_add(
+        ogs_list_t *list, ogs_pfcp_up_node_t *node);
+void ogs_pfcp_up_node_remove(
+        ogs_list_t *list, ogs_pfcp_up_node_t *node);
+void ogs_pfcp_up_node_remove_all(ogs_list_t *list);
+
+int ogs_pfcp_up_node_parse(ogs_list_t *list, unsigned char *data, int len);
+int ogs_pfcp_up_node_build(unsigned char *data, int len, ogs_list_t *list);
 
 #ifdef __cplusplus
 }

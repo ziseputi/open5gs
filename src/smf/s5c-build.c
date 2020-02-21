@@ -48,7 +48,7 @@ ogs_pkbuf_t *smf_s5c_build_create_session_response(
 
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_S5C_TEID[0x%x]",
             sess->sgw_s5c_teid, sess->smf_s5c_teid);
-    ogs_debug("    SGW_S5U_TEID[%d] UPF_S5U_TEID[%d]",
+    ogs_debug("    SGW_S5U_TEID[0x%x] UPF_S5U_TEID[0x%x]",
             bearer->sgw_s5u_teid, bearer->upf_s5u_teid);
 
     rsp = &gtp_message.create_session_response;

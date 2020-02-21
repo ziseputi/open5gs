@@ -87,11 +87,10 @@ void ogs_pfcp_cp_node_free(ogs_pfcp_cp_node_t *node);
 
 ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add(
         ogs_list_t *list, ogs_sockaddr_t *addr);
-void ogs_pfcp_cp_node_remove(ogs_list_t *list, ogs_pfcp_cp_node_t *node);
-void ogs_pfcp_cp_node_remove_all(ogs_list_t *list);
-
 ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find(
         ogs_list_t *list, ogs_sockaddr_t *addr);
+void ogs_pfcp_cp_node_remove(ogs_list_t *list, ogs_pfcp_cp_node_t *node);
+void ogs_pfcp_cp_node_remove_all(ogs_list_t *list);
 
 ogs_pfcp_up_node_t *ogs_pfcp_up_node_new(
         ogs_sockaddr_t *addr, ogs_sockaddr_t *addr6);

@@ -92,6 +92,22 @@ ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_add(
     return node;
 }
 
+ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find(
+        ogs_list_t *list, ogs_sockaddr_t *addr)
+{
+    ogs_pfcp_cp_node_t *node = NULL;
+
+    ogs_assert(list);
+    ogs_assert(addr);
+
+    ogs_list_for_each(list, node) {
+        if (ogs_sockaddr_is_equal(&node->addr, addr) == true)
+            break;
+    }
+
+    return node;
+}
+
 void ogs_pfcp_cp_node_remove(ogs_list_t *list, ogs_pfcp_cp_node_t *node)
 {
     ogs_assert(list);
@@ -109,22 +125,6 @@ void ogs_pfcp_cp_node_remove_all(ogs_list_t *list)
     
     ogs_list_for_each_safe(list, next_node, node)
         ogs_pfcp_cp_node_remove(list, node);
-}
-
-ogs_pfcp_cp_node_t *ogs_pfcp_cp_node_find(
-        ogs_list_t *list, ogs_sockaddr_t *addr)
-{
-    ogs_pfcp_cp_node_t *node = NULL;
-
-    ogs_assert(list);
-    ogs_assert(addr);
-
-    ogs_list_for_each(list, node) {
-        if (ogs_sockaddr_is_equal(&node->addr, addr) == true)
-            break;
-    }
-
-    return node;
 }
 
 ogs_pfcp_up_node_t *ogs_pfcp_up_node_new(

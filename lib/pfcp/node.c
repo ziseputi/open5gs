@@ -141,6 +141,9 @@ ogs_pfcp_up_node_t *ogs_pfcp_up_node_new(
     node->addr = addr;
     node->addr6 = addr6;
 
+    /* Not available if source interface == -1 */
+    node->source_interface = -1;
+
     return node;
 }
 

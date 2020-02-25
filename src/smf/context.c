@@ -466,6 +466,11 @@ int smf_context_parse_config(void)
                     } while (
                         ogs_yaml_iter_type(&dns_iter) ==
                             YAML_SEQUENCE_NODE);
+                } else if (!strcmp(smf_key, "mtu")) {
+                    ogs_assert(ogs_yaml_iter_type(&smf_iter) !=
+                            YAML_SCALAR_NODE);
+                    self.mtu = atoi(ogs_yaml_iter_value(&smf_iter));
+                    ogs_assert(self.mtu);
                 } else if (!strcmp(smf_key, "p-cscf")) {
                     ogs_yaml_iter_t dns_iter;
                     ogs_yaml_iter_recurse(&smf_iter, &dns_iter);

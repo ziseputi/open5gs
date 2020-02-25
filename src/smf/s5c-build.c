@@ -517,7 +517,13 @@ static int16_t smf_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco)
             /* TODO */
             break;
         case OGS_PCO_ID_IPV4_LINK_MTU_REQUEST:
-            /* TODO */
+            if (smf_self()->mtu) {
+                uint16_t mtu = htons(smf_self()->mtu);
+                smf.ids[smf.num_of_id].id = ue.ids[i].id;
+                smf.ids[smf.num_of_id].len = sizeof(uint16_t);
+                smf.ids[smf.num_of_id].data = &mtu;
+                smf.num_of_id++;
+            }
             break;
         default:
             ogs_warn("Unknown PCO ID:(0x%x)", ue.ids[i].id);

@@ -79,6 +79,8 @@ typedef struct smf_context_s {
     ogs_hash_t      *sess_hash;     /* hash table (IMSI+APN) */
     ogs_hash_t      *ipv4_hash;     /* hash table (IPv4 Address) */
     ogs_hash_t      *ipv6_hash;     /* hash table (IPv6 Address) */
+
+    uint16_t        mtu;            /* MTU to advertise in PCO */
 } smf_context_t;
 
 typedef struct smf_sess_s {

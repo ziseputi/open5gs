@@ -67,8 +67,8 @@ typedef struct ogs_pfcp_cp_node_s {
 typedef struct ogs_pfcp_up_node_s {
     ogs_lnode_t     lnode;      /* A node of list_t */
 
-    ogs_sockaddr_t *addr;       /* addr or addr6 is needed */
-    ogs_sockaddr_t *addr6;
+    ogs_sockaddr_t  *addr;      /* addr or addr6 is needed */
+    ogs_sockaddr_t  *addr6;
 
     struct {
         uint8_t num_of_bits;    /* Not available if num_of_bits == 0 */

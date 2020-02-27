@@ -194,7 +194,8 @@ int upf_context_parse_config(void)
                             } else if (!strcmp(gtpu_key, "addr") ||
                                     !strcmp(gtpu_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
-                                ogs_yaml_iter_recurse(&gtpu_iter, &hostname_iter);
+                                ogs_yaml_iter_recurse(
+                                        &gtpu_iter, &hostname_iter);
                                 ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
                                     YAML_MAPPING_NODE);
 

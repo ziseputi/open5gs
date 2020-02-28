@@ -181,23 +181,6 @@ int upf_gtp_open(void)
         node->poll = ogs_pollset_add(upf_self()->pollset,
                 OGS_POLLIN, sock->fd, _gtpv1_u_recv_cb, sock);
     }
-    ogs_list_for_each(&upf_self()->gtpu_list6, node) {
-        sock = ogs_gtp_server(node);
-        ogs_assert(sock);
-
-        node->poll = ogs_pollset_add(upf_self()->pollset,
-                OGS_POLLIN, sock->fd, _gtpv1_u_recv_cb, sock);
-    }
-
-    upf_self()->gtpu_sock = ogs_socknode_sock_first(&upf_self()->gtpu_list);
-    if (upf_self()->gtpu_sock)
-        upf_self()->gtpu_addr = &upf_self()->gtpu_sock->local_addr;
-
-    upf_self()->gtpu_sock6 = ogs_socknode_sock_first(&upf_self()->gtpu_list6);
-    if (upf_self()->gtpu_sock6)
-        upf_self()->gtpu_addr6 = &upf_self()->gtpu_sock6->local_addr;
-
-    ogs_assert(upf_self()->gtpu_addr || upf_self()->gtpu_addr6);
 
     /* NOTE : tun device can be created via following command.
      *
@@ -255,7 +238,6 @@ void upf_gtp_close(void)
     ogs_pfcp_dev_t *dev = NULL;
 
     ogs_socknode_remove_all(&upf_self()->gtpu_list);
-    ogs_socknode_remove_all(&upf_self()->gtpu_list6);
 
     ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
         if (dev->poll)

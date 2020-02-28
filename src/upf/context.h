@@ -54,12 +54,7 @@ typedef struct upf_context_s {
     ogs_sockaddr_t  *gtpc_addr;     /* UPF GTPC IPv4 Address */
     ogs_sockaddr_t  *gtpc_addr6;    /* UPF GTPC IPv6 Address */
 
-    ogs_list_t      gtpu_list;      /* UPF GTPU IPv4 Server List */
-    ogs_list_t      gtpu_list6;     /* UPF GTPU IPv6 Server List */
-    ogs_sock_t      *gtpu_sock;     /* UPF GTPU IPv4 Socket */
-    ogs_sock_t      *gtpu_sock6;    /* UPF GTPU IPv6 Socket */
-    ogs_sockaddr_t  *gtpu_addr;     /* UPF GTPU IPv4 Address */
-    ogs_sockaddr_t  *gtpu_addr6;    /* UPF GTPU IPv6 Address */
+    ogs_list_t      gtpu_list;      /* UPF GTPU Server List */
 
     uint16_t        function_features; /* UP Function Features */
 

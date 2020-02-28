@@ -62,7 +62,6 @@ void upf_context_init(void)
     ogs_list_init(&self.gtpc_list);
     ogs_list_init(&self.gtpc_list6);
     ogs_list_init(&self.gtpu_list);
-    ogs_list_init(&self.gtpu_list6);
 
     ogs_list_init(&self.sgw_s5c_list);
     ogs_list_init(&self.sgw_s5u_list);
@@ -121,8 +120,7 @@ static int upf_context_prepare(void)
 
 static int upf_context_validation(void)
 {
-    if (ogs_list_first(&self.gtpu_list) == NULL &&
-        ogs_list_first(&self.gtpu_list6) == NULL) {
+    if (ogs_list_first(&self.gtpu_list) == NULL) {
         ogs_error("No upf.gtpu in '%s'", ogs_config()->file);
         return OGS_ERROR;
     }
@@ -245,7 +243,7 @@ int upf_context_parse_config(void)
                                 rv = ogs_copyaddrinfo(&dup, addr);
                                 ogs_assert(rv == OGS_OK);
                                 ogs_socknode_add(
-                                        &self.gtpu_list6, AF_INET6, dup);
+                                        &self.gtpu_list, AF_INET6, dup);
                             }
 
                             ogs_freeaddrinfo(addr);
@@ -256,7 +254,7 @@ int upf_context_parse_config(void)
                                     ogs_config()->parameter.no_ipv4 ?
                                         NULL : &self.gtpu_list,
                                     ogs_config()->parameter.no_ipv6 ?
-                                        NULL : &self.gtpu_list6,
+                                        NULL : &self.gtpu_list,
                                     dev, self.gtpu_port);
                             ogs_assert(rv == OGS_OK);
                         }
@@ -264,13 +262,12 @@ int upf_context_parse_config(void)
                     } while (ogs_yaml_iter_type(&gtpu_array) == 
                             YAML_SEQUENCE_NODE);
 
-                    if (ogs_list_first(&self.gtpu_list) == NULL &&
-                        ogs_list_first(&self.gtpu_list6) == NULL) {
+                    if (ogs_list_first(&self.gtpu_list) == NULL) {
                         rv = ogs_socknode_probe(
                                 ogs_config()->parameter.no_ipv4 ?
                                     NULL : &self.gtpu_list,
                                 ogs_config()->parameter.no_ipv6 ?
-                                    NULL : &self.gtpu_list6,
+                                    NULL : &self.gtpu_list,
                                 NULL, self.gtpu_port);
                         ogs_assert(rv == OGS_OK);
                     }

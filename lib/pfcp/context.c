@@ -247,22 +247,12 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                         }
 
                         if (addr) {
-                            if (ogs_config()->parameter.no_ipv4 == 0) {
-                                ogs_sockaddr_t *dup = NULL;
-                                rv = ogs_copyaddrinfo(&dup, addr);
-                                ogs_assert(rv == OGS_OK);
+                            if (ogs_config()->parameter.no_ipv4 == 0)
                                 ogs_socknode_add(
-                                        &self.pfcp_list, AF_INET, dup);
-                            }
-
-                            if (ogs_config()->parameter.no_ipv6 == 0) {
-                                ogs_sockaddr_t *dup = NULL;
-                                rv = ogs_copyaddrinfo(&dup, addr);
-                                ogs_assert(rv == OGS_OK);
+                                        &self.pfcp_list, AF_INET, addr);
+                            if (ogs_config()->parameter.no_ipv6 == 0)
                                 ogs_socknode_add(
-                                        &self.pfcp_list6, AF_INET6, dup);
-                            }
-
+                                        &self.pfcp_list6, AF_INET6, addr);
                             ogs_freeaddrinfo(addr);
                         }
 

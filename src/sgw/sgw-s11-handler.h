@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+void sgw_s11_handle_echo_request(ogs_gtp_xact_t *s11_xact, ogs_gtp_message_t *message);
 void sgw_s11_handle_create_session_request(ogs_gtp_xact_t *s11_xact,
         sgw_ue_t *sgw_ue, ogs_gtp_message_t *message);
 void sgw_s11_handle_modify_bearer_request(ogs_gtp_xact_t *s11_xact, 

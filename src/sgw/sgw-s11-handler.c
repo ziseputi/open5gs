@@ -227,7 +227,7 @@ void sgw_s11_handle_modify_bearer_request(ogs_gtp_xact_t *s11_xact,
     ogs_assert(s11_xact);
     ogs_assert(req);
 
-    ogs_debug("[SGW] Modify Bearer Reqeust");
+    ogs_debug("[SGW] Modify Bearer Request");
 
     memset(&cause, 0, sizeof(cause));
     cause.value = OGS_GTP_CAUSE_REQUEST_ACCEPTED;
@@ -384,7 +384,7 @@ void sgw_s11_handle_delete_session_request(ogs_gtp_xact_t *s11_xact,
     ogs_assert(s11_xact);
     ogs_assert(message);
 
-    ogs_debug("[SGW] Delete Session Reqeust");
+    ogs_debug("[SGW] Delete Session Request");
 
     cause_value = OGS_GTP_CAUSE_REQUEST_ACCEPTED;
     req = &message->delete_session_request;
@@ -1282,5 +1282,27 @@ void sgw_s11_handle_bearer_resource_command(ogs_gtp_xact_t *s11_xact,
     ogs_gtp_xact_associate(s11_xact, s5c_xact);
 
     rv = ogs_gtp_xact_commit(s5c_xact);
+    ogs_expect(rv == OGS_OK);
+}
+
+void sgw_s11_handle_echo_request(ogs_gtp_xact_t *s11_xact, ogs_gtp_message_t *message)
+{
+    int rv;
+    ogs_pkbuf_t *pkbuf = NULL;
+
+    ogs_assert(s11_xact);
+    ogs_assert(message);
+
+    ogs_debug("[SGW] Echo Request");
+
+    message->h.type = OGS_GTP_ECHO_RESPONSE_TYPE;
+
+    pkbuf = ogs_gtp_build_msg(message);
+    ogs_expect_or_return(pkbuf);
+
+    rv = ogs_gtp_xact_update_tx(s11_xact, &message->h, pkbuf);
+    ogs_expect_or_return(rv == OGS_OK);
+
+    rv = ogs_gtp_xact_commit(s11_xact);
     ogs_expect(rv == OGS_OK);
 }

@@ -244,17 +244,25 @@ int ogs_gtp_xact_update_tx(ogs_gtp_xact_t *xact,
         return OGS_ERROR;
     }
 
-    ogs_pkbuf_push(pkbuf, OGS_GTPV2C_HEADER_LEN);
+    if (hdesc->teid_presence) {
+        ogs_pkbuf_push(pkbuf, OGS_GTPV2C_HEADER_LEN);
+    } else {
+        ogs_pkbuf_push(pkbuf, OGS_GTPV2C_HEADER_LEN - OGS_GTP_TEID_LEN);
+    }
     h = (ogs_gtp_header_t *)pkbuf->data;
     ogs_assert(h);
 
     memset(h, 0, sizeof(ogs_gtp_header_t));
     h->version = 2;
-    h->teid_presence = 1;
+    h->teid_presence = hdesc->teid_presence;
     h->type = hdesc->type;
     h->length = htons(pkbuf->len - 4);
-    h->teid = htonl(hdesc->teid);
-    h->sqn = OGS_GTP_XID_TO_SQN(xact->xid);
+    if (hdesc->teid_presence) {
+        h->teid = htonl(hdesc->teid);
+        h->sqn = OGS_GTP_XID_TO_SQN(xact->xid);
+    } else {
+        h->sqn_only = OGS_GTP_XID_TO_SQN(xact->xid);
+    }
 
     /* Save Message type and packet of this step */
     xact->seq[xact->step].type = h->type;

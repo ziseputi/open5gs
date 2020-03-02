@@ -261,7 +261,7 @@ int ogs_gtp_xact_update_tx(ogs_gtp_xact_t *xact,
         h->teid = htonl(hdesc->teid);
         h->sqn = OGS_GTP_XID_TO_SQN(xact->xid);
     } else {
-        h->sqn_only = OGS_GTP_XID_TO_SQN(xact->xid);
+        h->sqn_only = hdesc->sqn_only;
     }
 
     /* Save Message type and packet of this step */

@@ -246,13 +246,14 @@ int ogs_gtp_xact_update_tx(ogs_gtp_xact_t *xact,
 
     if (hdesc->teid_presence) {
         ogs_pkbuf_push(pkbuf, OGS_GTPV2C_HEADER_LEN);
+        memset(pkbuf->data, 0, OGS_GTPV2C_HEADER_LEN);
     } else {
         ogs_pkbuf_push(pkbuf, OGS_GTPV2C_HEADER_LEN - OGS_GTP_TEID_LEN);
+        memset(pkbuf->data, 0, OGS_GTPV2C_HEADER_LEN - OGS_GTP_TEID_LEN);
     }
     h = (ogs_gtp_header_t *)pkbuf->data;
     ogs_assert(h);
 
-    memset(h, 0, sizeof(ogs_gtp_header_t));
     h->version = 2;
     h->teid_presence = hdesc->teid_presence;
     h->type = hdesc->type;

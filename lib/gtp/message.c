@@ -3096,7 +3096,7 @@ ogs_pkbuf_t *ogs_gtp_build_msg(ogs_gtp_message_t *gtp_message)
                 &gtp_message->modify_access_bearers_response, OGS_TLV_MODE_T1_L2_I1);
         break;
     default:
-        ogs_warn("Not implmeneted(type:%d)", gtp_message->h.type);
+        ogs_warn("Not implemented(type:%d)", gtp_message->h.type);
         break;
     }
 

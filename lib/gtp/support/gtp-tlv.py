@@ -372,6 +372,7 @@ type_list["Port Number"]["size"] = 2                    # Type : 126
 type_list["APN Restriction"]["size"] = 1                # Type : 127
 type_list["Selection Mode"]["size"] = 1                 # Type : 128
 type_list["Node Type"]["size"] = 1                      # Type : 135
+type_list["Node Features"]["size"] = 1                  # Type : 152
 
 f = open(outdir + 'message.h', 'w')
 output_header_to_file(f)
@@ -409,8 +410,8 @@ typedef struct ogs_gtp_header_s {
         struct {
             uint32_t teid;
             /* sqn : 31bit ~ 8bit, spare : 7bit ~ 0bit */
-#define OGS_GTP_XID_TO_SQN(__xid) htonl(((__xid) << 8))
-#define OGS_GTP_SQN_TO_XID(__sqn) (ntohl(__sqn) >> 8)
+#define OGS_GTP_XID_TO_SQN(__xid) htobe32(((__xid) << 8))
+#define OGS_GTP_SQN_TO_XID(__sqn) (be32toh(__sqn) >> 8)
             uint32_t sqn;
         };
         /* sqn : 31bit ~ 8bit, spare : 7bit ~ 0bit */
@@ -624,7 +625,7 @@ f.write("""int ogs_gtp_parse_msg(ogs_gtp_message_t *gtp_message, ogs_pkbuf_t *pk
     memcpy(&gtp_message->h, pkbuf->data - size, size);
 
     if (h->teid_presence)
-        gtp_message->h.teid = ntohl(gtp_message->h.teid);
+        gtp_message->h.teid = be32toh(gtp_message->h.teid);
 
     if (pkbuf->len == 0)
         return OGS_OK;

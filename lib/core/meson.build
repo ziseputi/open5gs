@@ -202,9 +202,9 @@ ogs_libcore_conf.set('OGS_BIG_ENDIAN', 4321)
 ogs_libcore_conf.set('OGS_LITTLE_ENDIAN', 1234)
 
 if host_machine.endian() == 'big'
-  ogs_libcore_conf.set('OGS_BYTE_ORDER', 'OGS_BIG_ENDIAN')
+    ogs_libcore_conf.set('OGS_BYTE_ORDER', 'OGS_BIG_ENDIAN')
 else
-  ogs_libcore_conf.set('OGS_BYTE_ORDER', 'OGS_LITTLE_ENDIAN')
+    ogs_libcore_conf.set('OGS_BYTE_ORDER', 'OGS_LITTLE_ENDIAN')
 endif
 
 if host_system == 'windows'
@@ -235,6 +235,7 @@ libcore_sources = files('''
     ogs-rbtree.h
     ogs-timer.h
     ogs-rand.h
+    ogs-uuid.h
     ogs-thread.h
     ogs-signal.h
     ogs-process.h
@@ -244,6 +245,7 @@ libcore_sources = files('''
     ogs-socknode.h
     ogs-udp.h
     ogs-tcp.h
+    ogs-tun.h
     ogs-queue.h
     ogs-poll.h
     ogs-notify.h
@@ -268,6 +270,7 @@ libcore_sources = files('''
     ogs-rbtree.c
     ogs-timer.c
     ogs-rand.c
+    ogs-uuid.c
     ogs-thread.c
     ogs-signal.c
     ogs-process.c
@@ -277,6 +280,7 @@ libcore_sources = files('''
     ogs-socknode.c
     ogs-udp.c
     ogs-tcp.c
+    ogs-tun.c
     ogs-queue.c
     ogs-select.c
     ogs-poll.c
@@ -292,6 +296,13 @@ libcore_sources = files('''
     ogs-core.c
     abts.c
 '''.split())
+
+if have_func_epoll_ctl
+    libcore_sources += files('ogs-epoll.c')
+endif
+if have_func_kqueue
+    libcore_sources += files('ogs-kqueue.c')
+endif
 
 libcore_inc = include_directories('.')
 

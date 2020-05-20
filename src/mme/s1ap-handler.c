@@ -33,6 +33,36 @@
 #include "mme-path.h"
 #include "mme-sm.h"
 
+static bool served_tai_is_found(mme_enb_t *enb)
+{
+    int i;
+    int served_tai_index;
+
+    for (i = 0; i < enb->num_of_supported_ta_list; i++) {
+        served_tai_index = mme_find_served_tai(&enb->supported_ta_list[i]);
+        if (served_tai_index >= 0 && served_tai_index < MAX_NUM_OF_SERVED_TAI) {
+            ogs_debug("    SERVED_TAI_INDEX[%d]", served_tai_index);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool maximum_number_of_enbs_is_reached(void)
+{
+    mme_enb_t *enb = NULL, *next_enb = NULL;
+    int number_of_enbs_online = 0;
+
+    ogs_list_for_each_safe(&mme_self()->enb_list, next_enb, enb) {
+        if (enb->state.s1_setup_success) {
+            number_of_enbs_online++;
+        }
+    }
+
+    return number_of_enbs_online >= ogs_config()->max.enb;
+}
+
 void s1ap_handle_s1_setup_request(mme_enb_t *enb, ogs_s1ap_message_t *message)
 {
     char buf[OGS_ADDRSTRLEN];
@@ -46,7 +76,6 @@ void s1ap_handle_s1_setup_request(mme_enb_t *enb, ogs_s1ap_message_t *message)
     S1AP_SupportedTAs_t *SupportedTAs = NULL;
     S1AP_PagingDRX_t *PagingDRX = NULL;
 
-    ogs_pkbuf_t *s1apbuf = NULL;
     uint32_t enb_id;
     S1AP_Cause_PR group = S1AP_Cause_PR_NOTHING;
     long cause = 0;
@@ -126,43 +155,38 @@ void s1ap_handle_s1_setup_request(mme_enb_t *enb, ogs_s1ap_message_t *message)
         }
     }
 
+    if (maximum_number_of_enbs_is_reached()) {
+        ogs_warn("S1-Setup failure:");
+        ogs_warn("    Maximum number of eNBs reached");
+        group = S1AP_Cause_PR_misc;
+        cause = S1AP_CauseMisc_unspecified;
+
+        s1ap_send_s1_setup_failure(enb, group, cause);
+        return;
+    }
+
     if (enb->num_of_supported_ta_list == 0) {
         ogs_warn("S1-Setup failure:");
         ogs_warn("    No supported TA exist in S1-Setup request");
         group = S1AP_Cause_PR_misc;
         cause = S1AP_CauseMisc_unspecified;
-    } else {
-        int served_tai_index = -1;
-        for (i = 0; i < enb->num_of_supported_ta_list; i++) {
-            served_tai_index = 
-                mme_find_served_tai(&enb->supported_ta_list[i]);
-            if (served_tai_index >= 0 &&
-                served_tai_index < MAX_NUM_OF_SERVED_TAI) {
-                ogs_debug("    SERVED_TAI_INDEX[%d]", served_tai_index);
-                break;
-            }
-        }
 
-        if (served_tai_index < 0) {
-            ogs_warn("S1-Setup failure:");
-            ogs_warn("    Cannot find Served TAI. Check 'mme.tai' configuration");
-            group = S1AP_Cause_PR_misc;
-            cause = S1AP_CauseMisc_unknown_PLMN;
-        }
+        s1ap_send_s1_setup_failure(enb, group, cause);
+        return;
     }
 
-    if (group == S1AP_Cause_PR_NOTHING) {
-        ogs_debug("[MME] S1-Setup response");
-        s1apbuf = s1ap_build_setup_rsp();
-        ogs_expect_or_return(s1apbuf);
-    } else {
-        ogs_debug("[MME] S1-Setup failure");
-        s1apbuf = s1ap_build_setup_failure(group, cause, S1AP_TimeToWait_v10s);
-        ogs_expect_or_return(s1apbuf);
+    if (!served_tai_is_found(enb)) {
+        ogs_warn("S1-Setup failure:");
+        ogs_warn("    Cannot find Served TAI. Check 'mme.tai' configuration");
+        group = S1AP_Cause_PR_misc;
+        cause = S1AP_CauseMisc_unknown_PLMN;
+
+        s1ap_send_s1_setup_failure(enb, group, cause);
+        return;
     }
 
-    ogs_expect(OGS_OK ==
-        s1ap_send_to_enb(enb, s1apbuf, S1AP_NON_UE_SIGNALLING));
+    enb->state.s1_setup_success = true;
+    s1ap_send_s1_setup_response(enb);
 }
 
 void s1ap_handle_initial_ue_message(mme_enb_t *enb, ogs_s1ap_message_t *message)

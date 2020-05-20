@@ -99,7 +99,9 @@ extern struct dict_object *ogs_diam_gx_pre_emption_capability;
 extern struct dict_object *ogs_diam_gx_pre_emption_vulnerability;
 extern struct dict_object *ogs_diam_gx_apn_aggregate_max_bitrate_ul;
 extern struct dict_object *ogs_diam_gx_apn_aggregate_max_bitrate_dl;
-#define OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_TAI_AND_ECGI 130
+#define OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_TAI            128
+#define OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_ECGI           129
+#define OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_TAI_AND_ECGI   130
 extern struct dict_object *ogs_diam_gx_3gpp_user_location_info;
 extern struct dict_object *ogs_diam_gx_called_station_id;
 extern struct dict_object *ogs_diam_gx_default_eps_bearer_qos;
@@ -144,6 +146,8 @@ typedef struct ogs_diam_gx_message_s {
 #define OGS_DIAM_GX_DIAMETER_ADC_RULE_EVENT                         5148
 #define OGS_DIAM_GX_DIAMETER_ERROR_NBIFOM_NOT_AUTHORIZED            5149
     uint32_t            result_code;
+    uint32_t            *err;
+    uint32_t            *exp_err;
 
 #define OGS_DIAM_GX_CC_REQUEST_TYPE_INITIAL_REQUEST                 1
 #define OGS_DIAM_GX_CC_REQUEST_TYPE_UPDATE_REQUEST                  2

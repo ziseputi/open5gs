@@ -87,7 +87,6 @@ ogs_timer_t *ogs_timer_add(
 {
     ogs_timer_t *timer = NULL;
     ogs_assert(manager);
-    ogs_assert(cb);
 
     ogs_pool_alloc(&manager->pool, &timer);
     ogs_assert(timer);
@@ -117,7 +116,7 @@ void ogs_timer_start(ogs_timer_t *timer, ogs_time_t duration)
 {
     ogs_timer_mgr_t *manager = NULL;
     ogs_assert(timer);
-    ogs_assert(duration > 0);
+    ogs_assert(duration);
 
     manager = timer->manager;
     ogs_assert(manager);
@@ -175,7 +174,6 @@ void ogs_timer_mgr_expire(ogs_timer_mgr_t *manager)
 
     current = ogs_get_monotonic_time();
 
-    ogs_list_init(&list);
     ogs_rbtree_for_each(&manager->tree, rbnode) {
         this = ogs_rb_entry(rbnode, ogs_timer_t, rbnode);
 

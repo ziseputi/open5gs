@@ -67,7 +67,6 @@ static uint8_t emm_cause_from_diameter(
         case ER_DIAMETER_MISSING_AVP:                           /* 5005 */
         case ER_DIAMETER_RESOURCES_EXCEEDED:                    /* 5006 */
         case ER_DIAMETER_AVP_OCCURS_TOO_MANY_TIMES:             /* 5009 */
-        default: /* FIXME: only permanent */
             return EMM_CAUSE_NETWORK_FAILURE;
         }
     }
@@ -163,15 +162,15 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
         addr = e->addr;
         ogs_assert(addr);
 
-        ogs_info("eNB-S1 accepted[%s] in master_sm module", 
-            OGS_ADDR(addr, buf));
-                
+        ogs_info("eNB-S1 accepted[%s] in master_sm module",
+        OGS_ADDR(addr, buf));
+
         enb = mme_enb_find_by_addr(addr);
         if (!enb) {
             enb = mme_enb_add(sock, addr);
             ogs_assert(enb);
         } else {
-            ogs_warn("eNB context duplicated with IP-address [%s]!!!", 
+            ogs_warn("eNB context duplicated with IP-address [%s]!!!",
                     OGS_ADDR(addr, buf));
             ogs_sock_destroy(sock);
             ogs_warn("S1 Socket Closed");
@@ -477,8 +476,12 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
     case MME_EVT_S11_MESSAGE:
         pkbuf = e->pkbuf;
         ogs_assert(pkbuf);
-        rv = ogs_gtp_parse_msg(&gtp_message, pkbuf);
-        ogs_assert(rv == OGS_OK);
+
+        if (ogs_gtp_parse_msg(&gtp_message, pkbuf) != OGS_OK) {
+            ogs_error("ogs_gtp_parse_msg() failed");
+            ogs_pkbuf_free(pkbuf);
+            break;
+        }
 
         /*
          * 5.5.2 in spec 29.274
@@ -530,6 +533,12 @@ void mme_state_operational(ogs_fsm_t *s, mme_event_t *e)
         }
 
         switch (gtp_message.h.type) {
+        case OGS_GTP_ECHO_REQUEST_TYPE:
+            mme_s11_handle_echo_request(xact, &gtp_message.echo_request);
+            break;
+        case OGS_GTP_ECHO_RESPONSE_TYPE:
+            mme_s11_handle_echo_response(xact, &gtp_message.echo_response);
+            break;
         case OGS_GTP_CREATE_SESSION_RESPONSE_TYPE:
             mme_s11_handle_create_session_response(
                 xact, mme_ue, &gtp_message.create_session_response);

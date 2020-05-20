@@ -30,13 +30,15 @@ struct sess_state {
 #define MAX_CC_REQUEST_NUMBER 32
     pgw_sess_t *sess;
     ogs_gtp_xact_t *xact[MAX_CC_REQUEST_NUMBER];
-    ogs_pkbuf_t *gtpbuf[MAX_CC_REQUEST_NUMBER];
 
     uint32_t cc_request_type;
     uint32_t cc_request_number;
 
     struct timespec ts; /* Time of sending the message */
 };
+
+static OGS_POOL(sess_state_pool, struct sess_state);
+static ogs_thread_mutex_t sess_state_mutex;
 
 static int decode_pcc_rule_definition(
         ogs_pcc_rule_t *pcc_rule, struct avp *avpch1, int *perror);
@@ -46,7 +48,12 @@ static __inline__ struct sess_state *new_state(os0_t sid)
 {
     struct sess_state *new = NULL;
 
-    new = ogs_calloc(1, sizeof(*new));
+    ogs_thread_mutex_lock(&sess_state_mutex);
+    ogs_pool_alloc(&sess_state_pool, &new);
+    ogs_assert(new);
+    memset(new, 0, sizeof(*new));
+    ogs_thread_mutex_unlock(&sess_state_mutex);
+
     new->gx_sid = (os0_t)ogs_strdup((char *)sid);
     ogs_assert(new->gx_sid);
 
@@ -58,11 +65,13 @@ static void state_cleanup(struct sess_state *sess_data, os0_t sid, void *opaque)
     if (sess_data->gx_sid)
         ogs_free(sess_data->gx_sid);
 
-    ogs_free(sess_data);
+    ogs_thread_mutex_lock(&sess_state_mutex);
+    ogs_pool_free(&sess_state_pool, sess_data);
+    ogs_thread_mutex_unlock(&sess_state_mutex);
 }
 
 void pgw_gx_send_ccr(pgw_sess_t *sess, ogs_gtp_xact_t *xact,
-        ogs_pkbuf_t *gtpbuf, uint32_t cc_request_type)
+        uint32_t cc_request_type)
 {
     int ret;
 
@@ -73,14 +82,10 @@ void pgw_gx_send_ccr(pgw_sess_t *sess, ogs_gtp_xact_t *xact,
     struct sess_state *sess_data = NULL, *svg;
     struct session *session = NULL;
     int new;
-    ogs_gtp_message_t *message = NULL;
     ogs_paa_t paa; /* For changing Framed-IPv6-Prefix Length to 128 */
 
     ogs_assert(sess);
     ogs_assert(sess->ipv4 || sess->ipv6);
-    ogs_assert(gtpbuf);
-    message = (ogs_gtp_message_t *)gtpbuf->data;
-    ogs_assert(message);
 
     ogs_debug("[Credit-Control-Request]");
 
@@ -162,7 +167,6 @@ void pgw_gx_send_ccr(pgw_sess_t *sess, ogs_gtp_xact_t *xact,
     /* Update session state */
     sess_data->sess = sess;
     sess_data->xact[sess_data->cc_request_number] = xact;
-    sess_data->gtpbuf[sess_data->cc_request_number] = gtpbuf;
 
     /* Set Origin-Host & Origin-Realm */
     ret = fd_msg_add_origin(req, 0);
@@ -349,7 +353,8 @@ void pgw_gx_send_ccr(pgw_sess_t *sess, ogs_gtp_xact_t *xact,
         ret = fd_msg_avp_add (avp, MSG_BRW_LAST_CHILD, avpch1);
         ogs_assert(ret == 0);
 
-        ret = fd_msg_avp_new(ogs_diam_gx_allocation_retention_priority, 0, &avpch1);
+        ret = fd_msg_avp_new(
+                ogs_diam_gx_allocation_retention_priority, 0, &avpch1);
         ogs_assert(ret == 0);
 
         ret = fd_msg_avp_new(ogs_diam_gx_priority_level, 0, &avpch2);
@@ -383,38 +388,49 @@ void pgw_gx_send_ccr(pgw_sess_t *sess, ogs_gtp_xact_t *xact,
         ogs_assert(ret == 0);
 
         /* Set 3GPP-User-Location-Info */
-        {
-            struct ogs_diam_gx_uli_t {
-                uint8_t type;
-                ogs_tai_t tai;
-                ogs_e_cgi_t e_cgi;
-            } ogs_diam_gx_uli;
+        if (sess->user_location_information.presence) {
+            ogs_gtp_uli_t uli;
+            int16_t uli_len;
 
-            memset(&ogs_diam_gx_uli, 0, sizeof(ogs_diam_gx_uli));
-            ogs_diam_gx_uli.type = OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_TAI_AND_ECGI;
-            memcpy(&ogs_diam_gx_uli.tai.plmn_id, &sess->tai.plmn_id, 
-                    sizeof(sess->tai.plmn_id));
-            ogs_diam_gx_uli.tai.tac = htons(sess->tai.tac);
-            memcpy(&ogs_diam_gx_uli.e_cgi.plmn_id, &sess->e_cgi.plmn_id, 
-                    sizeof(sess->e_cgi.plmn_id));
-            ogs_diam_gx_uli.e_cgi.cell_id = htonl(sess->e_cgi.cell_id);
+            uint8_t uli_buf[OGS_GTP_MAX_ULI_LEN];
 
-            ret = fd_msg_avp_new(ogs_diam_gx_3gpp_user_location_info, 0, &avp);
-            ogs_assert(ret == 0);
-            val.os.data = (uint8_t*)&ogs_diam_gx_uli;
-            val.os.len = sizeof(ogs_diam_gx_uli);
-            ret = fd_msg_avp_setvalue(avp, &val);
-            ogs_assert(ret == 0);
-            ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
-            ogs_assert(ret == 0);
+            uli_len = ogs_gtp_parse_uli(&uli, &sess->user_location_information);
+            ogs_assert(sess->user_location_information.len == uli_len);
+
+            ogs_assert(sess->user_location_information.data);
+            ogs_assert(sess->user_location_information.len);
+            memcpy(&uli_buf, sess->user_location_information.data,
+                    sess->user_location_information.len);
+
+            /* Update Gx ULI Type */
+            if (uli.flags.tai && uli.flags.e_cgi)
+                uli_buf[0] =
+                    OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_TAI_AND_ECGI;
+            else if (uli.flags.tai)
+                uli_buf[0] = OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_TAI;
+            else if (uli.flags.e_cgi)
+                uli_buf[0] = OGS_DIAM_GX_3GPP_USER_LOCATION_INFO_TYPE_ECGI;
+
+            if (uli_buf[0]) {
+                ret = fd_msg_avp_new(
+                        ogs_diam_gx_3gpp_user_location_info, 0, &avp);
+                ogs_assert(ret == 0);
+                val.os.data = (uint8_t *)&uli_buf;
+                val.os.len = sess->user_location_information.len;
+                ret = fd_msg_avp_setvalue(avp, &val);
+                ogs_assert(ret == 0);
+                ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
+                ogs_assert(ret == 0);
+            }
         }
 
         /* Set 3GPP-MS-Timezone */
-        if (message->create_session_request.ue_time_zone.presence) {
+        if (sess->ue_timezone.presence &&
+                sess->ue_timezone.len && sess->ue_timezone.data) {
             ret = fd_msg_avp_new(ogs_diam_gx_3gpp_ms_timezone, 0, &avp);
             ogs_assert(ret == 0);
-            val.os.data = message->create_session_request.ue_time_zone.data;
-            val.os.len = message->create_session_request.ue_time_zone.len;
+            val.os.data = sess->ue_timezone.data;
+            val.os.len = sess->ue_timezone.len;
             ret = fd_msg_avp_setvalue(avp, &val);
             ogs_assert(ret == 0);
             ret = fd_msg_avp_add(req, MSG_BRW_LAST_CHILD, avp);
@@ -470,9 +486,9 @@ static void pgw_gx_cca_cb(void *data, struct msg **msg)
     pgw_event_t *e = NULL;
     ogs_gtp_xact_t *xact = NULL;
     pgw_sess_t *sess = NULL;
-    ogs_pkbuf_t *gxbuf = NULL, *gtpbuf = NULL;
+    ogs_pkbuf_t *pkbuf = NULL;
     ogs_diam_gx_message_t *gx_message = NULL;
-    uint16_t gxbuf_len = 0;
+    uint16_t pkbuf_len = 0;
     uint32_t cc_request_number = 0;
 
     ogs_debug("[Credit-Control-Answer]");
@@ -512,18 +528,16 @@ static void pgw_gx_cca_cb(void *data, struct msg **msg)
     ogs_assert(xact);
     sess = sess_data->sess;
     ogs_assert(sess);
-    gtpbuf = sess_data->gtpbuf[cc_request_number];
-    ogs_assert(gtpbuf);
 
-    gxbuf_len = sizeof(ogs_diam_gx_message_t);
-    ogs_assert(gxbuf_len < 8192);
-    gxbuf = ogs_pkbuf_alloc(NULL, gxbuf_len);
-    ogs_pkbuf_put(gxbuf, gxbuf_len);
-    gx_message = (ogs_diam_gx_message_t *)gxbuf->data;
+    pkbuf_len = sizeof(ogs_diam_gx_message_t);
+    ogs_assert(pkbuf_len < 8192);
+    pkbuf = ogs_pkbuf_alloc(NULL, pkbuf_len);
+    ogs_pkbuf_put(pkbuf, pkbuf_len);
+    gx_message = (ogs_diam_gx_message_t *)pkbuf->data;
     ogs_assert(gx_message);
 
     /* Set Credit Control Command */
-    memset(gx_message, 0, gxbuf_len);
+    memset(gx_message, 0, pkbuf_len);
     gx_message->cmd_code = OGS_DIAM_GX_CMD_CODE_CREDIT_CONTROL;
     
     /* Value of Result Code */
@@ -533,17 +547,20 @@ static void pgw_gx_cca_cb(void *data, struct msg **msg)
         ret = fd_msg_avp_hdr(avp, &hdr);
         ogs_assert(ret == 0);
         gx_message->result_code = hdr->avp_value->i32;
+        gx_message->err = &gx_message->result_code;
         ogs_debug("    Result Code: %d", hdr->avp_value->i32);
     } else {
         ret = fd_msg_search_avp(*msg, ogs_diam_experimental_result, &avp);
         ogs_assert(ret == 0);
         if (avp) {
-            ret = fd_avp_search_avp(avp, ogs_diam_experimental_result_code, &avpch1);
+            ret = fd_avp_search_avp(
+                    avp, ogs_diam_experimental_result_code, &avpch1);
             ogs_assert(ret == 0);
             if (avpch1) {
                 ret = fd_msg_avp_hdr(avpch1, &hdr);
                 ogs_assert(ret == 0);
                 gx_message->result_code = hdr->avp_value->i32;
+                gx_message->exp_err = &gx_message->result_code;
                 ogs_debug("    Experimental Result Code: %d",
                         gx_message->result_code);
             }
@@ -579,11 +596,6 @@ static void pgw_gx_cca_cb(void *data, struct msg **msg)
         error++;
     }
 
-    if (gx_message->result_code != ER_DIAMETER_SUCCESS) {
-        ogs_warn("ERROR DIAMETER Result Code(%d)", gx_message->result_code);
-        goto out;
-    }
-
     /* Value of CC-Request-Type */
     ret = fd_msg_search_avp(*msg, ogs_diam_gx_cc_request_type, &avp);
     ogs_assert(ret == 0);
@@ -596,17 +608,24 @@ static void pgw_gx_cca_cb(void *data, struct msg **msg)
         error++;
     }
 
+    if (gx_message->result_code != ER_DIAMETER_SUCCESS) {
+        ogs_warn("ERROR DIAMETER Result Code(%d)", gx_message->result_code);
+        goto out;
+    }
+
     ret = fd_msg_search_avp(*msg, ogs_diam_gx_qos_information, &avp);
     ogs_assert(ret == 0);
     if (avp) {
-        ret = fd_avp_search_avp(avp, ogs_diam_gx_apn_aggregate_max_bitrate_ul, &avpch1);
+        ret = fd_avp_search_avp(
+                avp, ogs_diam_gx_apn_aggregate_max_bitrate_ul, &avpch1);
         ogs_assert(ret == 0);
         if (avpch1) {
             ret = fd_msg_avp_hdr(avpch1, &hdr);
             ogs_assert(ret == 0);
             gx_message->pdn.ambr.uplink = hdr->avp_value->u32;
         }
-        ret = fd_avp_search_avp(avp, ogs_diam_gx_apn_aggregate_max_bitrate_dl, &avpch1);
+        ret = fd_avp_search_avp(
+                avp, ogs_diam_gx_apn_aggregate_max_bitrate_dl, &avpch1);
         ogs_assert(ret == 0);
         if (avpch1) {
             ret = fd_msg_avp_hdr(avpch1, &hdr);
@@ -626,7 +645,8 @@ static void pgw_gx_cca_cb(void *data, struct msg **msg)
             gx_message->pdn.qos.qci = hdr->avp_value->u32;
         }
 
-        ret = fd_avp_search_avp(avp, ogs_diam_gx_allocation_retention_priority, &avpch1);
+        ret = fd_avp_search_avp(
+                avp, ogs_diam_gx_allocation_retention_priority, &avpch1);
         ogs_assert(ret == 0);
         if (avpch1) {
             ret = fd_avp_search_avp(avpch1, ogs_diam_gx_priority_level, &avpch2);
@@ -637,7 +657,8 @@ static void pgw_gx_cca_cb(void *data, struct msg **msg)
                 gx_message->pdn.qos.arp.priority_level = hdr->avp_value->u32;
             }
 
-            ret = fd_avp_search_avp(avpch1, ogs_diam_gx_pre_emption_capability, &avpch2);
+            ret = fd_avp_search_avp(
+                    avpch1, ogs_diam_gx_pre_emption_capability, &avpch2);
             ogs_assert(ret == 0);
             if (avpch2) {
                 ret = fd_msg_avp_hdr(avpch2, &hdr);
@@ -720,23 +741,20 @@ out:
         ogs_assert(e);
 
         e->sess = sess;
-        e->gxbuf = gxbuf;
+        e->pkbuf = pkbuf;
         e->xact = xact;
-        e->gtpbuf = gtpbuf;
         rv = ogs_queue_push(pgw_self()->queue, e);
         if (rv != OGS_OK) {
             ogs_error("ogs_queue_push() failed:%d", (int)rv);
             ogs_diam_gx_message_free(gx_message);
-            ogs_pkbuf_free(e->gxbuf);
-            ogs_pkbuf_free(e->gtpbuf);
+            ogs_pkbuf_free(e->pkbuf);
             pgw_event_free(e);
         } else {
             ogs_pollset_notify(pgw_self()->pollset);
         }
     } else {
         ogs_diam_gx_message_free(gx_message);
-        ogs_pkbuf_free(gxbuf);
-        ogs_pkbuf_free(gtpbuf);
+        ogs_pkbuf_free(pkbuf);
     }
 
     /* Free the message */
@@ -778,7 +796,8 @@ out:
     ogs_debug("    CC-Request-Type[%d] Number[%d] in Session Data", 
         sess_data->cc_request_type, sess_data->cc_request_number);
     ogs_debug("    Current CC-Request-Number[%d]", cc_request_number);
-    if (sess_data->cc_request_type == OGS_DIAM_GX_CC_REQUEST_TYPE_TERMINATION_REQUEST &&
+    if (sess_data->cc_request_type ==
+            OGS_DIAM_GX_CC_REQUEST_TYPE_TERMINATION_REQUEST &&
         sess_data->cc_request_number <= cc_request_number) {
         ogs_debug("    [LAST] state_cleanup(): [%s]", sess_data->gx_sid);
         state_cleanup(sess_data, NULL, NULL);
@@ -818,8 +837,8 @@ static int pgw_gx_rar_cb( struct msg **msg, struct avp *avp,
     struct sess_state *sess_data = NULL;
 
     pgw_event_t *e = NULL;
-    uint16_t gxbuf_len = 0;
-    ogs_pkbuf_t *gxbuf = NULL;
+    uint16_t pkbuf_len = 0;
+    ogs_pkbuf_t *pkbuf = NULL;
     pgw_sess_t *sess = NULL;
     ogs_diam_gx_message_t *gx_message = NULL;
 
@@ -829,15 +848,15 @@ static int pgw_gx_rar_cb( struct msg **msg, struct avp *avp,
 
     ogs_debug("Re-Auth-Request");
 
-    gxbuf_len = sizeof(ogs_diam_gx_message_t);
-    ogs_assert(gxbuf_len < 8192);
-    gxbuf = ogs_pkbuf_alloc(NULL, gxbuf_len);
-    ogs_pkbuf_put(gxbuf, gxbuf_len);
-    gx_message = (ogs_diam_gx_message_t *)gxbuf->data;
+    pkbuf_len = sizeof(ogs_diam_gx_message_t);
+    ogs_assert(pkbuf_len < 8192);
+    pkbuf = ogs_pkbuf_alloc(NULL, pkbuf_len);
+    ogs_pkbuf_put(pkbuf, pkbuf_len);
+    gx_message = (ogs_diam_gx_message_t *)pkbuf->data;
     ogs_assert(gx_message);
 
     /* Set Credit Control Command */
-    memset(gx_message, 0, gxbuf_len);
+    memset(gx_message, 0, pkbuf_len);
     gx_message->cmd_code = OGS_DIAM_GX_CMD_RE_AUTH;
 
 	/* Create answer header */
@@ -948,12 +967,12 @@ static int pgw_gx_rar_cb( struct msg **msg, struct avp *avp,
     ogs_assert(e);
 
     e->sess = sess;
-    e->gxbuf = gxbuf;
+    e->pkbuf = pkbuf;
     rv = ogs_queue_push(pgw_self()->queue, e);
     if (rv != OGS_OK) {
         ogs_error("ogs_queue_push() failed:%d", (int)rv);
         ogs_diam_gx_message_free(gx_message);
-        ogs_pkbuf_free(e->gxbuf);
+        ogs_pkbuf_free(e->pkbuf);
         pgw_event_free(e);
     } else {
         ogs_pollset_notify(pgw_self()->pollset);
@@ -1009,7 +1028,7 @@ out:
     ogs_assert(ret == 0);
 
     ogs_diam_gx_message_free(gx_message);
-    ogs_pkbuf_free(gxbuf);
+    ogs_pkbuf_free(pkbuf);
 
     return 0;
 }
@@ -1018,6 +1037,9 @@ int pgw_fd_init(void)
 {
     int ret;
 	struct disp_when data;
+
+    ogs_thread_mutex_init(&sess_state_mutex);
+    ogs_pool_init(&sess_state_pool, ogs_config()->pool.sess);
 
     ret = ogs_diam_init(FD_MODE_CLIENT|FD_MODE_SERVER,
                 pgw_self()->diam_conf_path, pgw_self()->diam_config);
@@ -1062,6 +1084,9 @@ void pgw_fd_final(void)
 		(void) fd_disp_unregister(&hdl_gx_rar, NULL);
 
     ogs_diam_final();
+
+    ogs_pool_final(&sess_state_pool);
+    ogs_thread_mutex_destroy(&sess_state_mutex);
 }
 
 static int decode_pcc_rule_definition(
@@ -1081,8 +1106,7 @@ static int decode_pcc_rule_definition(
         ogs_assert(ret == 0);
         switch (hdr->avp_code) {
         case OGS_DIAM_GX_AVP_CODE_CHARGING_RULE_NAME:
-            if (pcc_rule->name)
-            {
+            if (pcc_rule->name) {
                 ogs_error("PCC Rule Name has already been defined");
                 ogs_free(pcc_rule->name);
             }
@@ -1094,19 +1118,19 @@ static int decode_pcc_rule_definition(
             ogs_flow_t *flow =
                 &pcc_rule->flow[pcc_rule->num_of_flow];
 
-            ret = fd_avp_search_avp(avpch2, ogs_diam_gx_flow_direction, &avpch3);
+            ret = fd_avp_search_avp(
+                    avpch2, ogs_diam_gx_flow_direction, &avpch3);
             ogs_assert(ret == 0);
-            if (avpch3)
-            {
+            if (avpch3) {
                 ret = fd_msg_avp_hdr( avpch3, &hdr);
                 ogs_assert(ret == 0);
                 flow->direction = hdr->avp_value->i32;
             }
 
-            ret = fd_avp_search_avp(avpch2, ogs_diam_gx_flow_description, &avpch3);
+            ret = fd_avp_search_avp(
+                    avpch2, ogs_diam_gx_flow_description, &avpch3);
             ogs_assert(ret == 0);
-            if (avpch3)
-            {
+            if (avpch3) {
                 ret = fd_msg_avp_hdr(avpch3, &hdr);
                 ogs_assert(ret == 0);
                 flow->description = ogs_malloc(hdr->avp_value->os.len+1);
@@ -1138,7 +1162,8 @@ static int decode_pcc_rule_definition(
                 ogs_diam_gx_allocation_retention_priority, &avpch3);
             ogs_assert(ret == 0);
             if (avpch3) {
-                ret = fd_avp_search_avp(avpch3, ogs_diam_gx_priority_level, &avpch4);
+                ret = fd_avp_search_avp(
+                        avpch3, ogs_diam_gx_priority_level, &avpch4);
                 ogs_assert(ret == 0);
                 if (avpch4) {
                     ret = fd_msg_avp_hdr(avpch4, &hdr);

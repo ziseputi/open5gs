@@ -118,8 +118,8 @@ ogs_gtp_xact_t *ogs_gtp_xact_local_create(ogs_gtp_node_t *gnode,
     ogs_debug("[%d] %s Create  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&gnode->remote_addr, buf),
-            OGS_PORT(&gnode->remote_addr));
+            OGS_ADDR(&gnode->addr, buf),
+            OGS_PORT(&gnode->addr));
 
     return xact;
 }
@@ -154,8 +154,8 @@ ogs_gtp_xact_t *ogs_gtp_xact_remote_create(ogs_gtp_node_t *gnode, uint32_t sqn)
     ogs_debug("[%d] %s Create  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&gnode->remote_addr, buf),
-            OGS_PORT(&gnode->remote_addr));
+            OGS_ADDR(&gnode->addr, buf),
+            OGS_PORT(&gnode->addr));
 
     return xact;
 }
@@ -176,6 +176,7 @@ int ogs_gtp_xact_update_tx(ogs_gtp_xact_t *xact,
     char buf[OGS_ADDRSTRLEN];
     ogs_gtp_xact_stage_t stage;
     ogs_gtp_header_t *h = NULL;
+    int gtp_hlen = 0;
     
     ogs_assert(xact);
     ogs_assert(xact->gnode);
@@ -186,8 +187,8 @@ int ogs_gtp_xact_update_tx(ogs_gtp_xact_t *xact,
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             hdesc->type,
-            OGS_ADDR(&xact->gnode->remote_addr, buf),
-            OGS_PORT(&xact->gnode->remote_addr));
+            OGS_ADDR(&xact->gnode->addr, buf),
+            OGS_PORT(&xact->gnode->addr));
 
     stage = ogs_gtp_xact_get_stage(hdesc->type, xact->xid);
     if (xact->org == OGS_GTP_LOCAL_ORIGINATOR) {
@@ -244,17 +245,28 @@ int ogs_gtp_xact_update_tx(ogs_gtp_xact_t *xact,
         return OGS_ERROR;
     }
 
-    ogs_pkbuf_push(pkbuf, OGS_GTPV2C_HEADER_LEN);
-    h = (ogs_gtp_header_t *)pkbuf->data;
-    ogs_assert(h);
+    if (hdesc->type > OGS_GTP_VERSION_NOT_SUPPORTED_INDICATION_TYPE) {
+        gtp_hlen = OGS_GTPV2C_HEADER_LEN;
+    } else {
+        gtp_hlen = OGS_GTPV2C_HEADER_LEN - OGS_GTP_TEID_LEN;
+    }
 
-    memset(h, 0, sizeof(ogs_gtp_header_t));
+    ogs_pkbuf_push(pkbuf, gtp_hlen);
+    h = (ogs_gtp_header_t *)pkbuf->data;
+    memset(h, 0, gtp_hlen);
+
     h->version = 2;
-    h->teid_presence = 1;
     h->type = hdesc->type;
-    h->length = htons(pkbuf->len - 4);
-    h->teid = htonl(hdesc->teid);
-    h->sqn = OGS_GTP_XID_TO_SQN(xact->xid);
+
+    if (hdesc->type > OGS_GTP_VERSION_NOT_SUPPORTED_INDICATION_TYPE) {
+        h->teid_presence = 1;
+        h->teid = htobe32(hdesc->teid);
+        h->sqn = OGS_GTP_XID_TO_SQN(xact->xid);
+    } else {
+        h->teid_presence = 0;
+        h->sqn_only = OGS_GTP_XID_TO_SQN(xact->xid);
+    }
+    h->length = htobe16(pkbuf->len - 4);
 
     /* Save Message type and packet of this step */
     xact->seq[xact->step].type = h->type;
@@ -276,8 +288,8 @@ int ogs_gtp_xact_update_rx(ogs_gtp_xact_t *xact, uint8_t type)
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             type,
-            OGS_ADDR(&xact->gnode->remote_addr, buf),
-            OGS_PORT(&xact->gnode->remote_addr));
+            OGS_ADDR(&xact->gnode->addr, buf),
+            OGS_PORT(&xact->gnode->addr));
 
     stage = ogs_gtp_xact_get_stage(type, xact->xid);
     if (xact->org == OGS_GTP_LOCAL_ORIGINATOR) {
@@ -308,9 +320,9 @@ int ogs_gtp_xact_update_rx(ogs_gtp_xact_t *xact, uint8_t type)
                             xact->org == OGS_GTP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->gnode->remote_addr,
+                            OGS_ADDR(&xact->gnode->addr,
                                 buf),
-                            OGS_PORT(&xact->gnode->remote_addr));
+                            OGS_PORT(&xact->gnode->addr));
                     rv = ogs_gtp_sendto(xact->gnode, pkbuf);
                     ogs_expect(rv == OGS_OK);
                 } else {
@@ -320,9 +332,9 @@ int ogs_gtp_xact_update_rx(ogs_gtp_xact_t *xact, uint8_t type)
                             xact->org == OGS_GTP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->gnode->remote_addr,
+                            OGS_ADDR(&xact->gnode->addr,
                                 buf),
-                            OGS_PORT(&xact->gnode->remote_addr));
+                            OGS_PORT(&xact->gnode->addr));
                 }
 
                 return OGS_RETRY;
@@ -373,9 +385,9 @@ int ogs_gtp_xact_update_rx(ogs_gtp_xact_t *xact, uint8_t type)
                             xact->org == OGS_GTP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->gnode->remote_addr,
+                            OGS_ADDR(&xact->gnode->addr,
                                 buf),
-                            OGS_PORT(&xact->gnode->remote_addr));
+                            OGS_PORT(&xact->gnode->addr));
                     rv = ogs_gtp_sendto(xact->gnode, pkbuf);
                     ogs_expect(rv == OGS_OK);
                 } else {
@@ -385,9 +397,9 @@ int ogs_gtp_xact_update_rx(ogs_gtp_xact_t *xact, uint8_t type)
                             xact->org == OGS_GTP_LOCAL_ORIGINATOR ?
                                 "LOCAL " : "REMOTE",
                             xact->step, type,
-                            OGS_ADDR(&xact->gnode->remote_addr,
+                            OGS_ADDR(&xact->gnode->addr,
                                 buf),
-                            OGS_PORT(&xact->gnode->remote_addr));
+                            OGS_PORT(&xact->gnode->addr));
                 }
 
                 return OGS_RETRY;
@@ -453,8 +465,8 @@ int ogs_gtp_xact_commit(ogs_gtp_xact_t *xact)
     ogs_debug("[%d] %s Commit  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&xact->gnode->remote_addr, buf),
-            OGS_PORT(&xact->gnode->remote_addr));
+            OGS_ADDR(&xact->gnode->addr, buf),
+            OGS_PORT(&xact->gnode->addr));
 
     type = xact->seq[xact->step-1].type;
     stage = ogs_gtp_xact_get_stage(type, xact->xid);
@@ -561,8 +573,8 @@ static void response_timeout(void *data)
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             xact->step, xact->seq[xact->step-1].type,
-            OGS_ADDR(&xact->gnode->remote_addr, buf),
-            OGS_PORT(&xact->gnode->remote_addr));
+            OGS_ADDR(&xact->gnode->addr, buf),
+            OGS_PORT(&xact->gnode->addr));
 
     if (--xact->response_rcount > 0) {
         ogs_pkbuf_t *pkbuf = NULL;
@@ -583,8 +595,8 @@ static void response_timeout(void *data)
                 xact->xid,
                 xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
                 xact->step, xact->seq[xact->step-1].type,
-                OGS_ADDR(&xact->gnode->remote_addr, buf),
-                OGS_PORT(&xact->gnode->remote_addr));
+                OGS_ADDR(&xact->gnode->addr, buf),
+                OGS_PORT(&xact->gnode->addr));
 
         if (xact->cb)
             xact->cb(xact, xact->data);
@@ -611,8 +623,8 @@ static void holding_timeout(void *data)
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
             xact->step, xact->seq[xact->step-1].type,
-            OGS_ADDR(&xact->gnode->remote_addr, buf),
-            OGS_PORT(&xact->gnode->remote_addr));
+            OGS_ADDR(&xact->gnode->addr, buf),
+            OGS_PORT(&xact->gnode->addr));
 
     if (--xact->holding_rcount > 0) {
         if (xact->tm_holding)
@@ -623,8 +635,8 @@ static void holding_timeout(void *data)
                 xact->xid,
                 xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
                 xact->step, xact->seq[xact->step-1].type,
-                OGS_ADDR(&xact->gnode->remote_addr, buf),
-                OGS_PORT(&xact->gnode->remote_addr));
+                OGS_ADDR(&xact->gnode->addr, buf),
+                OGS_PORT(&xact->gnode->addr));
         ogs_gtp_xact_delete(xact);
     }
 }
@@ -636,20 +648,24 @@ int ogs_gtp_xact_receive(
     char buf[OGS_ADDRSTRLEN];
     int rv;
     ogs_gtp_xact_t *new = NULL;
+    uint32_t sqn;
 
     ogs_assert(gnode);
     ogs_assert(h);
 
-    new = ogs_gtp_xact_find_by_xid(gnode, h->type, OGS_GTP_SQN_TO_XID(h->sqn));
+    if (h->teid_presence) sqn = h->sqn;
+    else sqn = h->sqn_only;
+
+    new = ogs_gtp_xact_find_by_xid(gnode, h->type, OGS_GTP_SQN_TO_XID(sqn));
     if (!new)
-        new = ogs_gtp_xact_remote_create(gnode, h->sqn);
+        new = ogs_gtp_xact_remote_create(gnode, sqn);
     ogs_assert(new);
 
     ogs_debug("[%d] %s Receive peer [%s]:%d",
             new->xid,
             new->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&gnode->remote_addr, buf),
-            OGS_PORT(&gnode->remote_addr));
+            OGS_ADDR(&gnode->addr, buf),
+            OGS_PORT(&gnode->addr));
 
     rv = ogs_gtp_xact_update_rx(new, h->type);
     if (rv == OGS_ERROR) {
@@ -685,6 +701,7 @@ static ogs_gtp_xact_stage_t ogs_gtp_xact_get_stage(uint8_t type, uint32_t xid)
     case OGS_GTP_CREATE_INDIRECT_DATA_FORWARDING_TUNNEL_REQUEST_TYPE:
     case OGS_GTP_DELETE_INDIRECT_DATA_FORWARDING_TUNNEL_REQUEST_TYPE:
     case OGS_GTP_DOWNLINK_DATA_NOTIFICATION_TYPE:
+    case OGS_GTP_ECHO_REQUEST_TYPE:
         stage = GTP_XACT_INITIAL_STAGE;
         break;
     case OGS_GTP_CREATE_BEARER_REQUEST_TYPE:
@@ -708,6 +725,7 @@ static ogs_gtp_xact_stage_t ogs_gtp_xact_get_stage(uint8_t type, uint32_t xid)
     case OGS_GTP_CREATE_INDIRECT_DATA_FORWARDING_TUNNEL_RESPONSE_TYPE:
     case OGS_GTP_DELETE_INDIRECT_DATA_FORWARDING_TUNNEL_RESPONSE_TYPE:
     case OGS_GTP_DOWNLINK_DATA_NOTIFICATION_ACKNOWLEDGE_TYPE:
+    case OGS_GTP_ECHO_RESPONSE_TYPE:
         stage = GTP_XACT_FINAL_STAGE;
         break;
 
@@ -760,8 +778,8 @@ ogs_gtp_xact_t *ogs_gtp_xact_find_by_xid(
             ogs_debug("[%d] %s Find    peer [%s]:%d",
                     xact->xid,
                     xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-                    OGS_ADDR(&gnode->remote_addr, buf),
-                    OGS_PORT(&gnode->remote_addr));
+                    OGS_ADDR(&gnode->addr, buf),
+                    OGS_PORT(&gnode->addr));
             break;
         }
     }
@@ -803,8 +821,8 @@ static int ogs_gtp_xact_delete(ogs_gtp_xact_t *xact)
     ogs_debug("[%d] %s Delete  peer [%s]:%d",
             xact->xid,
             xact->org == OGS_GTP_LOCAL_ORIGINATOR ? "LOCAL " : "REMOTE",
-            OGS_ADDR(&xact->gnode->remote_addr, buf),
-            OGS_PORT(&xact->gnode->remote_addr));
+            OGS_ADDR(&xact->gnode->addr, buf),
+            OGS_PORT(&xact->gnode->addr));
 
     if (xact->seq[0].pkbuf)
         ogs_pkbuf_free(xact->seq[0].pkbuf);

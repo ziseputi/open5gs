@@ -26,8 +26,7 @@ static int16_t pgw_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco);
 
 ogs_pkbuf_t *pgw_s5c_build_create_session_response(
         uint8_t type, pgw_sess_t *sess,
-        ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_create_session_request_t *req)
+        ogs_diam_gx_message_t *gx_message)
 {
     int rv;
     pgw_bearer_t *bearer = NULL;
@@ -44,13 +43,12 @@ ogs_pkbuf_t *pgw_s5c_build_create_session_response(
     ogs_debug("[PGW] Create Session Response");
 
     ogs_assert(sess);
-    ogs_assert(req);
     bearer = pgw_default_bearer_in_sess(sess);
     ogs_assert(bearer);
 
     ogs_debug("    SGW_S5C_TEID[0x%x] PGW_S5C_TEID[0x%x]",
             sess->sgw_s5c_teid, sess->pgw_s5c_teid);
-    ogs_debug("    SGW_S5U_TEID[%d] PGW_S5U_TEID[%d]",
+    ogs_debug("    SGW_S5U_TEID[0x%x] PGW_S5U_TEID[0x%x]",
             bearer->sgw_s5u_teid, bearer->pgw_s5u_teid);
 
     rsp = &gtp_message.create_session_response;
@@ -66,7 +64,7 @@ ogs_pkbuf_t *pgw_s5c_build_create_session_response(
     /* Control Plane(UL) : PGW-S5C */
     memset(&pgw_s5c_teid, 0, sizeof(ogs_gtp_f_teid_t));
     pgw_s5c_teid.interface_type = OGS_GTP_F_TEID_S5_S8_PGW_GTP_C;
-    pgw_s5c_teid.teid = htonl(sess->pgw_s5c_teid);
+    pgw_s5c_teid.teid = htobe32(sess->pgw_s5c_teid);
     rv = ogs_gtp_sockaddr_to_f_teid(
         pgw_self()->gtpc_addr, pgw_self()->gtpc_addr6, &pgw_s5c_teid, &len);
     ogs_assert(rv == OGS_OK);
@@ -97,8 +95,8 @@ ogs_pkbuf_t *pgw_s5c_build_create_session_response(
      * if PCRF changes APN-AMBR, this should be included. */
 
     /* PCO */
-    if (req->protocol_configuration_options.presence == 1) {
-        pco_len = pgw_pco_build(pco_buf, &req->protocol_configuration_options);
+    if (sess->ue_pco.presence && sess->ue_pco.len && sess->ue_pco.data) {
+        pco_len = pgw_pco_build(pco_buf, &sess->ue_pco);
         ogs_assert(pco_len > 0);
         rsp->protocol_configuration_options.presence = 1;
         rsp->protocol_configuration_options.data = pco_buf;
@@ -121,7 +119,7 @@ ogs_pkbuf_t *pgw_s5c_build_create_session_response(
     /* Data Plane(UL) : PGW-S5U */
     memset(&pgw_s5u_teid, 0, sizeof(ogs_gtp_f_teid_t));
     pgw_s5u_teid.interface_type = OGS_GTP_F_TEID_S5_S8_PGW_GTP_U;
-    pgw_s5u_teid.teid = htonl(bearer->pgw_s5u_teid);
+    pgw_s5u_teid.teid = htobe32(bearer->pgw_s5u_teid);
     rv = ogs_gtp_sockaddr_to_f_teid(
         pgw_self()->gtpu_addr, pgw_self()->gtpu_addr6, &pgw_s5u_teid, &len);
     ogs_assert(rv == OGS_OK);
@@ -134,8 +132,8 @@ ogs_pkbuf_t *pgw_s5c_build_create_session_response(
 }
 
 ogs_pkbuf_t *pgw_s5c_build_delete_session_response(
-        uint8_t type, ogs_diam_gx_message_t *gx_message,
-        ogs_gtp_delete_session_request_t *req)
+        uint8_t type, pgw_sess_t *sess,
+        ogs_diam_gx_message_t *gx_message)
 {
     ogs_gtp_message_t gtp_message;
     ogs_gtp_delete_session_response_t *rsp = NULL;
@@ -145,7 +143,6 @@ ogs_pkbuf_t *pgw_s5c_build_delete_session_response(
     int16_t pco_len;
     
     ogs_assert(gx_message);
-    ogs_assert(req);
 
     /* prepare cause */
     memset(&cause, 0, sizeof(cause));
@@ -162,8 +159,8 @@ ogs_pkbuf_t *pgw_s5c_build_delete_session_response(
     /* Recovery */
 
     /* PCO */
-    if (req->protocol_configuration_options.presence == 1) {
-        pco_len = pgw_pco_build(pco_buf, &req->protocol_configuration_options);
+    if (sess->ue_pco.presence && sess->ue_pco.len && sess->ue_pco.data) {
+        pco_len = pgw_pco_build(pco_buf, &sess->ue_pco);
         ogs_assert(pco_len > 0);
         rsp->protocol_configuration_options.presence = 1;
         rsp->protocol_configuration_options.data = pco_buf;
@@ -218,7 +215,7 @@ ogs_pkbuf_t *pgw_s5c_build_create_bearer_request(
     /* Data Plane(UL) : PGW_S5U */
     memset(&pgw_s5u_teid, 0, sizeof(ogs_gtp_f_teid_t));
     pgw_s5u_teid.interface_type = OGS_GTP_F_TEID_S5_S8_PGW_GTP_U;
-    pgw_s5u_teid.teid = htonl(bearer->pgw_s5u_teid);
+    pgw_s5u_teid.teid = htobe32(bearer->pgw_s5u_teid);
     rv = ogs_gtp_sockaddr_to_f_teid(
         pgw_self()->gtpu_addr, pgw_self()->gtpu_addr6, &pgw_s5u_teid, &len);
     ogs_assert(rv == OGS_OK);
@@ -384,6 +381,7 @@ static int16_t pgw_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco)
     ogs_ipsubnet_t p_cscf, p_cscf6;
     int size = 0;
     int i = 0;
+    uint16_t mtu = 0;
 
     ogs_assert(pco_buf);
     ogs_assert(tlv_pco);
@@ -409,12 +407,14 @@ static int16_t pgw_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco)
             break;
         case OGS_PCO_ID_INTERNET_PROTOCOL_CONTROL_PROTOCOL:
             if (data[0] == 1) { /* Code : Configuration Request */
-                uint16_t len = 16;
+                uint16_t len = 0;
+
+                ogs_assert(pgw_self()->dns[0] || pgw_self()->dns[1]);
 
                 memset(&pco_ipcp, 0, sizeof(ogs_pco_ipcp_t));
                 pco_ipcp.code = 2; /* Code : Configuration Ack */
-                pco_ipcp.len = htons(len);
 
+                len = 4;
                 /* Primary DNS Server IP Address */
                 if (pgw_self()->dns[0]) {
                     rv = ogs_ipsubnet(
@@ -423,6 +423,7 @@ static int16_t pgw_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco)
                     pco_ipcp.options[0].type = 129; 
                     pco_ipcp.options[0].len = 6; 
                     pco_ipcp.options[0].addr = dns_primary.sub[0];
+                    len += 6;
                 }
 
                 /* Secondary DNS Server IP Address */
@@ -433,7 +434,10 @@ static int16_t pgw_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco)
                     pco_ipcp.options[1].type = 131; 
                     pco_ipcp.options[1].len = 6; 
                     pco_ipcp.options[1].addr = dns_secondary.sub[0];
+                    len += 6;
                 }
+
+                pco_ipcp.len = htobe16(len);
 
                 pgw.ids[pgw.num_of_id].id = ue.ids[i].id;
                 pgw.ids[pgw.num_of_id].len = len;
@@ -517,7 +521,7 @@ static int16_t pgw_pco_build(uint8_t *pco_buf, ogs_gtp_tlv_pco_t *tlv_pco)
             break;
         case OGS_PCO_ID_IPV4_LINK_MTU_REQUEST:
             if (pgw_self()->mtu) {
-                uint16_t mtu = htons(pgw_self()->mtu);
+                mtu = htons(pgw_self()->mtu);
                 pgw.ids[pgw.num_of_id].id = ue.ids[i].id;
                 pgw.ids[pgw.num_of_id].len = sizeof(uint16_t);
                 pgw.ids[pgw.num_of_id].data = &mtu;

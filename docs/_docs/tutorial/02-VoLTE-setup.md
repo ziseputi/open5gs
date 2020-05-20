@@ -43,14 +43,14 @@ libssl-dev libcurl4-openssl-dev libxml2-dev libpcre3-dev bash-completion g++ aut
 libradcli4
 ```
 
-#### 4. Clone Kamailio repository and checkout 5.2 version of repository
+#### 4. Clone Kamailio repository and checkout 5.3 version of repository
 
 ```
 $ mkdir -p /usr/local/src/
 $ cd /usr/local/src/
 $ git clone https://github.com/herlesupreeth/kamailio
 $ cd kamailio
-$ git checkout -b 5.2 origin/5.2
+$ git checkout -b 5.3 origin/5.3
 ```
 
 #### 5. Generate build config files
@@ -351,6 +351,10 @@ SIP: test@ims.mnc001.mcc001.3gppnetwork.org (Created DNS Domain Name or IP to wh
 Save and exit
 
 - Now try calling from either phone
+
+
+Upon completion of this test, set "Receive incoming calls" option to disabled state and set "Use SIP calling" to "Only for SIP calls"
+{: .notice--warning}
 
 #### 13. Create new mysql database for pcscf, scscf and icscf, populate databases and grant permissions to respective users identified by a password
 
@@ -786,9 +790,6 @@ Please refer to instructions at [https://open5gs.org/open5gs/docs/guide/02-build
 
 If you are using OpenStack, installing Open5GS and Kamailio IMS on the same machine is very important because the **Framed-IP-Address** in the AAR request via Rx interface takes received IP address and port in ims_qos module, hence, if the Open5GS is on a separate VM/machine, the IP and port received in received_ip and received_port values seen by Kamailio IMS will be the NATed IP of the Open5GS machine resulting in failing of AAR request.
 {: .notice--danger}
-
-I made some modifications in order to force UE to PS domain attach and use IPv4. You can refer to the **hacks** branch of [https://github.com/herlesupreeth/open5gs](https://github.com/herlesupreeth/open5gs)
-{: .notice--info}
 
 Modify below mentioned parts of configuration files in addition to **Configure Open5GS** section. For reference, look at the configuration files at [https://github.com/herlesupreeth/Open5gs_Config](https://github.com/herlesupreeth/Open5gs_Config)
 {: .notice--warning}

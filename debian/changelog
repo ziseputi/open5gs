@@ -1,3 +1,81 @@
+open5gs (1.2.5) unstable; urgency=medium
+
+  * NRF is added
+
+ -- Sukchan Lee <acetcom@gmail.com>  Mon, 18 May 2020 13:14:54 -0400
+
+open5gs (1.2.4~eoan) eoan; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sun, 26 Apr 2020 15:08:22 -0400
+
+open5gs (1.2.4~bionic) bionic; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sun, 26 Apr 2020 15:07:40 -0400
+
+open5gs (1.2.4~focal) focal; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sun, 26 Apr 2020 15:04:41 -0400
+
+open5gs (1.2.4) unstable; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sun, 26 Apr 2020 13:59:06 -0400
+
+open5gs (1.2.3~eoan) eoan; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sat, 04 Apr 2020 18:11:28 -0400
+
+open5gs (1.2.3~disco) disco; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sat, 04 Apr 2020 18:10:43 -0400
+
+open5gs (1.2.3~bionic1) bionic; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sat, 04 Apr 2020 18:08:17 -0400
+
+open5gs (1.2.3) unstable; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Sat, 04 Apr 2020 18:03:59 -0400
+
+open5gs (1.2.2~eoan) eoan; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 25 Mar 2020 23:52:52 +0000
+
+open5gs (1.2.2~disco) disco; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 25 Mar 2020 23:51:53 +0000
+
+open5gs (1.2.2~bionic) bionic; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 25 Mar 2020 23:49:09 +0000
+
+open5gs (1.2.2) unstable; urgency=medium
+
+  * Bug Fixed
+
+ -- Sukchan Lee <acetcom@gmail.com>  Wed, 25 Mar 2020 23:46:47 +0000
+
 open5gs (1.2.1~eoan) eoan; urgency=medium
 
   * Bug Fixed

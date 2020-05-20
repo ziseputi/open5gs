@@ -92,6 +92,14 @@ void sgw_s5c_handle_create_session_response(ogs_gtp_xact_t *s5c_xact,
                 ogs_error("No Cause");
                 cause_value = OGS_GTP_CAUSE_MANDATORY_IE_MISSING;
             }
+        } else {
+            /* Deliver PGW cause value to the MME */
+            ogs_warn("Cause[%d] : No Accepted", cause_value);
+            ogs_gtp_send_error_message(
+                    s11_xact, sgw_ue ? sgw_ue->mme_s11_teid : 0,
+                    OGS_GTP_CREATE_SESSION_RESPONSE_TYPE,
+                    cause_value);
+            return;
         }
     } else {
         ogs_error("No Cause");
@@ -143,7 +151,8 @@ void sgw_s5c_handle_create_session_response(ogs_gtp_xact_t *s5c_xact,
 
     if (cause_value != OGS_GTP_CAUSE_REQUEST_ACCEPTED) {
         ogs_gtp_send_error_message(s11_xact, sgw_ue ? sgw_ue->mme_s11_teid : 0,
-                OGS_GTP_CREATE_SESSION_RESPONSE_TYPE, cause_value);
+                OGS_GTP_CREATE_SESSION_RESPONSE_TYPE,
+                cause_value);
         return;
     }
 
@@ -169,8 +178,8 @@ void sgw_s5c_handle_create_session_response(ogs_gtp_xact_t *s5c_xact,
 
     pgw = ogs_gtp_node_find_by_f_teid(&sgw_self()->pgw_s5u_list, pgw_s5u_teid);
     if (!pgw) {
-        pgw = ogs_gtp_node_add(&sgw_self()->pgw_s5u_list, pgw_s5u_teid,
-            sgw_self()->gtpu_port,
+        pgw = ogs_gtp_node_add_by_f_teid(
+            &sgw_self()->pgw_s5u_list, pgw_s5u_teid, sgw_self()->gtpu_port,
             ogs_config()->parameter.no_ipv4,
             ogs_config()->parameter.no_ipv6,
             ogs_config()->parameter.prefer_ipv4);
@@ -377,8 +386,8 @@ void sgw_s5c_handle_create_bearer_request(ogs_gtp_xact_t *s5c_xact,
     s5u_tunnel->remote_teid = ntohl(pgw_s5u_teid->teid);
     pgw = ogs_gtp_node_find_by_f_teid(&sgw_self()->pgw_s5u_list, pgw_s5u_teid);
     if (!pgw) {
-        pgw = ogs_gtp_node_add(&sgw_self()->pgw_s5u_list, pgw_s5u_teid,
-            sgw_self()->gtpu_port,
+        pgw = ogs_gtp_node_add_by_f_teid(
+            &sgw_self()->pgw_s5u_list, pgw_s5u_teid, sgw_self()->gtpu_port,
             ogs_config()->parameter.no_ipv4,
             ogs_config()->parameter.no_ipv6,
             ogs_config()->parameter.prefer_ipv4);

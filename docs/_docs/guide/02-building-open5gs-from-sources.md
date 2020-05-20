@@ -9,15 +9,16 @@ This post explains how to compile and install the source code on **Debian/Ubuntu
 ### Getting MongoDB
 ---
 
-Install MongoDB with package manager.
+Install MongoDB with package manager.  It is used as database for the HSS and PCRF.
 
 ```bash
 $ sudo apt update
 $ sudo apt install mongodb
 $ sudo systemctl start mongodb (if '/usr/bin/mongod' is not running)
+$ sudo systemctl enable mongodb (ensure to automatically start it on system boot)
 ```
 
-### Setting up TUN device (No persistent after rebooting)
+### Setting up TUN device (not persistent after rebooting)
 ---
 
 Create the TUN device with the interface name `ogstun`.
@@ -36,16 +37,10 @@ $ sudo ip link set ogstun up
 ### Building Open5GS
 ---
 
-Install the depedencies for building the source code.
+Install the dependencies for building the source code.
 
 ```bash
-$ sudo apt install python3-pip python3-setuptools python3-wheel ninja-build build-essential flex bison git libsctp-dev libgnutls28-dev libgcrypt-dev libssl-dev libidn11-dev libmongoc-dev libbson-dev libyaml-dev
-```
-
-Install Meson using Python.
-
-```bash
-$ pip3 install --user meson
+$ sudo apt install python3-pip python3-setuptools python3-wheel ninja-build build-essential flex bison git libsctp-dev libgnutls28-dev libgcrypt-dev libssl-dev libidn11-dev libmongoc-dev libbson-dev libyaml-dev libmicrohttpd-dev libcurl4-gnutls-dev meson
 ```
 
 Git clone.
@@ -74,12 +69,18 @@ You need to perform the **installation process**.
 ```bash
 $ cd build
 $ ninja install
+$ cd ../
 ```
 
 ### Configure Open5GS
 ---
 
-Modify [/etc/open5gs/mme.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/master/configs/open5gs/mme.yaml.in) to set the S1AP/GTP-C IP address, PLMN ID, and TAC
+Modify [install/etc/open5gs/mme.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/master/configs/open5gs/mme.yaml.in) to set the S1AP/GTP-C IP address, PLMN ID, and TAC. 
+
+In the below example we
+
+- use MCC-MNC of 901-70, as this is the home network of the default IMSIs of the sysmoUSIM-SJS1 cards.
+- use 192.168.0.100 for the S1AP +GTP-U connection of MME/SGW to the eNB
 
 ```diff
 diff -u /etc/open5gs/mme.yaml.old /etc/open5gs/mme.yaml
@@ -113,7 +114,7 @@ diff -u /etc/open5gs/mme.yaml.old /etc/open5gs/mme.yaml
          ciphering_order : [ EEA0, EEA1, EEA2 ]
 ```
 
-Modify [/etc/open5gs/sgw.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/master/configs/open5gs/sgw.yaml.in) to set the GTP-U IP address.  
+Modify [install/etc/open5gs/sgw.yaml](https://github.com/{{ site.github_username }}/open5gs/blob/master/configs/open5gs/sgw.yaml.in) to set the GTP-U IP address.  
 ```diff
 diff -u /etc/open5gs/sgw.yaml.old /etc/open5gs/sgw.yaml
 --- sgw.yaml.old	2018-04-15 18:30:25.000000000 +0900
@@ -125,14 +126,14 @@ diff -u /etc/open5gs/sgw.yaml.old /etc/open5gs/sgw.yaml
 +      addr: 192.168.0.100
 ```
 
-After changing conf files, please restart Open5GS daemons.
+If you modify the config files while Open5GS daemons are running, please restart them
 
 
 ### Running Open5GS
 ---
 
 ```bash
-$ cd install
+$ cd install/bin/
 $ ./open5gs-pcrfd
 Open5GS daemon v1.0.0
 
@@ -197,8 +198,12 @@ Options:
    -h             : show this message and exit
 ```
 
+You can also copy the binaries to /usr/bin to be able to run them from anywhere on the system.
+```bash
+$ cp open5gs* /usr/bin/
+```
 
-### Building WebUI of Open5GS
+### Building the WebUI of Open5GS
 ---
 
 [Node.js](https://nodejs.org/) is required to build WebUI of Open5GS
@@ -241,16 +246,16 @@ To add subscriber information, you can do WebUI operations in the following orde
   3. Fill the IMSI, security context(K, OPc, AMF), and APN of the subscriber.
   4. Click `SAVE` Button
 
-**Tip:** This addition immediately affects Open5GS without restaring any daemon.
+**Tip:** This addition immediately affects Open5GS without restarting any daemon.
 {: .notice--warning}
 
-### Adding a route for UE to have internet connectivity
+### IP routing + NAT for UE internet connectivity
 ---
 
-If your phone can connect to internet, you must run the following command in Open5GS-PGW installed host. 
+To allow your phones to connect to the internet, you must run the following command on the host running Open5GS-PGW:
 
 ```bash
-### Check IP Tables
+### Check IP Table 'forward'
 $ sudo iptables -L
 Chain INPUT (policy ACCEPT)
 target     prot opt source               destination
@@ -261,7 +266,7 @@ target     prot opt source               destination
 Chain OUTPUT (policy ACCEPT)
 target     prot opt source               destination
 
-### Check NAT Tables
+### Check IP Table 'nat'
 $ sudo iptables -L -t nat
 Chain PREROUTING (policy ACCEPT)
 target     prot opt source               destination
@@ -282,7 +287,7 @@ $ sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 $ sudo iptables -t nat -A POSTROUTING -s 10.45.0.0/16 ! -o ogstun -j MASQUERADE
 ```
 
-**Note:** It is a good condition if you do not have any rules in the IP/NAT tables. If a program such as docker has already set up a rule, you will need to add a rule differently.
+**Note:** The above assumes you do not have any existing rules in the filter and nat tables. If a program such as docker has already set up rules, you may need to add the Open5GS related rules differently.
 {: .notice--danger}
 
 ### Turn on your eNodeB and Phone

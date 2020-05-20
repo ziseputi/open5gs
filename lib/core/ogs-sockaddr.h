@@ -50,6 +50,8 @@ struct ogs_sockaddr_s {
     /* User Area
      *   - Could add your attribute.
      */
+    char *hostname;
+
     ogs_sockaddr_t *next;
 };
 
@@ -59,6 +61,9 @@ typedef struct ogs_ipsubnet_s {
     uint32_t sub[4]; /* big enough for IPv4 and IPv6 addresses */
     uint32_t mask[4];
 } ogs_ipsubnet_t;
+
+int ogs_getnameinfo(
+    char *hostname, socklen_t hostname_len, ogs_sockaddr_t *addr, int flags);
 
 int ogs_getaddrinfo(ogs_sockaddr_t **sa_list, 
         int family, const char *hostname, uint16_t port, int flags);
@@ -88,6 +93,9 @@ bool ogs_sockaddr_is_equal(void *p, void *q);
 
 int ogs_ipsubnet(ogs_ipsubnet_t *ipsub,
         const char *ipstr, const char *mask_or_numbits);
+
+char *ogs_gethostname(ogs_sockaddr_t *addr);
+char *ogs_ipstrdup(ogs_sockaddr_t *addr);
 
 #ifdef __cplusplus
 }
